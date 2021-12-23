@@ -1,2 +1,3 @@
 # dbgen3
-Database access source code generator 
+
+Database access source code generator
