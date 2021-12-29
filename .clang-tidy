@@ -1,14 +1,14 @@
 ---
-Checks: '
-clang-analyzer-*,
-clang-cppcoreguidelines-*,
-clang-modernize-*,
--cppcoreguidelines-avoid-magic-numbers,
--cppcoreguidelines-macro-usage,
--cppcoreguidelines-owning-memory
+Checks: '*,
+-llvmlibc-restrict-system-libc-headers,
+-llvmlibc-implementation-in-namespace,
+-llvmlibc-callee-namespace,
+-llvm-header-guard,
+-modernize-use-trailing-return-type,
+-fuchsia-default-arguments-calls,
 '
 WarningsAsErrors: '*'
-HeaderFilterRegex: '.*'
+HeaderFilterRegex: '*.hpp'
 AnalyzeTemporaryDtors: false
 FormatStyle:     none
 ...
