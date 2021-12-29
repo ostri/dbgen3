@@ -1,22 +1,15 @@
-#ifndef guard__LOG_HPP_VCZCGU4TL746__
-#define guard__LOG_HPP_VCZCGU4TL746__
+#ifndef LOG_HPP
+#define LOG_HPP
 namespace dbgen3
 {
-///////////////////////////////////////////////////////////
-/// @brief log
-///
-class log
-{
-public:
-    log()=default;
-    ~log()=default;
-    log(const log &other)=default;
-    log(log &&other)=default;
-    log &operator=(const log &other)=default;
-    log &operator=(log &&other)=default;
+  class log
+  {
+  };
+} // namespace dbgen3
+using log = dbgen3::log;
+#define info LOG(INFO)    // NOLINT
+#define warn LOG(WARNING) // NOLINT
+#define error LOG(ERROR)  // NOLINT
+#define fatal LOG(FATAL)  // NOLINT
 
-private:
-    // Members
-};
-}; // namespace
-#endif  // guard__LOG_HPP_VCZCGU4TL746__
+#endif // LOG_HPP

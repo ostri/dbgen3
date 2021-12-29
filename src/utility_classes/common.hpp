@@ -1,5 +1,5 @@
-#ifndef guard__COMMON_HPP_QSN7IE6JX4HO__
-#define guard__COMMON_HPP_QSN7IE6JX4HO__
+#ifndef COMMON_HPP
+#define COMMON_HPP
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -26,7 +26,7 @@ namespace dbgen3
  * @param token_set set of tokens that we are searching in
  * @return
  */
-  int g_token_ndx(const str_t token, const str_vec& token_set);
+  int g_token_ndx(const str_t& token, const str_vec& token_set);
   /**
  * @brief it returns string associated with the token id from the token set.
  *
@@ -34,6 +34,6 @@ namespace dbgen3
  * @param token_set set of tokens
  * @return string version of the token id
  */
-  const str_t g_token_str(int token_id, const str_vec& token_set);
+  const str_t& g_token_str(int token_id, const str_vec& token_set);
 } // namespace dbgen3
-#endif // guard__COMMON_HPP_QSN7IE6JX4HO__
+#endif // COMMON_HPP
