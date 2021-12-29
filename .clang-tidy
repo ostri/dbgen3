@@ -5,7 +5,9 @@ Checks: '*,
 -llvmlibc-callee-namespace,
 -llvm-header-guard,
 -modernize-use-trailing-return-type,
+-modernize-use-nodiscard,
 -fuchsia-default-arguments-calls,
+-fuchsia-default-arguments-declarations
 '
 WarningsAsErrors: '*'
 HeaderFilterRegex: '*.hpp'

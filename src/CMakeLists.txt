@@ -19,6 +19,7 @@ set (src_list
   utility_classes/common
   utility_classes/string_format
   utility_classes/log
+  utility_classes/program_status
   cmd_param/cmdline_parameters
 )
 set (cpp_list ${src_list})
