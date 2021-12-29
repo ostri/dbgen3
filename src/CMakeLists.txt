@@ -10,7 +10,7 @@ endforeach()
 message (STATUS "proj_lib '${PROJ_LIB}'")
 
 # Make an automatic library - will be static or dynamic based on user setting
-add_library(${PROJ_LIB} )
+add_library(${PROJ_LIB})
 
 # We need this directory, and users of our library will need it too
 target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS})
@@ -39,21 +39,22 @@ target_sources(${PROJ_LIB}
 #target_link_libraries(${PROJ_LIB} PRIVATE Boost::boost)
 
 # All users of this library will need at least C++11
-target_compile_features(${PROJ_LIB} PUBLIC cxx_std_11)
-
+target_compile_features(${PROJ_LIB} PUBLIC cxx_std_20)
+target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS})
 # IDEs should put the headers in a nice place
-source_group(
-  TREE "${PROJECT_SOURCE_DIR}/include"
-  PREFIX "Header Files"
-  FILES ${HEADER_LIST})
+# source_group(
+#   TREE "${PROJECT_SOURCE_DIR}/include"
+#   PREFIX "Header Files"
+#   FILES ${HEADER_LIST})
 
-add_executable(${PROG_NAME} main.cpp )
+add_executable(${PROG_NAME} main.cpp ${hpp_list})
 target_compile_features(${PROG_NAME} PRIVATE cxx_std_20)
+target_include_directories(${PROG_NAME} PUBLIC ${SUBDIRS})
 
 target_link_libraries(${PROG_NAME}
   PRIVATE
     proj_lib
-    fmt::fmt
+#    fmt::fmt
     glog::glog
     gflags
 )
