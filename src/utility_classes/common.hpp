@@ -1,14 +1,12 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
+#include <glog/logging.h>
 #include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include <sys/stat.h>
-// #include <unistd.h>
-// #include <string>
-// #include <fstream>
 
 #include "log.hpp"
 #include "program_status.hpp"

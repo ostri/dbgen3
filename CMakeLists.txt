@@ -45,6 +45,7 @@ include(FetchContent)
 
 find_package (gflags REQUIRED)
 find_package (glog 0.6.0 REQUIRED)
+find_package (XercesC REQUIRED)
 
 # # Formatting library
 # FetchContent_Declare(fmtlib GIT_REPOSITORY https://github.com/fmtlib/fmt.git GIT_TAG 5.3.0)

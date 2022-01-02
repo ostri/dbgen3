@@ -3,6 +3,7 @@
 
 #include "cmdline_parameters.hpp"
 #include "common.hpp"
+#include "gsql_parser.hpp"
 #include "program_status.hpp"
 #include "string_format.hpp"
 
@@ -27,10 +28,13 @@ int main(int argc, char** argv)
   if (sts == dbgen3::p_sts::success)
   {
     info << out::sl("parameters are ok.", 0);
+    xercesc::XMLPlatformUtils::Initialize();
+    dbgen3::gsql_parser qe; // xercesc environment
+    if (qe.isValid()) { info << out::sl("environment is ok"); }
   }
   else {
     auto tmp = dbgen3::program_status().g_dscr(sts);
-    error << out::sl(tmp, 0);
+    err << out::sl(tmp, 0);
   }
   return static_cast<int>(sts);
 }

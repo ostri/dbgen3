@@ -1,7 +1,7 @@
 set(PROJ_LIB proj_lib)
 set(PROG_NAME dbgen3)
 set(HEADER_LIST "")
-set (SUBDIRS utility_classes cmd_param)
+set (SUBDIRS utility_classes cmd_param gsql_parser)
 
 foreach (SUBDIR ${SUBDIRS})
     add_subdirectory(${SUBDIR})
@@ -20,7 +20,15 @@ set (src_list
   utility_classes/string_format
   utility_classes/log
   utility_classes/program_status
+
+
   cmd_param/cmdline_parameters
+
+  gsql_parser/core_parser
+  gsql_parser/gsql_parser
+  gsql_parser/gsql_item
+  gsql_parser/gsql_item_set
+  gsql_parser/xerces_strings
 )
 set (cpp_list ${src_list})
 set (hpp_list ${src_list})
@@ -58,4 +66,5 @@ target_link_libraries(${PROG_NAME}
 #    fmt::fmt
     glog::glog
     gflags
+    xerces-c
 )
