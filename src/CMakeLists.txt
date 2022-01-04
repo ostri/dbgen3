@@ -83,8 +83,8 @@ target_sources(${RT_LIB}
     ${rt_hpp_list}
 )
 target_compile_features(${RT_LIB} PUBLIC cxx_std_20)
-target_include_directories(${RT_LIB} PUBLIC ${RT_SUBDIRS} /opt/ibm/db2/V11.1/include)
-target_link_libraries(${RT_LIB} PRIVATE libdb2.so)
+target_include_directories(${RT_LIB} PUBLIC ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS})
+target_link_libraries(${RT_LIB} PRIVATE ${DB2_LIBRARIES})
 
 
 add_executable(${PROG_NAME} main.cpp ${hpp_list})
