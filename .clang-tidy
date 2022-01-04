@@ -7,7 +7,12 @@ Checks: '*,
 -modernize-use-trailing-return-type,
 -modernize-use-nodiscard,
 -fuchsia-default-arguments-calls,
--fuchsia-default-arguments-declarations
+-fuchsia-default-arguments-declarations,
+-bugprone-easily-swappable-parameters,
+-readability-braces-around-statements,
+-hicpp-braces-around-statements,
+-google-readability-braces-around-statements,
+-altera-id-dependent-backward-branch
 '
 WarningsAsErrors: '*'
 HeaderFilterRegex: '*.hpp'
