@@ -1,7 +1,9 @@
 set(PROJ_LIB proj_lib)
+set(RT_LIB db3)
 set(PROG_NAME dbgen3)
 set(HEADER_LIST "")
-set (SUBDIRS utility_classes cmd_param gsql_parser)
+set (RT_SUBDIRS runtime)
+set (SUBDIRS utility_classes cmd_param gsql_parser ${RT_SUBDIRS})
 
 foreach (SUBDIR ${SUBDIRS})
     add_subdirectory(${SUBDIR})
@@ -29,6 +31,7 @@ set (src_list
   gsql_parser/gsql_item
   gsql_parser/gsql_item_set
   gsql_parser/xerces_strings
+
 )
 set (cpp_list ${src_list})
 set (hpp_list ${src_list})
@@ -41,24 +44,52 @@ target_sources(${PROJ_LIB}
   PRIVATE
     ${cpp_list}
     ${hpp_list}
+    ${rt_hpp_list}
   PUBLIC
     ${hpp_list}
+    ${rt_hpp_list}
 )
-## This depends on (header only) boost
-#target_link_libraries(${PROJ_LIB} PRIVATE Boost::boost)
+# ## This depends on (header only) boost
+# target_link_libraries(${PROJ_LIB} PRIVATE ${RT_LIB})
 
-# All users of this library will need at least C++11
-target_compile_features(${PROJ_LIB} PUBLIC cxx_std_20)
-target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS})
-# IDEs should put the headers in a nice place
-# source_group(
-#   TREE "${PROJECT_SOURCE_DIR}/include"
-#   PREFIX "Header Files"
-#   FILES ${HEADER_LIST})
+# # All users of this library will need at least C++11
+# target_compile_features(${PROJ_LIB} PUBLIC cxx_std_20)
+# target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS})
+# # IDEs should put the headers in a nice place
+# # source_group(
+# #   TREE "${PROJECT_SOURCE_DIR}/include"
+# #   PREFIX "Header Files"
+# #   FILES ${HEADER_LIST})
+
+ add_library(${RT_LIB})
+
+set (rt_src_list
+  runtime/connection
+  runtime/error
+  runtime/error_exception
+)
+set (rt_cpp_list ${rt_src_list})
+set (rt_hpp_list ${rt_src_list})
+list(TRANSFORM rt_cpp_list APPEND ".cpp")
+list(TRANSFORM rt_hpp_list APPEND ".hpp")
+message (STATUS "${rt_cpp_list}")
+message (STATUS "${rt_hpp_list}")
+
+target_sources(${RT_LIB}
+  PRIVATE
+    ${rt_cpp_list}
+    ${rt_hpp_list}
+  PUBLIC
+    ${rt_hpp_list}
+)
+target_compile_features(${RT_LIB} PUBLIC cxx_std_20)
+target_include_directories(${RT_LIB} PUBLIC ${RT_SUBDIRS} /opt/ibm/db2/V11.1/include)
+target_link_libraries(${RT_LIB} PRIVATE libdb2.so)
+
 
 add_executable(${PROG_NAME} main.cpp ${hpp_list})
 target_compile_features(${PROG_NAME} PRIVATE cxx_std_20)
-target_include_directories(${PROG_NAME} PUBLIC ${SUBDIRS})
+target_include_directories(${PROG_NAME} PUBLIC ${SUBDIRS} )
 
 target_link_libraries(${PROG_NAME}
   PRIVATE
