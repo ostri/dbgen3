@@ -21,7 +21,7 @@ namespace dbgen3
   {
   public:
     gsql_parser();
-    ~gsql_parser();
+    ~gsql_parser()                  = default;
     gsql_parser(const gsql_parser&) = delete;
     gsql_parser(gsql_parser&&)      = default;
     gsql_parser& operator=(const gsql_parser&) = delete;

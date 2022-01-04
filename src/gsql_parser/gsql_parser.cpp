@@ -16,7 +16,5 @@ namespace dbgen3
       auto msg = toNative(e.getMessage());
       err << "Error during initialization! :\n" << msg << "\n";
     }
-  }
-
-  gsql_parser::~gsql_parser() { }
-} // namespace dbgen3
+  };
+}; // namespace dbgen3

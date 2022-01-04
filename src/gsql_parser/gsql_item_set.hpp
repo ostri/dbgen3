@@ -5,7 +5,6 @@
 
 #include "gsql_item.hpp"
 
-
 namespace dbgen3
 {
   class gsql_item_set : public std::map<str_t, gsql_item>

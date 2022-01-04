@@ -1,11 +1,6 @@
-#include "gsql_item_set.hpp"  
-	
-gsql_item_set::gsql_item_set()
+#include "gsql_item_set.hpp"
+
+namespace dbgen3
 {
-	
-}
-	
-gsql_item_set::~gsql_item_set()
-{
-	
-}
+
+}; // namespace dbgen3
