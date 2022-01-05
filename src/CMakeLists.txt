@@ -67,6 +67,7 @@ set (rt_src_list
   runtime/connection
   runtime/error
   runtime/error_exception
+  runtime/statement
 )
 set (rt_cpp_list ${rt_src_list})
 set (rt_hpp_list ${rt_src_list})
@@ -82,9 +83,11 @@ target_sources(${RT_LIB}
   PUBLIC
     ${rt_hpp_list}
 )
+message(STATUS "FMT LIB ${fmtlib_SOURCE_DIR}")
 target_compile_features(${RT_LIB} PUBLIC cxx_std_20)
-target_include_directories(${RT_LIB} PUBLIC ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS})
-target_link_libraries(${RT_LIB} PRIVATE ${DB2_LIBRARIES})
+#target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS} ${fmtlib_SOURCE_DIR}/include/fmt/)
+target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS})
+# target_link_libraries(${RT_LIB} PRIVATE fmt::fmt ${DB2_LIBRARIES})
 
 
 add_executable(${PROG_NAME} main.cpp ${hpp_list})

@@ -17,17 +17,19 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(PREBUILT_MODULE_PATH ${CMAKE_BINARY_DIR}/modules)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+  add_compile_options(-Wall -Wextra -pedantic -Werror)
+
   # Let's nicely support folders in IDEs
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-  find_program(
-    CLANG_TIDY_EXE
-    NAMES "clang-tidy"
-    DOC "Path to clang-tidy executable"
-  )
-  set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
+  # find_program(
+  #   CLANG_TIDY_EXE
+  #   NAMES "clang-tidy"
+  #   DOC "Path to clang-tidy executable"
+  # )
+  # set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
 
   # Testing only available if this is the main app
   include(CTest)
@@ -51,7 +53,7 @@ find_package (XercesC REQUIRED)
 find_package (DB2 REQUIRED)
 
 # # Formatting library
-# FetchContent_Declare(fmtlib GIT_REPOSITORY https://github.com/fmtlib/fmt.git GIT_TAG 5.3.0)
+# FetchContent_Declare(fmtlib GIT_REPOSITORY https://github.com/fmtlib/fmt.git GIT_TAG 8.1.0)
 # FetchContent_MakeAvailable(fmtlib)
 # # Adds fmt::fmt
 
