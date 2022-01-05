@@ -33,7 +33,7 @@ namespace dbgen3
    * @param token_set set of tokens that we are searching in
    * @return
    */
-  int g_token_ndx(const str_t& token, const str_vec& token_set);
+  uint g_token_ndx(const str_t& token, const str_vec& token_set);
   /**
    * @brief it returns string associated with the token id from the token set.
    *
@@ -41,7 +41,7 @@ namespace dbgen3
    * @param token_set set of tokens
    * @return string version of the token id
    */
-  const str_t& g_token_str(int token_id, const str_vec& token_set);
+  const str_t& g_token_str(uint token_id, const str_vec& token_set);
 
   /**
    * @brief test whether the provided path/file exists

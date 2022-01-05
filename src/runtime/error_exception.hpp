@@ -1,6 +1,3 @@
-#ifndef ERROR_EXCEPTION_H
-#define ERROR_EXCEPTION_H
-
 /*!
  * \file
  * \brief Declaration of db::error_exception utility class
@@ -10,9 +7,13 @@
  * When       Who What
  * 18.05.2009 Os3 Predecessor of error_exception became std::runtime_error
  */
-#include "error.hpp"
+#ifndef ERROR_EXCEPTION_H
+#define ERROR_EXCEPTION_H
+
 #include <iostream>
 #include <stdexcept>
+
+#include "error.hpp"
 
 namespace db
 {
@@ -29,23 +30,45 @@ namespace db
   {
   public:
     /// ctor
-    error_exception(const error& err);
+    explicit error_exception(const error& err) noexcept;
     /// ctor
-    error_exception(const std::string& str);
+    explicit error_exception(const std::string& str) noexcept;
     /// copy ctor
-    error_exception(const error_exception& o);
+    error_exception(const error_exception& o) noexcept;
+    /// move constructor
+    error_exception(error_exception&& o) noexcept = default;
+    error_exception& operator=(const error_exception& o) = default;
+    error_exception& operator=(error_exception&& o) = default;
     /// dtor
-    virtual ~error_exception() throw();
+    ~error_exception() override = default;
     /// gettter
-    const error& get_error() const;
-
+    // const error& get_error() const;
   private:
-    /// assign operator
-    error_exception& operator=(const error_exception& e);
-    /// error data holder
-    error* m_error;
+    // /// error data holder
+    // const error& m_error;
   };
   /// Serialisation to string stream
   std::ostream& operator<<(std::ostream& s, const error_exception& o);
+  /*!
+   * It dumps the class instance to the stream
+   */
+  inline std::ostream& operator<< // NOLINT fuchsia-overloaded-operator
+    (std::ostream& s, const error_exception& o)
+  {
+    s << " error(s):" << o.what();
+    return s;
+  }
+
+  /// ctor
+  inline error_exception::error_exception(const error& err) noexcept
+  : std::runtime_error(err.dump())
+  {
+  }
+
+  /// ctor
+  inline error_exception::error_exception(const std::string& str) noexcept
+  : std::runtime_error(str)
+  {
+  }
 } // namespace db
 #endif
