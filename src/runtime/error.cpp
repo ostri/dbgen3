@@ -21,15 +21,6 @@ namespace db
   , m_msg(std::move(msg))
   {
   }
-  // /*!
-  //  * Error constructor for statement usage
-  //  * \
-  //  */
-  // error::error(const statement* a_stmt)
-  // //  : m_stmt(a_stmt)
-  // {
-  //   //    load(a_stmt);
-  // }
   /*!
    * Error constructor for handle usage
    * \param a_handle      - handle about which we want to obtain an error description

@@ -14,7 +14,6 @@ namespace dbgen3
   }
   const str_t& g_token_str(uint token_id, const str_vec& token_set)
   {
-    assert(token_id >= 0);               // NOLINT
     assert(token_id < token_set.size()); // NOLINT
     return token_set.at(token_id);
   }

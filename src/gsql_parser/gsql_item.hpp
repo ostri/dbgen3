@@ -43,7 +43,6 @@ namespace dbgen3
     const sql_arr& g_sql() const { return sql_; }
     cstr_t         g_sql(uint ndx) const
     {
-      assert(ndx >= 0);          // NOLINT
       assert(ndx < sql_.size()); // NOLINT
       return sql_.at(ndx);
     }
