@@ -48,7 +48,6 @@ namespace dbgen3
   str_t cmdline_parameters::dump(const str_t& msg, int offs) const // NOLINT
   {
     std::string files("\n");
-#pragma unroll 10
     for (const auto& file : this->gsql_list_)
     {
       files += out::sl(file, offs + 2);

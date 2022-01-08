@@ -34,12 +34,6 @@ namespace db
   {
     load(a_handle, a_handle_type, a_msg);
   }
-  // /*!
-  //  * Destructor
-  //  */
-  // error::~error()
-  // { /*__trace();*/
-  // }
   /*!
    * \returns number of errors
    */
@@ -197,7 +191,6 @@ namespace db
     const error&  o)
   {
     s << " #errors:'" << o.errors_.size() << "'\n";
-#pragma unroll 2
     for (unsigned int cnt = 0; cnt < o.errors_.size(); cnt++)
       {
         s << " err [" << cnt << "]: " << o.errors_.at(cnt) << std::endl;

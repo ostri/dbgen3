@@ -5,7 +5,6 @@ namespace dbgen3
 {
   uint g_token_ndx(const str_t& token, const str_vec& token_set)
   {
-#pragma unroll 20
     for (auto ndx = 0UL; ndx < token_set.size(); ++ndx)
       {
         if (token_set.at(ndx) == token) { return ndx; }
