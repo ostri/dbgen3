@@ -90,7 +90,7 @@ target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS})
 # target_link_libraries(${RT_LIB} PRIVATE fmt::fmt ${DB2_LIBRARIES})
 
 
-add_executable(${PROG_NAME} main.cpp ${hpp_list})
+add_executable(${PROG_NAME} main.cpp ${hpp_list} ${GLOG_INCLUDE_DIRS})
 target_compile_features(${PROG_NAME} PRIVATE cxx_std_20)
 target_include_directories(${PROG_NAME} PUBLIC ${SUBDIRS} )
 
@@ -98,7 +98,7 @@ target_link_libraries(${PROG_NAME}
   PRIVATE
     proj_lib
 #    fmt::fmt
-    glog::glog
+    ${GLOG_LIBRARY}
     gflags
     xerces-c
 )

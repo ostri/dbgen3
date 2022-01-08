@@ -7,7 +7,7 @@ target_compile_features(t0 PUBLIC cxx_std_20)
 target_include_directories(t0 PUBLIC ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS})
 target_link_libraries(t0
   PRIVATE
-    glog::glog
+    ${GLOG_LIBRARY}
     gflags
     xerces-c
     ${DB2_LIBRARIES}

@@ -47,9 +47,9 @@ endif()
 include(FetchContent)
 #include(cmake/add_FetchContent_MakeAvailable.cmake)
 
-find_package (gflags REQUIRED)
-find_package (glog 0.6.0 REQUIRED)
-find_package (XercesC REQUIRED)
+find_package (gflags REQUIRED)    # sudo dnf install gflags-devel
+find_package (GLOG REQUIRED)      # sudo dnf install glog-devel
+find_package (XercesC REQUIRED)   # sudo dnf install xerces-c-devel.x86_64
 find_package (DB2 REQUIRED)
 
 # # Formatting library
