@@ -89,7 +89,7 @@ IndentWidth:     2
 IndentWrappedFunctionNames: false
 JavaScriptQuotes: Leave
 JavaScriptWrapImports: true
-KeepEmptyLinesAtTheStartOfBlocks: true
+KeepEmptyLinesAtTheStartOfBlocks: false
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 2
@@ -111,7 +111,7 @@ PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
 PPIndentWidth: -1
 ReflowComments:  false
-SortIncludes:    true
+SortIncludes:    false
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: true
