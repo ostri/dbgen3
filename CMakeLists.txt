@@ -45,23 +45,29 @@ endif()
 
 
 include(FetchContent)
-#include(cmake/add_FetchContent_MakeAvailable.cmake)
 
 find_package (gflags REQUIRED)    # sudo dnf install gflags-devel
 find_package (GLOG REQUIRED)      # sudo dnf install glog-devel
 find_package (XercesC REQUIRED)   # sudo dnf install xerces-c-devel.x86_64
 find_package (DB2 REQUIRED)
+#find_package (doctest REQUIRED)   # sudo dnf install  doctest-devel.x86_64
+
+
+FetchContent_Declare(
+        DocTest
+        GIT_REPOSITORY "https://github.com/doctest/doctest.git"
+        GIT_TAG "2.4.7"
+)
 
 # # Formatting library
 # FetchContent_Declare(fmtlib GIT_REPOSITORY https://github.com/fmtlib/fmt.git GIT_TAG 8.1.0)
 # FetchContent_MakeAvailable(fmtlib)
 # # Adds fmt::fmt
 
+FetchContent_MakeAvailable(DocTest)
+
 # The compiled library code is here
 add_subdirectory(src)
-
-# # The executable code is here
-# add_subdirectory(apps)
 
 # Testing only available if this is the main app
 # Emergency override MODERN_CMAKE_BUILD_TESTING provided as well

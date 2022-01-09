@@ -61,11 +61,12 @@ target_sources(${PROJ_LIB}
 # #   PREFIX "Header Files"
 # #   FILES ${HEADER_LIST})
 
- add_library(${RT_LIB})
+add_library(${RT_LIB})
 
 set (rt_src_list
   runtime/connection
   runtime/error
+  runtime/error_dscr
   runtime/error_exception
   runtime/statement
 )

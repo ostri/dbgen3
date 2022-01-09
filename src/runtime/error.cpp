@@ -15,12 +15,6 @@
 #include <string>
 namespace db
 {
-  error_dscr::error_dscr(int code, std::string state, std::string msg)
-  : m_code(code)
-  , m_state(std::move(state))
-  , m_msg(std::move(msg))
-  {
-  }
   /*!
    * Error constructor for handle usage
    * \param a_handle      - handle about which we want to obtain an error description
@@ -45,23 +39,13 @@ namespace db
   /*!
    * \returns i-th erro code or 0 if no code exists
    */
-  int error::get_error_code(const unsigned int ndx) const
+  int error::get_error_code(uint ndx) const
   {
+    assert(ndx < errors_.size());
     int result = 0;
     if (errors_.size() > ndx) { result = errors_.at(ndx).get_code(); }
     return result;
   }
-  // /*!
-  //  * The method loads vector with error descriptions.
-  //  * \param a_stmt statement about which we want to obtain info
-  //  * \returns a number of error descriptions that were loaded
-  //  */
-  // int error::load(const statement* a_stmt)
-  // {
-  //   assert(a_stmt != nullptr);
-  //   //    m_stmt = a_stmt;
-  //   return load(a_stmt->get_stmt_handle(), SQL_HANDLE_STMT, a_stmt->get_sql());
-  // }
   /*!
    * The method loads the vector m_err_vec with error descriptions related to the provided handle
    * \param a_handle      - handle about which we want to obtain an error description
@@ -74,9 +58,9 @@ namespace db
    *
    * Normally db2 returns only one error message, but it can be several.
    */
-  int error::load(SQLHANDLE          a_handle,      // NOLINT bugprone-easily-swappable-parameters
-                  SQLSMALLINT        a_handle_type, // NOLINT bugprone-easily-swappable-parameters
-                  const std::string& a_msg)
+  int error::load(SQLHANDLE   a_handle,      // NOLINT bugprone-easily-swappable-parameters
+                  SQLSMALLINT a_handle_type, // NOLINT bugprone-easily-swappable-parameters
+                  const std::string& /*a_msg*/)
   {
     const int max_msg_len   = 1024;
     const int max_state_len = 5;
@@ -97,7 +81,7 @@ namespace db
     rc = SQLGetDiagRec(
       a_handle_type,
       a_handle,
-      record_no,
+      1,
       reinterpret_cast<SQLCHAR*>(&state[0]), // NOLINT cppcoreguidelines-pro-type-reinterpret-cast
       &code,
       reinterpret_cast<SQLCHAR*>(&msg[0]), // NOLINT cppcoreguidelines-pro-type-reinterpret-cast
@@ -105,110 +89,79 @@ namespace db
       &msg_len);
     bool end = false;
     while (! end) // NOLINT
+    {
+      switch (rc)
       {
-        switch (rc)
-          {
-          case SQL_SUCCESS:
-            {
-              std::string concat_msg("Err msg:'");
-              concat_msg +=
-                std::string(msg.data(), msg_len) + std::string("'\n ") + std::string(a_msg);
-              error_dscr err(code, state, concat_msg);
-              errors_.push_back(err);
-              record_no++;
-
-              rc = SQLGetDiagRec(
-                a_handle_type,
-                a_handle,
-                record_no,
-                reinterpret_cast<SQLCHAR*> // NOLINT cppcoreguidelines-pro-type-reinterpret-cast
-                (&state[0]),
-                &code,
-                reinterpret_cast<SQLCHAR*>( // NOLINT cppcoreguidelines-pro-type-reinterpret-cast
-                  &msg[0]),
-                max_msg_len,
-                &msg_len);
-              break;
-            }
-          case SQL_SUCCESS_WITH_INFO:
-            {
-              log("buffer for error description is to short. we need " + std::to_string(msg_len));
-              break;
-            }
-          case SQL_INVALID_HANDLE:
-            {
-              log("Invalid handle " + std::to_string(a_handle));
-              break;
-            }
-          case SQL_ERROR:
-            {
-              if (record_no < 1)
-                {
-                  log("record number is less than 1. " + std::to_string(record_no));
-                }
-              else if (max_msg_len < 0)
-                log("message buffer length provided is less than 0. " +
-                    std::to_string(max_msg_len));
-              else log("The asynchronous operation on the handle is not completed.");
-              break;
-            }
-          case SQL_NO_DATA:
-            {
-              log("No more diagnostic records");
-              break;
-            }
-          default:
-            {
-              log("Unknown error " + std::to_string(rc));
-              break;
-            }
-          };
-        end = rc != SQL_SUCCESS;
-      }
-
-    log(std::string(static_cast<const char*>(__func__)) + ": rc=" + std::to_string(rc) +
-        " cnt:" + std::to_string(record_no));
-    return (record_no - 1);
-  }
-  /// It fetches the number of error descriptions
-  /// \returns number of error messages
-  uint error::get_number_of_messages() const { return static_cast<int>(errors_.size()); }
-  /*!
-   * It dumps the class instance to the stream
-   */
-  std::ostream& operator<<( // NOLINT
-    std::ostream&     s,
-    const error_dscr& o)
-  {
-    s << " state " << o.get_state() << " code  " << o.get_code() << " msg " << o.get_msg();
-    return s;
-  }
-  /*!
-   * It dumps the class instance to the stream
-   */
-  std::ostream& operator<<( // NOLINT
-    std::ostream& s,
-    const error&  o)
-  {
-    s << " #errors:'" << o.errors_.size() << "'\n";
-    for (unsigned int cnt = 0; cnt < o.errors_.size(); cnt++)
+      case SQL_SUCCESS:
       {
-        s << " err [" << cnt << "]: " << o.errors_.at(cnt) << std::endl;
+        state.resize(5);
+        msg.resize(msg_len);
+        error_dscr err(code, state, msg);
+        errors_.push_back(err);
+        record_no++;
+
+        rc = SQLGetDiagRec(
+          a_handle_type,
+          a_handle,
+          errors_.size() + 1,
+          reinterpret_cast<SQLCHAR*> // NOLINT cppcoreguidelines-pro-type-reinterpret-cast
+          (&state[0]),
+          &code,
+          reinterpret_cast<SQLCHAR*>( // NOLINT cppcoreguidelines-pro-type-reinterpret-cast
+            &msg[0]),
+          max_msg_len,
+          &msg_len);
+        break;
       }
-    return s;
+      case SQL_SUCCESS_WITH_INFO:
+      {
+        log("buffer for error description is to short. we need " + std::to_string(msg_len));
+        break;
+      }
+      case SQL_INVALID_HANDLE:
+      {
+        log("Invalid handle " + std::to_string(a_handle));
+        break;
+      }
+      case SQL_ERROR:
+      {
+        if (record_no < 1)
+        {
+          log("record number is less than 1. " + std::to_string(record_no));
+        }
+        else if (max_msg_len < 0)
+          log("message buffer length provided is less than 0. " +
+              std::to_string(max_msg_len));
+        else log("The asynchronous operation on the handle is not completed.");
+        break;
+      }
+      case SQL_NO_DATA:
+      {
+        log("No more diagnostic records");
+        break;
+      }
+      default:
+      {
+        log("Unknown error " + std::to_string(rc));
+        break;
+      }
+      };
+      end = rc != SQL_SUCCESS;
+    }
+
+    // log(std::string(static_cast<const char*>(__func__)) + ": rc=" + std::to_string(rc) +
+    //     " cnt:" + std::to_string(record_no));
+    return errors_.size();
   }
 
-  error_dscr error::get_error_dscr(const unsigned int ndx) const { return errors_.at(ndx); }
   /*!
    * The method dumps all error descriptions in one string an returns it to the caller
    */
   std::string error::dump() const
   {
-    std::string        str;
-    std::ostringstream s;
-
-    s << " dump :" << static_cast<const error&>(*this);
-    return s.str();
+    std::string s;
+    for (const auto& e_dscr : errors_) { s += "[" + e_dscr.dump("") + "]\n"; }
+    return s;
   }
   void error::log(const std::string& msg) { std::cerr << msg; }
 

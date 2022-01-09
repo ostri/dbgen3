@@ -20,6 +20,7 @@ namespace dbgen3
     unknown_lang         = 3,
     out_folder_not_exist = 4,
     no_gsql_files        = 5,
+    unk_db_name          = 6,
   };
 
   /**
@@ -48,6 +49,7 @@ namespace dbgen3
 			{p_sts::unknown_lang,          "Target programming language was not provided or unknown" },
 			{p_sts::out_folder_not_exist,  "Output folder was not provided or does not exist"},
 			{p_sts::no_gsql_files,         "No gsql filenames provided."},
+      {p_sts::unk_db_name,           "Unknown db name provided"},
     }){};
     // clang-format on
     ~program_status()                     = default;
@@ -56,7 +58,6 @@ namespace dbgen3
     program_status&    operator=(const program_status&) = delete;
     program_status&    operator=(program_status&&) = delete;
     const std::string& g_dscr(p_sts code);
-
   private:
     const std::vector<status_dscr> dic_; //!< dictionary of relevant statuses
   };

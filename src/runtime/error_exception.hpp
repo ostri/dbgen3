@@ -49,15 +49,15 @@ namespace db
   };
   /// Serialisation to string stream
   std::ostream& operator<<(std::ostream& s, const error_exception& o);
-  /*!
-   * It dumps the class instance to the stream
-   */
-  inline std::ostream& operator<< // NOLINT fuchsia-overloaded-operator
-    (std::ostream& s, const error_exception& o)
-  {
-    s << " error(s):" << o.what();
-    return s;
-  }
+  // /*!
+  //  * It dumps the class instance to the stream
+  //  */
+  // inline std::ostream& operator<< // NOLINT fuchsia-overloaded-operator
+  //   (std::ostream& s, const error_exception& o)
+  // {
+  //   s << " error(s):'" << o.what() << "'.";
+  //   return s;
+  // }
 
   /// ctor
   inline error_exception::error_exception(const error& err) noexcept

@@ -11,50 +11,16 @@
 #define ERROR_H
 
 //#include "error_exception.hpp"
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "sqlcli1.h"
+#include "error_dscr.hpp"
 
 //#include "statement.hpp"
 namespace db
 {
-
-  //  class statement;
-  /*!
-   * \brief It holds error description data
-   *
-   * \ingroup runtime
-   *
-   * Class error_dscr holds information about one error
-   * description (there can be several)
-   */
-  class error_dscr
-  {
-    //friend class error;
-  public:
-    ///constructor
-    error_dscr(int code, std::string state, std::string msg);
-    /// copy constructor
-    error_dscr(const error_dscr& o) = default;
-    error_dscr(error_dscr&& o)      = default;
-    error_dscr& operator=(const error_dscr& o) = default;
-    error_dscr& operator=(error_dscr&& o) = default;
-    /// destructor
-    virtual ~error_dscr() = default;
-    /// getters
-    int                get_code() const { return m_code; }
-    const std::string& get_state() const { return m_state; }
-    const std::string& get_msg() const { return m_msg; }
-  private:
-    int         m_code = 0; //!< sql code
-    std::string m_state;    //!< sql state
-    std::string m_msg;      //!< error description
-  };
-  /// Serialisation to string stream
-  std::ostream& operator<<(std::ostream& s, const error_dscr& o);
-
-
   /*!
    * \brief It holds information about errors of the associated statement
    *
@@ -63,7 +29,7 @@ namespace db
    */
   class error
   {
-    friend std::ostream& operator<<(std::ostream& s, const error& o);
+//    friend std::ostream& operator<<(std::ostream& s, const error& o);
   public:
     /// constructor
     error() = default;
@@ -84,7 +50,6 @@ namespace db
      *
      * @param a_handle      handle with error descriptions
      * @param a_handle_type type of the handle
-     * @param a_msg         additinal message
      * @return number of the errors loaded
      */
     int load(SQLHANDLE a_handle, SQLSMALLINT a_handle_type, const std::string& a_msg);
@@ -95,7 +60,7 @@ namespace db
     /// fetch a corresponding error code
     int get_error_code(uint ndx = 0) const;
     /// fetch n-th error description from the list of descriptions
-    error_dscr get_error_dscr(uint ndx = 0) const;
+    const error_dscr& get_error_dscr(uint ndx = 0) const;
     /// fetch the number of error descriptions
     uint get_number_of_messages() const;
     /// it writes all errors into a string
@@ -106,10 +71,10 @@ namespace db
     /*........................................................................*/
     /// vector of errors
     std::vector<error_dscr> errors_ = {};
-    // // /// corresponding statement
-    // const statement* m_stmt;
   };
-  /// Serialisation to string stream
-  std::ostream& operator<<(std::ostream& s, const error& o);
+  /// fetch nth error description
+  inline const error_dscr& error::get_error_dscr(uint ndx) const { return errors_.at(ndx); }
+  /// Fetch the number of error descriptions
+  inline uint error::get_number_of_messages() const { return errors_.size(); }
 } // namespace db
 #endif
