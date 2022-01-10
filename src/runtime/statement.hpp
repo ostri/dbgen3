@@ -30,9 +30,9 @@ namespace db
     //! @name Constructor(s) and destructor
     //@{
     /// constructor
-    explicit statement(const connection* a_db);
+    explicit statement(const connection& a_db);
     /// constructor with sql
-    statement(const connection* a_db, const char* an_sql);
+    statement(const connection& a_db, const char* an_sql);
     /// copy constructor
     statement(const statement& o) = default;
     statement(statement&& o)      = default;
@@ -49,17 +49,13 @@ namespace db
     /// assign attributes
     statement* assign(const statement& o);
     //@}
-
     //! @name Getters
     //@{
-    /// fetch the statement handle
-    SQLHANDLE get_stmt_handle() const;
-    /// fetch an sql statement
-    const std::string& get_sql() const;
-    /// fetch cursor name
-    std::string get_cursor_name() const;
-    /// get associated database connection
-    const connection* get_db() const;
+    SQLHANDLE          get_stmt_handle() const;              //!< fetch statement handle
+    const std::string& get_sql() const;                      //!< fetch SQL statement
+    std::string        get_cursor_name() const;              //!< fetch cursor name
+    const connection&  get_db() const;                       //!< fetch db related connection
+    std::string        dump(const std::string& a_msg) const; //!< serialize instance to string
     //@}
     //! @name Setters
     //@{
@@ -96,7 +92,6 @@ namespace db
     SQLRETURN set_attr(int attr, void* value, uint len) const;
     SQLRETURN set_attr(int attr, int value) const;
     //@}
-
     //! @name database operations
     //@{
     /// execute an a query
@@ -118,7 +113,6 @@ namespace db
     //! close cursor on statement (for selects only)
     int close_cursor() const;
     //@}
-
     //! @name auxiliary methods
     //@{
     /// It checks the return status of the cli call and raises exception upon error otherwise returns SQL_SUCCESS
@@ -139,28 +133,14 @@ namespace db
     /// the method prepare error string and logs it into log file
     std::string build_log_error(const char* error_prefix);
   private:
-    /// related database connection
-    const connection* m_db = nullptr;
-    /// sql statement string
-    std::string m_sql;
-    /// handle of the statement
-    SQLHANDLE m_handle = 0;
-    /// cursor name
-    std::string m_cursor_name;
-    /// indicator whether the statement is already prepared
-    mutable bool is_prepared;
-    // /// working in async mode (t/f)
-    // bool m_async;
+    const connection& db_;          //!< related database connection
+    std::string       sql_;         //!< sql statement string
+    SQLHANDLE         handle_ = 0;  //!< handle of the statement
+    std::string       cursor_name_; //!< cursor name
+    mutable bool      is_prepared_; //!< indicator whether the statement is already prepared
   };
-  /// Serialisation to string stream
-  std::ostream& operator<<(std::ostream& s, const statement& o);
-
   /// logs an event into log file
-  inline void statement::log(const std::string& msg) const
-  {
-    // trace is skipped on purpose :-) __trace();
-    if (m_db != nullptr) m_db->log(msg);
-  }
+  inline void statement::log(const std::string& msg) const { db_.log(msg); }
 } // namespace db
 
 #endif

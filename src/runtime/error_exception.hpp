@@ -14,7 +14,6 @@
 #include <stdexcept>
 
 #include "error.hpp"
-
 namespace db
 {
   /*!
@@ -41,30 +40,15 @@ namespace db
     error_exception& operator=(error_exception&& o) = default;
     /// dtor
     ~error_exception() override = default;
-    /// gettter
-    // const error& get_error() const;
   private:
-    // /// error data holder
-    // const error& m_error;
   };
   /// Serialisation to string stream
   std::ostream& operator<<(std::ostream& s, const error_exception& o);
-  // /*!
-  //  * It dumps the class instance to the stream
-  //  */
-  // inline std::ostream& operator<< // NOLINT fuchsia-overloaded-operator
-  //   (std::ostream& s, const error_exception& o)
-  // {
-  //   s << " error(s):'" << o.what() << "'.";
-  //   return s;
-  // }
-
   /// ctor
   inline error_exception::error_exception(const error& err) noexcept
-  : std::runtime_error(err.dump())
+  : std::runtime_error(err.dump(""))
   {
   }
-
   /// ctor
   inline error_exception::error_exception(const std::string& str) noexcept
   : std::runtime_error(str)

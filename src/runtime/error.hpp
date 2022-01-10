@@ -44,7 +44,7 @@ namespace db
     /// move assignement operator
     error& operator=(error&& o) = default;
     /// handle constructor
-    error(SQLHANDLE a_handle, SQLSMALLINT a_handle_type, const std::string& a_msg);
+    error(SQLHANDLE a_handle, SQLSMALLINT a_handle_type);
     /**
      * @brief loads error description from the provided handle
      *
@@ -52,7 +52,8 @@ namespace db
      * @param a_handle_type type of the handle
      * @return number of the errors loaded
      */
-    int load(SQLHANDLE a_handle, SQLSMALLINT a_handle_type, const std::string& a_msg);
+    int load(SQLHANDLE   a_handle,      // NOLINT bugprone-easily-swappable-parameters
+             SQLSMALLINT a_handle_type);
     /// getters
     uint get_err_count() const;
     /// is there some error
@@ -64,7 +65,7 @@ namespace db
     /// fetch the number of error descriptions
     uint get_number_of_messages() const;
     /// it writes all errors into a string
-    std::string dump() const;
+    std::string dump(const std::string& a_msg = nullptr) const;
   private:
     /// log - for statements only
     static void log(const std::string& msg);

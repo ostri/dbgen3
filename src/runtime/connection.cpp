@@ -29,29 +29,31 @@
 namespace db
 {
   /// environment handle
-  SQLHANDLE connection::m_henv // NOLINT cppcoreguidelines-avoid-non-const-global-variables
+  SQLHANDLE connection::henv_ // NOLINT cppcoreguidelines-avoid-non-const-global-variables
     = 0;
   /// number of connections referencing the same environment handle
   std::atomic_uint
-    connection::m_henv_ref_cnt // NOLINT cppcoreguidelines-avoid-non-const-global-variables
+    connection::henv_ref_cnt_ // NOLINT cppcoreguidelines-avoid-non-const-global-variables
     = 0;
 
   /// lock mutex
   std::mutex mtx; // NOLINT -cppcoreguidelines-avoid-non-const-global-variables
 
-  void connection::allocate_env_handle() const
+  SQLHANDLE connection::allocate_env_handle() const
   {
     std::lock_guard<std::mutex> lck(mtx);
+    SQLHANDLE                   env_handle = 0;
     /* allocate an environment handle */
-    auto rc = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &connection::m_henv);
-    if (rc != SQL_SUCCESS)
-      {
-        error err;
-        err.load(m_henv, SQL_HANDLE_ENV, "ERROR while allocating the environment handle.");
-        throw error_exception(err.dump());
-      }
-    connection::m_henv_ref_cnt++;
-    log("allocate env handle " + std::to_string(connection::m_henv_ref_cnt));
+    auto rc = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env_handle);
+    // if (rc != SQL_SUCCESS)
+    // {
+    //   error err;
+    //   err.load(henv_, SQL_HANDLE_ENV);
+    //   throw error_exception(err.dump("ERROR while allocating the environment handle."));
+    // }
+    throw_on_error(
+      rc, env_handle, SQL_HANDLE_ENV, "ERROR while allocating the environment handle.");
+    return env_handle;
   }
   /*!
    * Constructor
@@ -87,59 +89,40 @@ namespace db
     const std::string& a_database, // NOLINT bugprone-easily-swappable-parameters
     const std::string& a_user,     // NOLINT bugprone-easily-swappable-parameters
     const std::string& a_password, // NOLINT bugprone-easily-swappable-parameters
-    err_log            a_log,
-    bool               a_show_log)
-  : m_log(a_log)
-  , m_show_log(a_show_log)
-  , m_db_name(a_database)
-  , m_user(a_user)
-  , m_pass(a_password)
-  , m_db_handle(open_connection(m_db_name, m_user, m_pass)) // db connection must be 0
-  {
-  }
+    err_log            a_log)
+  : log_(a_log != nullptr ? a_log : &_log_)
+  //  , show_log_(std::getenv("DBGEN3_TRACE") != 0)
+  , db_name_(a_database)
+  , user_(a_user)
+  , pass_(a_password)
+  , db_handle_(open_connection(db_name_, user_, pass_))
+  { }
   /*!
-   * Within destructor connection to the database is closed and both handles (i.e. connection and environment) are
-   * released.
-   * if statement cache is enabled, the cache is released also.
-   * \note error codes are not tested on purpose.
+   * Within destructor connection to the database is closed and both handles (i.e. connection and
+   * environment) are released. if statement cache is enabled, the cache is released also. \note
+   * error codes are not tested on purpose.
    */
   connection::~connection()
   {
     /* disconnect from the database */
-    SQLDisconnect(m_db_handle);
+    SQLDisconnect(db_handle_);
     log("db disconnected.");
     /* free the connection handle */
-    if (m_henv_ref_cnt == 0)
-      {
-        SQLFreeHandle(SQL_HANDLE_DBC, m_db_handle);
-        log("db handle released.");
-      }
-    m_henv_ref_cnt--;
-    log("connection destructor " + std::to_string(m_henv_ref_cnt));
+    if (henv_ref_cnt_ == 0)
+    {
+      SQLFreeHandle(SQL_HANDLE_DBC, db_handle_);
+      log("db handle released.");
+    }
+    henv_ref_cnt_--;
+    log("connection destructor " + std::to_string(henv_ref_cnt_));
     /* free the environment handle */
-    if (m_henv_ref_cnt == 0)
-      {
-        SQLFreeHandle(SQL_HANDLE_ENV, m_henv);
-        m_henv = 0;
-        log("db environment handle released.");
-      }
+    if (henv_ref_cnt_ == 0)
+    {
+      SQLFreeHandle(SQL_HANDLE_ENV, henv_);
+      henv_ = 0;
+      log("db environment handle released.");
+    }
   }
-  // /*!
-  //  * Copy constructor
-  //  * The constructor constructs a new connection object. It is a shallow copy.
-  //  * At the end two objects point to the same database connection.
-  //  * @param o connection to be copied
-  //  */
-  // connection::connection(const connection& o)
-  // : m_log(o.m_log)
-  // , m_show_log(o.m_show_log)
-  // , m_db_name(o.m_db_name)
-  // , m_user(o.m_user)
-  // , m_pass(o.m_pass)
-  // , m_db_handle(o.m_db_handle) // be carefull it is the same database handle.
-  // {
-  //   //open_connection(get_db_name(), "", "");
-  // }
   /**
    * @brief Method opens new database connection
    *
@@ -154,78 +137,85 @@ namespace db
   {
     SQLRETURN rc = SQL_SUCCESS;
     /* allocate an environment handle */
-    if (m_henv_ref_cnt == 0) allocate_env_handle();
+    if (henv_ref_cnt_ == 0) [[likely]]
+    {
+      db::connection::henv_ = allocate_env_handle(); // allocate or throw
+    }
 
     /* set attribute to enable application to run as ODBC 3.0 application */
-    rc = SQLSetEnvAttr(m_henv,
+    rc = SQLSetEnvAttr(henv_,
                        SQL_ATTR_ODBC_VERSION,
                        reinterpret_cast<void*>(SQL_OV_ODBC3_80), // NOLINT
                        0);
-    if (rc != SQL_SUCCESS)
-      {
-        error err;
-        err.load(m_henv, SQL_HANDLE_ENV, "ERROR enabling ODBC 3.8.");
-        throw error_exception(err.dump());
-      }
-    m_henv_ref_cnt++;
+    // if (rc != SQL_SUCCESS) [[unlikely]]
+    // {
+    //   error err;
+    //   err.load(henv_, SQL_HANDLE_ENV);
+    //   throw error_exception(err.dump("ERROR enabling ODBC 3.8."));
+    // }
+    throw_on_error(rc, henv_, SQL_HANDLE_ENV, "ERROR enabling ODBC 3.8.");
+    henv_ref_cnt_++;
     log("ODBC 3.8 enabled.");
     /* allocate a database connection handle */
-    rc = SQLAllocHandle(SQL_HANDLE_DBC, m_henv, &m_db_handle);
-    if (rc != SQL_SUCCESS)
-      {
-        error err;
-        err.load(m_henv, SQL_HANDLE_ENV, "ERROR allocating db handle.");
-        throw error_exception(err.dump());
-      }
+    rc = SQLAllocHandle(SQL_HANDLE_DBC, henv_, &db_handle_);
+    // if (rc != SQL_SUCCESS) [[unlikely]]
+    // {
+    //   error err;
+    //   err.load(henv_, SQL_HANDLE_ENV);
+    //   throw error_exception(err.dump("ERROR allocating db handle."));
+    // }
+    throw_on_error(rc, henv_, SQL_HANDLE_ENV, "ERROR allocating db handle.");
     log("DB handle allocated.");
     /* connect to the database */
-    if (! a_database.empty())
-      { /* normal connection */
-        rc = SQLConnect(m_db_handle,
-                        reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_database.data())), //NOLINT
-                        SQL_NTS,
-                        reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_user.data())), //NOLINT
-                        SQL_NTS,
-                        reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_password.data())), //NOLINT
-                        SQL_NTS);
-        log(std::string("DB connected. database:'") + a_database + "' user:'" + a_user + "'");
-      }
+    if (! a_database.empty()) [[unlikely]]
+    { /* normal connection */
+      rc = SQLConnect(db_handle_,
+                      reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_database.data())), // NOLINT
+                      SQL_NTS,
+                      reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_user.data())), // NOLINT
+                      SQL_NTS,
+                      reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_password.data())), // NOLINT
+                      SQL_NTS);
+      throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR connecting to the database.");
+      log(std::string("DB connected. database:'") + a_database + "' user:'" + a_user + "'");
+    }
     else { /* connection via previously established ESQL connection */
-        rc = SQLConnect(m_db_handle, nullptr, SQL_NTS, nullptr, SQL_NTS, nullptr, SQL_NTS);
-        log("DB connected. NULL connection.");
-      }
-    if (rc != SQL_SUCCESS)
-      {
-        error err;
-        err.load(m_db_handle, SQL_HANDLE_DBC, "ERROR connecting to the database.");
-        throw error_exception(err.dump());
-      }
-    log("DB connected.");
-
+      rc = SQLConnect(db_handle_, nullptr, SQL_NTS, nullptr, SQL_NTS, nullptr, SQL_NTS);
+      // if (rc != SQL_SUCCESS) [[unlikely]]
+      // {
+      //   error err;
+      //   err.load(db_handle_, SQL_HANDLE_DBC);
+      //   throw error_exception(err.dump("ERROR connecting to the database."));
+      // }
+      throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR connecting to the database.");
+      log("DB connected. NULL connection.");
+    }
     /* set AUTOCOMMIT OFF */
-    if (SQL_SUCCESS != set_attribute(SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF))
-      {
-        error err;
-        err.load(m_db_handle, SQL_HANDLE_DBC, "ERROR cannot switch off auto commit.");
-        throw error_exception(err.dump());
-      }
+    rc = set_attribute(SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
+    // if (SQL_SUCCESS != set_attribute(SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF))
+    // {
+    //   error err;
+    //   err.load(db_handle_, SQL_HANDLE_DBC);
+    //   throw error_exception(err.dump("ERROR cannot switch off auto commit."));
+    // }
+    throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR cannot switch off auto commit.");
     log("Autocommit disabled.");
-    log("connection established " + std::to_string(m_henv_ref_cnt));
-    return m_db_handle;
+    log("connection established " + std::to_string(henv_ref_cnt_));
+    return db_handle_;
   }
   /*!
    * fetch environment handle
    */
-  SQLHANDLE connection::get_env() { return m_henv; }
+  SQLHANDLE connection::get_env() { return henv_; }
   /*!
    * fetch connection handle
    */
-  SQLHANDLE connection::get_connection() const { return m_db_handle; }
+  SQLHANDLE connection::get_db_handle() const { return db_handle_; }
   /// commit
   SQLRETURN connection::commit() const
   {
     // m_tran_count--;
-    auto sts = SQLEndTran(SQL_HANDLE_DBC, m_db_handle, SQL_COMMIT);
+    auto sts = SQLEndTran(SQL_HANDLE_DBC, db_handle_, SQL_COMMIT);
     (sts == SQL_SUCCESS) ? log("commit transaction.") : log("commit failed.");
     // if (m_tran_count != 0)
     //   log("CO-Nested or unfinished transactions. " + std::to_string(m_tran_count));
@@ -235,14 +225,29 @@ namespace db
   SQLRETURN connection::rollback() const
   {
     // m_tran_count--;
-    auto sts = SQLEndTran(SQL_HANDLE_DBC, m_db_handle, SQL_ROLLBACK);
+    auto sts = SQLEndTran(SQL_HANDLE_DBC, db_handle_, SQL_ROLLBACK);
     (sts == SQL_SUCCESS) ? log("rollback transaction.") : log("rollback failed.");
     // if (m_tran_count != 0)
     //   log("RO-Nested or unfinished transactions. " + std::to_string(m_tran_count));
     return sts;
   }
 
-  const std::string& connection::get_db_name() const { return m_db_name; }
+  const std::string& connection::get_db_name() const { return db_name_; }
+  /**
+   * @brief serialize instance attributes
+   *
+   * @param a_msg message to be prepended to the serialized contnets
+   * @return std::string serialized contents of the instance
+   */
+  std::string connection::dump(const std::string a_msg) const
+  {
+    std::stringstream s;
+    s << a_msg << " dbenvh: " << static_cast<int>(henv_)
+      << " henv ref cnt: " << static_cast<int>(henv_ref_cnt_) << " user: " << user_
+      << " db: " << db_name_ << " dbh: " << static_cast<int>(db_handle_)
+      << " log: " << reinterpret_cast<uint64_t>(log_);
+    return s.str();
+  }
 
   /// print current error context (code, line, file)
   void connection::print_ctx(const std::string& msg,
@@ -258,37 +263,30 @@ namespace db
    * The method returns address of the logging function.
    * @return address of log callback function
    */
-  err_log connection::get_log() const { return m_log; }
+  err_log connection::get_log() const { return log_; }
   /// log setter
-  void connection::set_log(err_log a_log) { this->m_log = a_log; }
+  void connection::set_log(err_log a_log) { this->log_ = a_log; }
 
-  void _log_(const std::string& msg) { std::cerr << msg << std::endl; }
-  /*!
-   * Operator dumps content of the connection object to the stream
-   * @param s output stream
-   * @param o connection object
-   * @return contents of the connection class
-   */
-  std::ostream& operator<<( // NOLINT fuchsia-overloaded-operator
-    std::ostream&     s,
-    const connection& o)
+  void _log_(const std::string& msg)
   {
-    s << " environment handle " << o.get_env() << std::endl
-      << " connection  handle " << o.get_connection() << std::endl
-      << " log method " << reinterpret_cast<ulong>(o.get_log()) // NOLINT
-      << std::endl
-      // << " transaction count  " << o.get_tran_count() << std::endl
-      ;
-    return s;
+    if (db::connection::should_we_log()) std::cerr << msg << std::endl;
   }
-  /*!
-   * Should we show log or not (true - show, false - disable)
-   *
-   * @param enable whether to write or to not write messages in the log
-   * - true - show
-   * - false - do not show
-   */
-  void connection::show_log(bool enable) { m_show_log = enable; }
+  // /*!
+  //  * Operator dumps content of the connection object to the stream
+  //  * @param s output stream
+  //  * @param o connection object
+  //  * @return contents of the connection class
+  //  */
+  // std::ostream& operator<<( // NOLINT fuchsia-overloaded-operator
+  //   std::ostream&     s,
+  //   const connection& o)
+  // {
+  //   s << " environment handle " << o.get_env() << std::endl
+  //     << " connection  handle " << o.get_connection() << std::endl
+  //     << " log method " << reinterpret_cast<ulong>(o.get_log()) // NOLINT
+  //     << std::endl;
+  //   return s;
+  // }
   /*!
    * The method (re)sets connection attribute.
    * @param an_attr identification of the attribute
@@ -309,11 +307,12 @@ namespace db
    * - SQL_QUIET_MODE
    * - SQL_PACKET_SIZE
    *
-   * For a detailed and up to date list of attributes and their semantic please refer to IBM documentation.
+   * For a detailed and up to date list of attributes and their semantic please refer to IBM
+   * documentation.
    */
   SQLHANDLE connection::set_attribute(const int an_attr, const int a_val) const
   {
-    return SQLSetConnectAttr(m_db_handle,
+    return SQLSetConnectAttr(db_handle_,
                              an_attr,
                              reinterpret_cast<SQLPOINTER>(a_val), // NOLINT
                              SQL_NTS);
@@ -334,20 +333,28 @@ namespace db
         std::to_string(rc) + "'");
     return rc;
   }
+  void connection::throw_on_error(SQLRETURN          rc,
+                                  SQLHANDLE          a_handle,
+                                  int                a_handle_type,
+                                  const std::string& a_msg)
+  {
+    if (rc != SQL_SUCCESS)
+    {
+      error err;
+      err.load(a_handle, a_handle_type);
+      throw error_exception(err.dump(a_msg));
+    }
+  }
+  /// fetch free statement handle
+  SQLHANDLE connection::get_free_handle() const { return get_free_handle(db_handle_); }
   /*!
    * Fetch free statement handle
-   * The method returns a statement handle. The handle can be taken from handle cache, if enabled,
-   * or allocated if unavailable otherwise.
    */
-  SQLHANDLE connection::get_free_handle() const
+  SQLHANDLE connection::get_free_handle(SQLHANDLE handle) const
   {
     SQLHANDLE stmt_handle;
-    auto      rc = SQLAllocHandle(SQL_HANDLE_STMT, m_db_handle, &stmt_handle);
-    if (rc != SQL_SUCCESS)
-      {
-        throw error_exception("can not allocate statement handle. rc='" + std::to_string(rc) +
-                              "'.");
-      }
+    auto      rc = SQLAllocHandle(SQL_HANDLE_STMT, handle, &stmt_handle);
+    throw_on_error(rc, handle, SQL_HANDLE_STMT, "Can not allocate statement handle.");
     log("Statement handle '" + std::to_string(stmt_handle) + "' allocated.");
     return stmt_handle;
   }
@@ -358,10 +365,13 @@ namespace db
    */
   void connection::log(const std::string& msg) const
   {
-    if (m_show_log)
-      {
-        if (m_log != nullptr) m_log(msg);
-        else std::cerr << msg;
-      }
+    if (should_we_log())
+    {
+      if (log_ != nullptr) log_(msg);
+      else std::cerr << msg;
+    }
+    else {
+      /* empty on purpose - we do not want to log */
+    }
   }
 } // namespace db

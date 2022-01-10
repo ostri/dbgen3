@@ -21,6 +21,7 @@ namespace dbgen3
     out_folder_not_exist = 4,
     no_gsql_files        = 5,
     unk_db_name          = 6,
+    unk_exception        = 7,
   };
 
   /**
@@ -50,6 +51,7 @@ namespace dbgen3
 			{p_sts::out_folder_not_exist,  "Output folder was not provided or does not exist"},
 			{p_sts::no_gsql_files,         "No gsql filenames provided."},
       {p_sts::unk_db_name,           "Unknown db name provided"},
+      {p_sts::unk_exception,         "Unknown exception"},
     }){};
     // clang-format on
     ~program_status()                     = default;

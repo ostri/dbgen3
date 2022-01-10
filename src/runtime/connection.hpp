@@ -3,23 +3,19 @@
  * \brief Declaration of class db::connection
  *
  */
-#ifndef CONNECTION_H
-#define CONNECTION_H
+#ifndef CONNECTION_HPP
+#define CONNECTION_HPP
 
 #include <sqlcli1.h>
-
-
 #include <atomic>
 #include <vector>
-
-
+#include <sstream>
+#include <iostream>
 namespace db
 {
-  /// prototype for log function callback
-  using err_log = void (*)(const std::string&);
 
-  void _log_(const std::string& msg);
-
+  using err_log = void (*)(const std::string&); //!< prototype for log function callback
+  void _log_(const std::string& msg);           //!< default log (std::cerr)
   /*!
    * \brief It implements a connection to db via db2 CLI
    *
@@ -30,83 +26,95 @@ namespace db
   class connection
   {
   public:
+    /**
+     * @brief name of the environment variable that triggers the logging
+     *
+     * Should one want to activate the logs in the runtime component, set the environment
+     * variable with the provided name to non null value.
+     */
+    static constexpr const char* log_env_name = "DBGEN3_TRACE";
     //-----------------------------------------------------------------------
     //! @name Constructor & Destructor
     //{@
-    /// constructor
+    /**
+     * @brief Construct a new connection object
+     *
+     * @param a_database name of the database to connect
+     * @param a_user     username for the database (or "" -> default assumed)
+     * @param a_password corresonding password (or "" -> username of default user assumed)
+     * @param a_log      logging calback method (see errlog; if none provided it logs to the
+     * std::cerr)
+     */
     explicit connection(const std::string& a_database,
                         const std::string& a_user     = "",
                         const std::string& a_password = "",
-                        err_log            a_log      = nullptr,
-                        bool               show_log   = false);
-    virtual ~connection();                     //!< destructor
-    connection(const connection& o) = default; //!< copy constructor
-    connection(connection&& o)      = default; //!< move constructor
-    connection& operator=(const connection& o) = default;
-    connection& operator=(connection&& o) = default;
+                        err_log            a_log      = nullptr);
+    virtual ~connection();                                //!< destructor
+    connection(const connection& o) = default;            //!< copy constructor
+    connection(connection&& o)      = default;            //!< move constructor
+    connection& operator=(const connection& o) = default; //!< assigment operator
+    connection& operator=(connection&& o) = default;      //!< move assigment operator
     //@}
-    void allocate_env_handle() const;
     //-----------------------------------------------------------------------
     //! @name Getters
     //{@
-    /// get environment handle
-    static SQLHANDLE get_env();
-    /// get connection handle
-    SQLHANDLE get_connection() const;
-    /// get log callback function
-    err_log get_log() const;
-    /// get statement handle
-    SQLHANDLE get_free_handle() const;
+    static SQLHANDLE get_env();                               //!< get environment handle
+    SQLHANDLE        get_db_handle() const;                   //!< get connection handle
+    err_log          get_log() const;                         //!< get log callback function
+    SQLHANDLE        get_free_handle() const;                 //!< get statement handle
+    SQLHANDLE        get_free_handle(SQLHANDLE handle) const; //!< get statement handle
+    /// fetch database name
+    const std::string& get_db_name() const;               //!< fetch database name
+    static bool        should_we_log();                   //!< is runtime logging switched on?
+    std::string dump(const std::string a_msg = "") const; //!< serialize connection attributes
+    //@}
+    /// @name Setters
+    //{@
+    void      set_log(err_log a_log); //!< log handler setter
+//    void      show_log(bool enable);  //!< should we show log or not (true - show, false - disable)
+    SQLHANDLE set_attribute(int an_attr, int a_val) const; //!< set connection attribute
     //@}
     //-----------------------------------------------------------------------
     /// @name Utility methods
     //{@
-    /// commit transactions
-    SQLRETURN commit() const;
-    /// rollback transactions
-    SQLRETURN rollback() const;
-    /// log an event
-    ///void log(std::string msg) const;
-    void log(const std::string& msg) const;
-    /// store statement handle for further reuse
-    SQLRETURN release_stmt_handle(SQLHANDLE h) const;
-    //@}
-    //-----------------------------------------------------------------------
-    /// @name Setters
-    //{@
-    /// log setter
-    void set_log(err_log a_log);
-    /// should we show log or not (true - show, false - disable)
-    void show_log(bool enable);
-    /// set connection attribute
-    SQLHANDLE set_attribute(int an_attr, int a_val) const;
-    //    bool is_copy() const;
-    const std::string& get_db_name() const;
+    SQLRETURN commit() const;                         //!< commit transactions
+    SQLRETURN rollback() const;                       //!< rollback transactions
+    void      log(const std::string& msg) const;      //!< log an event
+    SQLRETURN release_stmt_handle(SQLHANDLE h) const; //!< release a statement handle
     //@}
   private:
+    /**
+     * @brief checks status code and throw on error
+     *
+     * @param rc status code (0 == ok)
+     * @param a_handle db handle where we are checking status
+     * @param a_handle_type db handle type where we are checking status
+     * @param a_msg a messsage to be dispatched upon error
+     */
+    static void throw_on_error(SQLRETURN          rc,
+                               SQLHANDLE          a_handle,
+                               int                a_handle_type,
+                               const std::string& a_msg);
+
+    SQLHANDLE allocate_env_handle() const; //!< allocate database environment handle
     /// display error context
-    static void print_ctx(const std::string& msg,
-                          int                err_code,
-                          int                line,
-                          const std::string& file);
+    static void print_ctx(const std::string& msg, int err_code, int line, const std::string& file);
     /// open new db connection
     int open_connection(const std::string& a_database,
                         const std::string& a_user,
                         const std::string& a_password);
     /*... instance attributes ................................................*/
-    static SQLHANDLE m_henv; //!< environment handle NOLINT
+    static SQLHANDLE henv_; //!< environment handle NOLINT
     // number of connections referencing the same environment handle
-    static std::atomic_uint m_henv_ref_cnt; // NOLINT
-
-    err_log     m_log;       //!< log callback function
-    bool        m_show_log;  //!< true - display logs, false - do not display logs
-    std::string m_db_name;   //!< database name
-    std::string m_user;      //!< username
-    std::string m_pass;      //!< password
-    SQLHANDLE   m_db_handle; //<! connection handle
+    static std::atomic_uint henv_ref_cnt_; // NOLINT
+    err_log                 log_;          //!< log callback function
+    std::string             db_name_;      //!< database name
+    std::string             user_;         //!< username
+    std::string             pass_;         //!< password
+    SQLHANDLE               db_handle_;    //<! connection handle
   };
-  /// Serialisation to string stream
-  std::ostream& operator<<(std::ostream& s, const connection& o);
+  /// should we log the execution ?
+  inline bool connection::should_we_log() { return std::getenv(log_env_name) != nullptr; }
 } // namespace db
 
-#endif
+#endif // CONNECTION_HPP

@@ -26,13 +26,14 @@ int main(int argc, char** argv)
   info << cmd_par.dump("command line parameters:");
   auto sts = cmd_par.check_parameters();
   if (sts == dbgen3::p_sts::success)
-  {
+  { /* parameters are OK */
     info << out::sl("parameters are ok.", 0);
     xercesc::XMLPlatformUtils::Initialize();
     dbgen3::gsql_parser qe; // xercesc environment
     if (qe.isValid()) { info << out::sl("environment is ok"); }
   }
-  else {
+  else 
+  { /* invalid or missing parameters */
     auto tmp = dbgen3::program_status().g_dscr(sts);
     err << out::sl(tmp, 0);
   }

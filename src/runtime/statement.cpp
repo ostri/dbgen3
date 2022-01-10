@@ -3,8 +3,6 @@
  * \brief Implementation of class db::statement
  *
  */
-
-
 //#include <iostream>
 
 #include <sstream>
@@ -13,29 +11,24 @@
 
 #include "error_exception.hpp"
 #include "statement.hpp"
-
-
 //#include "fmt/core.h"
-
 namespace db
 {
   /**
    * Constructor
    */
-  statement::statement(const connection* a_db)
-  : m_db(a_db)
-  , m_handle(m_db->get_free_handle())
-  , is_prepared(false)
-  {
-  }
+  statement::statement(const connection& a_db)
+  : db_(a_db)
+  , handle_(db_.get_free_handle())
+  , is_prepared_(false)
+  { }
   /// constructor with sql
-  statement::statement(const connection* a_db, const char* an_sql)
-  : m_db(a_db)
-  , m_sql(an_sql)
-  , m_handle(m_db->get_free_handle())
-  , is_prepared(false)
-  {
-  }
+  statement::statement(const connection& a_db, const char* an_sql)
+  : db_(a_db)
+  , sql_(an_sql)
+  , handle_(db_.get_free_handle())
+  , is_prepared_(false)
+  { }
   /*!
    * destructor
    *
@@ -45,7 +38,7 @@ namespace db
   statement::~statement()
   {
     log(std::string("disposing statement: sql='") + get_sql() + std::string("'."));
-    m_db->release_stmt_handle(m_handle);
+    db_.release_stmt_handle(handle_);
     log("Statement disposed.");
   }
   /*!
@@ -57,7 +50,7 @@ namespace db
   {
     set_sql(an_sql);
     SQLRETURN sts =
-      chk(SQLExecDirect(m_handle,
+      chk(SQLExecDirect(handle_,
                         reinterpret_cast<SQLCHAR*>(const_cast<char*>(an_sql.data())), // NOLINT
                         SQL_NTS),
           std::string("exec direct ok    :- sql='") + get_sql() + "'.",
@@ -71,7 +64,7 @@ namespace db
    */
   SQLRETURN statement::exec() const
   {
-    SQLRETURN sts = chk(SQLExecute(m_handle),
+    SQLRETURN sts = chk(SQLExecute(handle_),
                         std::string("exec ok    :- sql='") + get_sql() + "'.",
                         std::string("exec failed:- sql='") + get_sql() + "'.",
                         false);
@@ -85,43 +78,45 @@ namespace db
   SQLRETURN statement::prepare(const std::string& an_sql)
   {
     SQLRETURN rc = SQL_SUCCESS;
-    if (an_sql.empty()) m_sql = an_sql;
-    if (! is_prepared)
-      {
-        auto ok_ans  = std::string("prepare ok :- sql='") + m_sql + std::string("'.");
-        auto nak_ans = std::string("prepare failed:- sql='") + m_sql + std::string("'.");
+    if (an_sql.empty()) sql_ = an_sql;
+    if (! is_prepared_)
+    {
+      auto ok_ans  = std::string("prepare ok :- sql='") + sql_ + std::string("'.");
+      auto nak_ans = std::string("prepare failed:- sql='") + sql_ + std::string("'.");
 
-        rc          = chk(SQLPrepare(
-                   m_handle,
+      rc = chk(
+        SQLPrepare(handle_,
                    reinterpret_cast<SQLCHAR*>( // NOLINT cppcoreguidelines-pro-type-reinterpret-cast
-                     const_cast<char*>(        // NOLINT -cppcoreguidelines-pro-type-reinterpret-cast
-                       m_sql.data())),
+                     const_cast<char*>( // NOLINT -cppcoreguidelines-pro-type-reinterpret-cast
+                       sql_.data())),
                    SQL_NTS),
-                 ok_ans,
-                 nak_ans);
-        is_prepared = rc == SQL_SUCCESS;
-      }
-    else log(std::string("Already prepared: '") + m_sql + std::string("'."));
+        ok_ans,
+        nak_ans);
+      is_prepared_ = rc == SQL_SUCCESS;
+    }
+    else log(std::string("Already prepared: '") + sql_ + std::string("'."));
     return rc;
   }
   /**
    * The method serialises content of the object attributes
    * to the stream.
    */
-  std::ostream& operator<<(std::ostream& s, const statement& o)
+  std::string statement::dump(const std::string& a_msg) const
   {
-    s << " sql:'" << o.get_sql() << "'" << std::endl
-      << " stmt:   " << o.get_stmt_handle() << std::endl
-      << " cursor:'" << o.get_cursor_name() << "'" << std::endl
-      << " conn:   " << o.get_db();
-    return s;
+    std::stringstream s;
+    s << a_msg << std::endl
+      << " sql:'" << get_sql() << "'" << std::endl
+      << " stmt:   " << get_stmt_handle() << std::endl
+      << " cursor:'" << get_cursor_name() << "'" << std::endl
+      << " conn:   " << get_db().dump();
+    return s.str();
   }
   /// fetch statement handle
-  SQLHANDLE statement::get_stmt_handle() const { return this->m_handle; }
+  SQLHANDLE statement::get_stmt_handle() const { return this->handle_; }
   /// commit statements
-  SQLRETURN statement::commit() const { return m_db->commit(); }
+  SQLRETURN statement::commit() const { return db_.commit(); }
   /// rollback statements
-  SQLRETURN statement::rollback() const { return m_db->rollback(); }
+  SQLRETURN statement::rollback() const { return db_.rollback(); }
   /// fetch buffer set
   /*!
    * The method fetches a record set. Records are taken either relative or absolute.
@@ -135,7 +130,7 @@ namespace db
    */
   SQLRETURN statement::fetch_scroll(int16_t a_dir, uint a_len, bool should_throw) const
   {
-    return chk(SQLFetchScroll(m_handle, a_dir, static_cast<std::make_signed_t<uint>>(a_len)),
+    return chk(SQLFetchScroll(handle_, a_dir, static_cast<std::make_signed_t<uint>>(a_len)),
                std::string("fetch scroll ok    :- sql='") + get_sql() + "'.",
                std::string("fetch scroll failed:- sql='") + get_sql() + "'.",
                should_throw);
@@ -155,43 +150,37 @@ namespace db
                            bool               should_throw) const
   {
     if (err_code != SQL_SUCCESS)
+    {
+      if (should_throw)
       {
-        if (should_throw)
-          {
-            error err;
-            err.load(m_handle, SQL_HANDLE_STMT, m_sql);
-            std::string str = err_msg + std::string(" : ") + err.dump();
-            log(str);
-            throw error_exception(str);
-          }
-        log("Error code: " + std::to_string(err_code));
+        error err;
+        err.load(handle_, SQL_HANDLE_STMT);
+        std::string str = err_msg + std::string(" : ") + err.dump(sql_);
+        log(str);
+        throw error_exception(str);
       }
-    else {
-        log(ok_msg);
-      }
+      log("Error code: " + std::to_string(err_code));
+    }
+    else log(ok_msg);
     return err_code;
   }
   /// fetch an sql statement
-  const std::string& statement::get_sql() const { return m_sql; }
+  const std::string& statement::get_sql() const { return sql_; }
   /// set sql statement
   void statement::set_sql(const std::string& an_sql)
   {
-
-    if (m_sql != an_sql)
-      {
-        m_sql       = an_sql;
-        is_prepared = false;
-        log(std::string("new sql:'") + m_sql + std::string("'"));
-      }
+    if (sql_ != an_sql)
+    {
+      sql_         = an_sql;
+      is_prepared_ = false;
+      log(std::string("new sql:'") + sql_ + std::string("'"));
+    }
     else log("No changes in sql.");
   }
-  /*!
-   * It fetches pointer to connection object
-   * @return
-   */
-  const connection* statement::get_db() const { return m_db; }
+  /// fetch the related connecton object
+  const connection& statement::get_db() const { return db_; }
   /// fetch cursor name
-  std::string statement::get_cursor_name() const { return m_cursor_name; }
+  std::string statement::get_cursor_name() const { return cursor_name_; }
   /*!
    * The method fetches record set. The operation can return various codes. Parameter allowed_codes contains a list of
    * codes which are valid in the provided context. For this set the method return status code, for all others it
@@ -212,15 +201,13 @@ namespace db
                                   const std::string& allowed_codes,
                                   uint               a_num_of_records)
   {
-
     auto rc = fetch_scroll(a_dir, a_num_of_records + 0, false);
     return handle_return_code(rc, allowed_codes);
   }
   /*!
    * close cursor on statement (for selects only)
    */
-  int statement::close_cursor() const { return SQLCloseCursor(this->m_handle); }
-
+  int statement::close_cursor() const { return SQLCloseCursor(this->handle_); }
   /*!
    * The method checks if code returned is on the provided list. If code
    * exists on the provided list it simply returns, otherwise it throws an
@@ -237,18 +224,18 @@ namespace db
   {
     std::string fnc(&__func__[0]);
     if (rc != SQL_SUCCESS)
-      {
-        error err;
-        err.load(m_handle, SQL_HANDLE_STMT, m_sql);
+    {
+      error err;
+      err.load(handle_, SQL_HANDLE_STMT);
 
-        int code = err.get_error_code();
-        if (allowed_codes.find(std::to_string(code)) == std::string::npos)
-          {
-            std::string err_str = err.dump();
-            log(fnc + std::string(":") + err_str);
-            throw error_exception(err_str);
-          };
-      }
+      int code = err.get_error_code();
+      if (allowed_codes.find(std::to_string(code)) == std::string::npos)
+      {
+        std::string err_str = err.dump(sql_);
+        log(fnc + std::string(":") + err_str);
+        throw error_exception(err_str);
+      };
+    }
     log(fnc + std::string(": OK"));
     return rc;
   }
@@ -260,7 +247,7 @@ namespace db
    */
   SQLRETURN statement::set_attr_l(const int attr, uint64_t value) const
   {
-    SQLRETURN ret = SQLSetStmtAttr(m_handle,
+    SQLRETURN ret = SQLSetStmtAttr(handle_,
                                    attr,
                                    reinterpret_cast<void*>(value), // NOLINT
                                    0);
@@ -270,24 +257,21 @@ namespace db
   }
   SQLRETURN statement::set_attr(const int attr, int16_t* value) const
   {
-
-    SQLRETURN ret = SQLSetStmtAttr(m_handle, attr, static_cast<SQLPOINTER>(value), 0);
+    SQLRETURN ret = SQLSetStmtAttr(handle_, attr, static_cast<SQLPOINTER>(value), 0);
     log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" + std::to_string(*value) + "'.");
     return ret;
   }
   SQLRETURN statement::set_attr(const int attr, int* value) const
   {
-
-    SQLRETURN ret = SQLSetStmtAttr(m_handle, attr, static_cast<SQLPOINTER>(value), 0);
+    SQLRETURN ret = SQLSetStmtAttr(handle_, attr, static_cast<SQLPOINTER>(value), 0);
     log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" + std::to_string(*value) + "'.");
     return ret;
   }
   SQLRETURN statement::set_attr(const int attr, SQLCHAR* value) const
   {
-
-    SQLRETURN ret = SQLSetStmtAttr(m_handle,
+    SQLRETURN ret = SQLSetStmtAttr(handle_,
                                    attr,
                                    reinterpret_cast<void*>(value), // NOLINT
                                    SQL_NTS);
@@ -297,8 +281,7 @@ namespace db
   }
   SQLRETURN statement::set_attr(const int attr, void* value, const unsigned int len) const
   {
-
-    SQLRETURN ret = SQLSetStmtAttr(m_handle,
+    SQLRETURN ret = SQLSetStmtAttr(handle_,
                                    attr,
                                    reinterpret_cast<SQLPOINTER>(value), // NOLINT
                                    SQL_LEN_BINARY_ATTR(len));
@@ -312,9 +295,8 @@ namespace db
   }
   SQLRETURN statement::set_attr(const int attr, int value) const
   {
-
     SQLRETURN ret = SQLSetStmtAttr(
-      m_handle,
+      handle_,
       attr,
       reinterpret_cast<SQLPOINTER>(value), //NOLINT -cppcoreguidelines-pro-type-reinterpret-cast
       0);
@@ -330,7 +312,7 @@ namespace db
    */
   SQLRETURN statement::set_pos(size_t a_rec_pos)
   {
-    return SQLSetPos(this->m_handle, a_rec_pos, SQL_POSITION, SQL_LOCK_NO_CHANGE);
+    return SQLSetPos(this->handle_, a_rec_pos, SQL_POSITION, SQL_LOCK_NO_CHANGE);
   }
   /*!
    * The method position itself to the beginning of the provided page.

@@ -24,9 +24,9 @@ namespace db
    *                            - SQL_HANDLE_STMT for statement handles
    * \param a_msg         - additional message to be associated with the error description
    */
-  error::error(SQLHANDLE a_handle, SQLSMALLINT a_handle_type, const std::string& a_msg)
+  error::error(SQLHANDLE a_handle, SQLSMALLINT a_handle_type)
   {
-    load(a_handle, a_handle_type, a_msg);
+    load(a_handle, a_handle_type);
   }
   /*!
    * \returns number of errors
@@ -59,8 +59,7 @@ namespace db
    * Normally db2 returns only one error message, but it can be several.
    */
   int error::load(SQLHANDLE   a_handle,      // NOLINT bugprone-easily-swappable-parameters
-                  SQLSMALLINT a_handle_type, // NOLINT bugprone-easily-swappable-parameters
-                  const std::string& /*a_msg*/)
+                  SQLSMALLINT a_handle_type)
   {
     const int max_msg_len   = 1024;
     const int max_state_len = 5;
@@ -157,9 +156,9 @@ namespace db
   /*!
    * The method dumps all error descriptions in one string an returns it to the caller
    */
-  std::string error::dump() const
+  std::string error::dump(const std::string& a_msg) const
   {
-    std::string s;
+    std::string s(a_msg);
     for (const auto& e_dscr : errors_) { s += "[" + e_dscr.dump("") + "]\n"; }
     return s;
   }

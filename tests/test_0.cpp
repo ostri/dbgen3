@@ -6,11 +6,13 @@
 #include <doctest/doctest.h>
 #include <cstdlib>
 #include <iostream>
+#include <array>
 
 #include "connection.hpp"
 #include "error_exception.hpp"
 #include "program_status.hpp"
 
+using argv_t = std::vector<const char*>;
 /**
  * @brief basic connection test
  *
@@ -18,27 +20,30 @@
  * @param argv value of the command line parameters
  * @return
  */
-int do_main(int /*argc*/, char** /*argv*/)
+int do_main(argv_t argv)
 {
   try
-    {
-      auto show = std::getenv("TRACE") != 0; // NOLINT -concurrency-mt-unsafe,readability-implicit-bool-conversion
-      db::connection conn("test1", "", "", &db::_log_, show);
-    }
+  {
+    db::connection conn(argv[1]);
+    return static_cast<int>(dbgen3::p_sts::success);
+  }
   catch (db::error_exception& e)
-    {
-      std::cerr << "\ncli error\n" << e.what() << std::endl;
-      return static_cast<int>(dbgen3::p_sts::unk_db_name);
-    }
+  {
+    db::_log_("cli error");
+    db::_log_(e.what());
+    return static_cast<int>(dbgen3::p_sts::unk_db_name);
+  }
   catch (...)
-    {
-      std::cerr << "\nunhandled exception\n" << std::endl;
-    }
-  return 0;
+  {
+    db::_log_("unhandled exception");
+    return static_cast<int>(dbgen3::p_sts::unk_exception);
+  }
 }
 
-TEST_CASE("Test function")
-{ //
-  char* par_v[] =  {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-  REQUIRE(do_main(1, par_v) == 0);
+TEST_CASE("Connection constructor")
+{
+  REQUIRE(do_main(argv_t{"", "test"}) == static_cast<int>(dbgen3::p_sts::success));
+  REQUIRE(do_main(argv_t{"", "unknown"}) == static_cast<int>(dbgen3::p_sts::unk_db_name));
+  REQUIRE(do_main(argv_t{"", ""}) == static_cast<int>(dbgen3::p_sts::unk_db_name));
+  REQUIRE(do_main(argv_t{"", nullptr}) == static_cast<int>(dbgen3::p_sts::unk_exception));
 }
