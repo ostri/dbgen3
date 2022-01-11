@@ -3,11 +3,10 @@
  * \brief Implementation of class db::statement
  *
  */
-//#include <iostream>
-
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <sqlcli1.h>
 
 #include "error_exception.hpp"
 #include "statement.hpp"
@@ -17,16 +16,16 @@ namespace db
   /**
    * Constructor
    */
-  statement::statement(const connection& a_db)
-  : db_(a_db)
-  , handle_(db_.get_free_handle())
-  , is_prepared_(false)
-  { }
+  statement::statement(const connection& a_db) : statement(a_db, ""){}
+  // // : db_(a_db)
+  // // , handle_(db_.get_free_handle())
+  // // , is_prepared_(false)
+  // { }
   /// constructor with sql
-  statement::statement(const connection& a_db, const char* an_sql)
+  statement::statement(const connection& a_db, const std::string& an_sql)
   : db_(a_db)
   , sql_(an_sql)
-  , handle_(db_.get_free_handle())
+  , handle_(db_.alloc_stmt_handle())
   , is_prepared_(false)
   { }
   /*!
@@ -38,7 +37,7 @@ namespace db
   statement::~statement()
   {
     log(std::string("disposing statement: sql='") + get_sql() + std::string("'."));
-    db_.release_stmt_handle(handle_);
+    db_.dealloc_stmt_handle(handle_);
     log("Statement disposed.");
   }
   /*!
@@ -122,7 +121,8 @@ namespace db
    * The method fetches a record set. Records are taken either relative or absolute.
    * @param a_dir    - direction of the fetch (see SQLFetchScroll constants)
    * @param a_len    -  number of records to fetch
-   * @param should_throw - should the method throws an exception if error code is not SQL_SUCCESS (i.e. 0)
+   * @param should_throw - should the method throws an exception if error code is not SQL_SUCCESS
+   * (i.e. 0)
    *        - true - throw an exception if status of the operation is not equal to 0
    *        - false - return only return code; no exception
    * @return error code of the fetch operation
@@ -182,9 +182,9 @@ namespace db
   /// fetch cursor name
   std::string statement::get_cursor_name() const { return cursor_name_; }
   /*!
-   * The method fetches record set. The operation can return various codes. Parameter allowed_codes contains a list of
-   * codes which are valid in the provided context. For this set the method return status code, for all others it
-   * throws an exception.
+   * The method fetches record set. The operation can return various codes. Parameter allowed_codes
+   * contains a list of codes which are valid in the provided context. For this set the method
+   * return status code, for all others it throws an exception.
    *
    * @param a_dir - SQL_FETCH_NEXT      1
    *                SQL_FETCH_FIRST     2
@@ -245,14 +245,16 @@ namespace db
    * @param value attribute value
    * @return return code of the operation
    */
-  SQLRETURN statement::set_attr_l(const int attr, uint64_t value) const
+  std::int16_t statement::set_attr_l(const int attr, uint64_t value)
   {
     SQLRETURN ret = SQLSetStmtAttr(handle_,
                                    attr,
                                    reinterpret_cast<void*>(value), // NOLINT
                                    0);
-    log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
-        "' value:'" + std::to_string(value) + "'.");
+    log(std::string("status:") + std::to_string(ret) + //
+        " attribute:'" + std::to_string(attr) +        //
+        "' value:'" + std::to_string(value) +          //
+        "'.");
     return ret;
   }
   SQLRETURN statement::set_attr(const int attr, int16_t* value) const
@@ -287,7 +289,7 @@ namespace db
                                    SQL_LEN_BINARY_ATTR(len));
     log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" +
-        std::string(reinterpret_cast<const char*>(value), //NOLINT
+        std::string(reinterpret_cast<const char*>(value), // NOLINT
                     len) +
         "'.");
     // log(std::format("status: {} attribute:'{}' value:'{}'.", ret, attr, value));
@@ -298,7 +300,7 @@ namespace db
     SQLRETURN ret = SQLSetStmtAttr(
       handle_,
       attr,
-      reinterpret_cast<SQLPOINTER>(value), //NOLINT -cppcoreguidelines-pro-type-reinterpret-cast
+      reinterpret_cast<SQLPOINTER>(value), // NOLINT -cppcoreguidelines-pro-type-reinterpret-cast
       0);
     log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" + std::to_string(value) + "'.");
@@ -312,7 +314,7 @@ namespace db
    */
   SQLRETURN statement::set_pos(size_t a_rec_pos)
   {
-    return SQLSetPos(this->handle_, a_rec_pos, SQL_POSITION, SQL_LOCK_NO_CHANGE);
+    return SQLSetPos(handle_, a_rec_pos, SQL_POSITION, SQL_LOCK_NO_CHANGE);
   }
   /*!
    * The method position itself to the beginning of the provided page.
@@ -323,4 +325,4 @@ namespace db
   {
     return set_pos(a_page_num * a_page_size + 1);
   }
-} //namespace db
+} // namespace db
