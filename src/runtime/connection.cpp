@@ -35,15 +35,17 @@ namespace db
   /// lock mutex
   std::mutex mtx; // NOLINT -cppcoreguidelines-avoid-non-const-global-variables
 
-  std::int32_t connection::allocate_env_handle() const
+  h_pair connection::allocate_env_handle() const
   {
     std::lock_guard<std::mutex> lck(mtx);
     std::int32_t                env_handle = 0;
     /* allocate an environment handle */
     auto rc = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env_handle);
-    throw_on_error(
-      rc, env_handle, SQL_HANDLE_ENV, "ERROR while allocating the environment handle.");
-    return env_handle;
+    throw_on_error(rc,
+                   env_handle,
+                   SQL_HANDLE_ENV, //
+                   "ERROR while allocating the environment handle.");
+    return h_pair{env_handle, SQL_HANDLE_ENV};
   }
   /*!
    * Constructor
@@ -105,68 +107,106 @@ namespace db
                                   const std::string& a_password)
   {
     std::int16_t rc = SQL_SUCCESS;
-    /* allocate an environment handle */
-    if (henv_ref_cnt_ == 0) [[likely]]
+    try
     {
-      db::connection::henv_ = allocate_env_handle(); // allocate or throw
+      db_handle_ = 0;
+      /* allocate an environment handle */
+      if (henv_ref_cnt_ == 0) [[likely]]
+      {
+        auto pair = allocate_env_handle(); // allocate or throw
+        //        h_stack_.push(pair); // env handle is freed separatelly
+        db::connection::henv_ = pair.handle;
+      }
+      /* set attribute to enable application to run as ODBC 3.0 application */
+      rc = SQLSetEnvAttr(henv_,
+                         SQL_ATTR_ODBC_VERSION,
+                         reinterpret_cast<void*>(SQL_OV_ODBC3_80), // NOLINT
+                         0);
+      throw_on_error(rc, henv_, SQL_HANDLE_ENV, "ERROR enabling ODBC 3.8.");
+      log("ODBC 3.8 enabled.");
+      /* allocate a database connection handle */
+      rc = SQLAllocHandle(SQL_HANDLE_DBC, henv_, &db_handle_);
+      throw_on_error(rc, henv_, SQL_HANDLE_ENV, "ERROR allocating db handle.");
+      // h_stack_.push(h_pair(db_handle_, SQL_HANDLE_DBC)); should go out
+      henv_ref_cnt_++; // here we are sure that the connection was successfully established
+                       // and we can increase ref count for the environment handle      
+      log("DB handle allocated. #ref:"+std::to_string(henv_ref_cnt_));
+      /* connect to the database */
+      if (! a_database.empty()) [[unlikely]]
+      { /* normal connection */
+        rc = SQLConnect(db_handle_,
+                        reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_database.data())), // NOLINT
+                        SQL_NTS,
+                        reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_user.data())), // NOLINT
+                        SQL_NTS,
+                        reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_password.data())), // NOLINT
+                        SQL_NTS);
+        throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR connecting to the database.");
+      }
+      else { /* connection via previously established ESQL connection */
+        rc = SQLConnect(db_handle_, nullptr, SQL_NTS, nullptr, SQL_NTS, nullptr, SQL_NTS);
+        throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR connecting to the database.");
+        log("DB connected. NULL connection.");
+      }
+      log(             //
+        std::string("DB connected. database:'") + a_database + //
+        "' user:'" + a_user +                                  //
+        "' handle: " + std::to_string(db_handle_) +            //
+        " #connections: " + std::to_string(henv_ref_cnt_));
+      /* set AUTOCOMMIT OFF */
+      rc = set_attribute(SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
+      throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR cannot switch off auto commit.");
+      log("Autocommit disabled.");
+      log("connection established db handle: " + std::to_string(db_handle_) +
+          " related db connections: " + std::to_string(henv_ref_cnt_));
+      return db_handle_;
     }
-    /* set attribute to enable application to run as ODBC 3.0 application */
-    rc = SQLSetEnvAttr(henv_,
-                       SQL_ATTR_ODBC_VERSION,
-                       reinterpret_cast<void*>(SQL_OV_ODBC3_80), // NOLINT
-                       0);
-    throw_on_error(rc, henv_, SQL_HANDLE_ENV, "ERROR enabling ODBC 3.8.");
-    henv_ref_cnt_++;
-    log("ODBC 3.8 enabled.");
-    /* allocate a database connection handle */
-    rc = SQLAllocHandle(SQL_HANDLE_DBC, henv_, &db_handle_);
-    throw_on_error(rc, henv_, SQL_HANDLE_ENV, "ERROR allocating db handle.");
-    log("DB handle allocated.");
-    /* connect to the database */
-    if (! a_database.empty()) [[unlikely]]
-    { /* normal connection */
-      rc = SQLConnect(db_handle_,
-                      reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_database.data())), // NOLINT
-                      SQL_NTS,
-                      reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_user.data())), // NOLINT
-                      SQL_NTS,
-                      reinterpret_cast<SQLCHAR*>(const_cast<char*>(a_password.data())), // NOLINT
-                      SQL_NTS);
-      throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR connecting to the database.");
-      log(std::string("DB connected. database:'") + a_database + "' user:'" + a_user + "'");
+    catch (const error_exception& e)
+    {
+      close_connection();
+      throw;
     }
-    else { /* connection via previously established ESQL connection */
-      rc = SQLConnect(db_handle_, nullptr, SQL_NTS, nullptr, SQL_NTS, nullptr, SQL_NTS);
-      throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR connecting to the database.");
-      log("DB connected. NULL connection.");
-    }
-    /* set AUTOCOMMIT OFF */
-    rc = set_attribute(SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
-    throw_on_error(rc, db_handle_, SQL_HANDLE_DBC, "ERROR cannot switch off auto commit.");
-    log("Autocommit disabled.");
-    log("connection established " + std::to_string(henv_ref_cnt_));
-    return db_handle_;
+    // no return since we are throwing
   }
+  /**
+   * @brief drop database connection
+   *
+   */
   void connection::close_connection()
   {
-    /* disconnect from the database */
-    SQLDisconnect(db_handle_);
-    log("db disconnected.");
-    /* free the connection handle */
-    if (henv_ref_cnt_ == 0)
+    // if (! h_stack_.empty())
+    // {
+    //   while (! h_stack_.empty())
+    //   {
+    //     auto pair = h_stack_.top();
+    //     if (pair.h_type == SQL_HANDLE_DBC)
+    //     {
+    //       SQLDisconnect(db_handle_); // disconnect from the database
+    //       henv_ref_cnt_--;
+    //     }
+    //     SQLFreeHandle(pair.h_type, pair.handle);
+    //     log("handle released. h type:" + std::to_string(pair.h_type) +
+    //         " handle: " + std::to_string(pair.handle));
+    //     h_stack_.pop();
+    //   }
+    // }
+    if (db_handle_ != 0)
     {
+      SQLDisconnect(db_handle_); // disconnect from the database
+      henv_ref_cnt_--;
       SQLFreeHandle(SQL_HANDLE_DBC, db_handle_);
-      log("db handle released.");
+      log("handle released: h type:" + std::to_string(SQL_HANDLE_DBC) +
+          " handle: " + std::to_string(db_handle_));
+      db_handle_ = 0;
     }
-    henv_ref_cnt_--;
-    log("connection destructor " + std::to_string(henv_ref_cnt_));
+    log("connection destructor - (number still open databases): " + std::to_string(henv_ref_cnt_));
     /* free the environment handle */
     if (henv_ref_cnt_ == 0)
     {
       SQLFreeHandle(SQL_HANDLE_ENV, henv_);
-      henv_ = 0;
       log("db environment handle released.");
     }
+    db_handle_ = 0;
   }
   /*!
    * fetch environment handle
@@ -262,9 +302,7 @@ namespace db
                              SQL_NTS);
   }
   /*!
-   * store statement handle for further reuse
-   * The method releases cursor and binding and store the statement handle in the
-   * handle cache. This handle cache is later reused when new statement is requested.
+   * The method releases the statement handle. Upon error it throws exception.
    *
    * @param h statement handle
    * @return result code of the db operation, whether the statement is released or
@@ -273,26 +311,37 @@ namespace db
   std::int16_t connection::dealloc_stmt_handle(std::int32_t h) const
   {
     auto rc = SQLFreeHandle(SQL_HANDLE_STMT, h);
-    log("Statement handle released since cache full. stmt handle='" + std::to_string(h) + "' rc='" +
-        std::to_string(rc) + "'");
+    throw_on_error(
+      rc, h, SQL_HANDLE_STMT, "Can't free statement handle handle=" + std::to_string(h) + ".");
+    // log("Statement handle released. stmt handle='" + std::to_string(h)+ "'");
     return rc;
   }
-  void connection::throw_on_error(std::int16_t       rc,
-                                  std::int32_t       a_handle,
-                                  int                a_handle_type,
-                                  const std::string& a_msg)
+  /**
+   * @brief throws on error or return handle, handle_type pair
+   *
+   * @param rc status code of the operation
+   * @param a_handle handle that might be associated with an error
+   * @param a_handle_type handle type that might be associated with an error
+   * @param a_msg error message to be sent in case of the error
+   * @return h_pair
+   */
+  h_pair connection::throw_on_error(std::int16_t       rc,
+                                    std::int32_t       a_handle,
+                                    int                a_handle_type,
+                                    const std::string& a_msg)
   {
     if (rc != SQL_SUCCESS)
-    {
+    { // huston we have problems
       error err;
-      err.load(a_handle, a_handle_type);
+      err.load(a_handle, a_handle_type); // one or more errors from the RDBMS
       throw error_exception(err.dump(a_msg));
     }
+    else return h_pair{a_handle, a_handle_type}; // no error; return handle, handle type pair
   }
   /// fetch free statement handle
   std::int32_t connection::alloc_stmt_handle() const { return alloc_stmt_handle(db_handle_); }
   /*!
-   * Fetch free statement handle
+   * Fetch free statement handle. Upon erro it throws exception.
    */
   std::int32_t connection::alloc_stmt_handle(std::int32_t db_handle) const
   {

@@ -6,16 +6,22 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
-//#include <sqlcli1.h>
 #include <atomic>
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <stack>
 namespace db
 {
 
   using err_log = void (*)(const std::string&); //!< prototype for log function callback
-  void _log_(const std::string& msg);           //!< default log (std::cerr)
+  struct h_pair
+  {
+    std::int32_t handle; //!< handle
+    std::int32_t h_type; //!< handle type
+  };
+  using h_stack = std::stack<h_pair>;
+  void _log_(const std::string& msg); //!< default log (std::cerr)
   /*!
    * \brief It implements a connection to db via db2 CLI
    *
@@ -88,12 +94,12 @@ namespace db
      * @param a_handle_type db handle type where we are checking status
      * @param a_msg a messsage to be dispatched upon error
      */
-    static void throw_on_error(std::int16_t       rc,
+    static h_pair throw_on_error(std::int16_t       rc,
                                std::int32_t       a_handle,
                                int                a_handle_type,
                                const std::string& a_msg);
 
-    std::int32_t allocate_env_handle() const; //!< allocate database environment handle
+    h_pair allocate_env_handle() const; //!< allocate database environment handle
     std::int32_t alloc_stmt_handle(std::int32_t db_handle) const; //!< get statement handle
 
     static void print_ctx( //!< display error context
@@ -110,6 +116,7 @@ namespace db
     static std::int32_t henv_; //!< environment handle NOLINT
     // number of connections referencing the same environment handle
     static std::atomic_uint henv_ref_cnt_; // NOLINT
+//    h_stack                 h_stack_;      //!< handle stack to be exception safe
     err_log                 log_;          //!< log callback function
     std::string             db_name_;      //!< database name
     std::string             user_;         //!< username
