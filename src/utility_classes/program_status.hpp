@@ -22,6 +22,7 @@ namespace dbgen3
     no_gsql_files        = 5,
     unk_db_name          = 6,
     unk_exception        = 7,
+    gsql_file_not_exists = 8,
   };
 
   /**
@@ -52,6 +53,7 @@ namespace dbgen3
 			{p_sts::no_gsql_files,         "No gsql filenames provided."},
       {p_sts::unk_db_name,           "Unknown db name provided"},
       {p_sts::unk_exception,         "Unknown exception"},
+      {p_sts::gsql_file_not_exists,  "Provided GSQL file doesnot exist."}
     }){};
     // clang-format on
     ~program_status()                     = default;
@@ -59,7 +61,7 @@ namespace dbgen3
     program_status(program_status&&)      = default;
     program_status&    operator=(const program_status&) = delete;
     program_status&    operator=(program_status&&) = delete;
-    const std::string& g_dscr(p_sts code);
+    const std::string& g_dscr(p_sts code)const ;
   private:
     const std::vector<status_dscr> dic_; //!< dictionary of relevant statuses
   };

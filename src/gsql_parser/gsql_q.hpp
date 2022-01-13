@@ -13,7 +13,7 @@ namespace dbgen3
 	 * @brief one SQL statement description within the gsql file
 	 *
 	 */
-  class gsql_item
+  class gsql_q
   {
     /**
 		 * placeholder for sql statements
@@ -23,18 +23,18 @@ namespace dbgen3
     using sql_arr = std::array<str_t, 3>;
 
   public:
-    gsql_item(const str_t& core_name, sql_arr sql)
+    gsql_q(const str_t& core_name, sql_arr sql)
     : core_name_(core_name)
     , p_buf_name_(core_name + "_par")
     , r_buf_name_(core_name + "_res")
     , sql_(std::move(sql))
     {
     }
-    ~gsql_item()                = default;
-    gsql_item(const gsql_item&) = default;
-    gsql_item(gsql_item&&)      = default;
-    gsql_item& operator=(const gsql_item&) = delete;
-    gsql_item& operator=(gsql_item&&) = delete;
+    ~gsql_q()                = default;
+    gsql_q(const gsql_q&) = default;
+    gsql_q(gsql_q&&)      = default;
+    gsql_q& operator=(const gsql_q&) = delete;
+    gsql_q& operator=(gsql_q&&) = delete;
     /// @name getters
     ///@{
     cstr_t         g_core_name() const { return core_name_; }

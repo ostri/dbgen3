@@ -3,7 +3,7 @@ set(RT_LIB db3)
 set(PROG_NAME dbgen3)
 set(HEADER_LIST "")
 set (RT_SUBDIRS runtime)
-set (SUBDIRS utility_classes cmd_param gsql_parser ${RT_SUBDIRS})
+set (SUBDIRS utility_classes cmd_param gsql_parser exceptions ${RT_SUBDIRS})
 
 foreach (SUBDIR ${SUBDIRS})
     add_subdirectory(${SUBDIR})
@@ -28,8 +28,8 @@ set (src_list
 
   gsql_parser/core_parser
   gsql_parser/gsql_parser
-  gsql_parser/gsql_item
-  gsql_parser/gsql_item_set
+  gsql_parser/gsql_q
+  gsql_parser/gsql_q_set
   gsql_parser/xerces_strings
 
 )

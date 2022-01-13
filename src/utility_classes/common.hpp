@@ -52,9 +52,7 @@ namespace dbgen3
    */
   inline bool file_exists(const str_t& path)
   {
-    struct stat buffer
-    {
-    };
+    struct stat buffer;
     return (stat(path.c_str(), &buffer) == 0);
   }
 } // namespace dbgen3

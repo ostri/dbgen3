@@ -174,22 +174,6 @@ namespace db
    */
   void connection::close_connection()
   {
-    // if (! h_stack_.empty())
-    // {
-    //   while (! h_stack_.empty())
-    //   {
-    //     auto pair = h_stack_.top();
-    //     if (pair.h_type == SQL_HANDLE_DBC)
-    //     {
-    //       SQLDisconnect(db_handle_); // disconnect from the database
-    //       henv_ref_cnt_--;
-    //     }
-    //     SQLFreeHandle(pair.h_type, pair.handle);
-    //     log("handle released. h type:" + std::to_string(pair.h_type) +
-    //         " handle: " + std::to_string(pair.handle));
-    //     h_stack_.pop();
-    //   }
-    // }
     if (db_handle_ != 0)
     {
       SQLDisconnect(db_handle_); // disconnect from the database

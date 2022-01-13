@@ -19,23 +19,34 @@ using out = dbgen3::string_format;
 
 int main(int argc, char** argv)
 {
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
-  FLAGS_log_dir = "/tmp";
-  google::InitGoogleLogging(argv[0]); // NOLINT
-  dbgen3::cmdline_parameters cmd_par(argc, argv);
-  info << cmd_par.dump("command line parameters:");
-  auto sts = cmd_par.check_parameters();
-  if (sts == dbgen3::p_sts::success)
-  { /* parameters are OK */
-    info << out::sl("parameters are ok.", 0);
-    xercesc::XMLPlatformUtils::Initialize();
-    dbgen3::gsql_parser qe; // xercesc environment
-    if (qe.isValid()) { info << out::sl("environment is ok"); }
+  try
+  {
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    FLAGS_log_dir = "/tmp";
+    google::InitGoogleLogging(argv[0]); // NOLINT
+    dbgen3::cmdline_parameters cmd_par(argc, argv);
+    info << cmd_par.dump("command line parameters:");
+    auto sts = cmd_par.check_parameters();
+    if (sts == dbgen3::p_sts::success)
+    { /* parameters are OK */
+      info << out::sl("parameters are ok.", 0);
+      xercesc::XMLPlatformUtils::Initialize();
+      dbgen3::gsql_parser qe; // xercesc environment
+      qe.parse_set(cmd_par.g_qsql_list());
+      if (qe.isValid()) { info << out::sl("environment is ok"); }
+    }
+    else { /* invalid or missing parameters */
+      auto tmp = dbgen3::program_status().g_dscr(sts);
+      err << out::sl(tmp, 0);
+    }
+    return static_cast<int>(sts);
   }
-  else 
-  { /* invalid or missing parameters */
-    auto tmp = dbgen3::program_status().g_dscr(sts);
-    err << out::sl(tmp, 0);
+  catch (const dbgen3::gsql_file_not_exsts& e)
+  {
+    err << out::sl(dbgen3::program_status().g_dscr(e.g_status()));
   }
-  return static_cast<int>(sts);
+  catch (...)
+  {
+    std::cerr << "unknown exception" << '\n';
+  }
 }

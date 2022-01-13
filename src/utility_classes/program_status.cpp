@@ -3,7 +3,7 @@
 namespace dbgen3
 {
 
-  const std::string& program_status::g_dscr(p_sts code)
+  const std::string& program_status::g_dscr(p_sts code) const
   {
     assert(static_cast<uint>(code) >= 0);          // NOLINT
     assert(static_cast<uint>(code) < dic_.size()); // NOLINT

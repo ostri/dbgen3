@@ -28,14 +28,13 @@ namespace dbgen3
   , lang_(g_lang_code(FLAGS_lang))
   , database_type_(g_db_type_code(FLAGS_db_type))
   , verbose_(FLAGS_verbose)
-  {
-  }
+  { }
   p_sts cmdline_parameters::check_parameters() const
   {
     if (db_name_.empty()) { return p_sts::no_db_name; };
     if (database_type_ == db_type::invalid) { return p_sts::unknown_db_type; };
     if (lang_ == prog_lang::invalid) { return p_sts::unknown_lang; };
-    if (!file_exists(out_folder_)) { return p_sts::out_folder_not_exist; };
+    if (! file_exists(out_folder_)) { return p_sts::out_folder_not_exist; };
     if (gsql_list_.empty()) { return p_sts::no_gsql_files; }
     return p_sts::success;
   }
@@ -48,10 +47,7 @@ namespace dbgen3
   str_t cmdline_parameters::dump(const str_t& msg, int offs) const // NOLINT
   {
     std::string files("\n");
-    for (const auto& file : this->gsql_list_)
-    {
-      files += out::sl(file, offs + 2);
-    }
+    for (const auto& file : this->gsql_list_) { files += out::sl(file, offs + 2); }
     // clang-format off
     return
     out::sl(msg, offs) +
@@ -65,11 +61,11 @@ namespace dbgen3
     // clang-format on
   }
 
-  auto cmdline_parameters::g_db_name() const { return cstr_t(db_name_); }
-  auto cmdline_parameters::g_out_folder() const { return cstr_t(out_folder_); }
-  auto cmdline_parameters::g_qsql_list() const { return gsql_list_; }
-  auto cmdline_parameters::g_lang() const { return lang_; }
-  auto cmdline_parameters::g_database_type() const { return database_type_; }
+  auto           cmdline_parameters::g_db_name() const { return cstr_t(db_name_); }
+  auto           cmdline_parameters::g_out_folder() const { return cstr_t(out_folder_); }
+  const str_vec& cmdline_parameters::g_qsql_list() const { return gsql_list_; }
+  auto           cmdline_parameters::g_lang() const { return lang_; }
+  auto           cmdline_parameters::g_database_type() const { return database_type_; }
 
   auto cmdline_parameters::g_verbose() const { return verbose_; };
 
