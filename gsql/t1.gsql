@@ -1,0 +1,47 @@
+<?xml-model href="t11.xsd"?>
+<q-set id="q-set">
+    <hdr>
+        <!-- header part to be included into generated file immediatelly after the guard
+            <?xml-model href="gsql_file.xsd"?>
+        -->
+    </hdr>
+    <q id="q-name">
+        <!-- query -->
+        <qp id="qp-name"/> <!-- query parameters -->
+        <qr id="qr-name"/> <!-- query result -->
+        <sql-set>
+            <!-- sql set 
+                rdbms ::= sql | db2 | mariadb | oracle
+                phase ::= prepare | main | cleanup
+            -->
+            <sql>
+                <!-- default sql specific sql 
+                    rdbms = sql
+                    phase = main
+                -->
+            </sql>
+            <sql>
+                <!-- default sql specific sql 
+                    rdbms = sql
+                    phase = prepare
+                -->
+            </sql>
+            <sql>
+                <!-- default sql specific sql 
+                    rdbms = sql
+                    phase = cleanup
+                -->
+            </sql>
+        </sql-set>
+    </q>
+    <q>
+        <sql-set>
+            <sql></sql>
+        </sql-set>
+    </q>
+    <q>
+        <sql-set>
+            <sql></sql>
+        </sql-set>
+    </q>
+</q-set>

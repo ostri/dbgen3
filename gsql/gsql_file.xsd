@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="q-set">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="q" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence minOccurs="0">
+                            <xs:element name="qp" minOccurs="0" />
+                            <xs:element name="qr" minOccurs="0" />
+                            <xs:element name="sql-set" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="sql" />
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="id" use="required" />
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
