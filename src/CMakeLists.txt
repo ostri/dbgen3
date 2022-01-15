@@ -22,6 +22,7 @@ set (src_list
   utility_classes/string_format
   utility_classes/log
   utility_classes/program_status
+  utility_classes/multi_line
 
 
   cmd_param/cmdline_parameters
@@ -30,6 +31,7 @@ set (src_list
   gsql_parser/gsql_parser
   gsql_parser/gsql_q
   gsql_parser/gsql_q_set
+  gsql_parser/gsql_qbuf_dscr
   gsql_parser/xerces_strings
 
 )

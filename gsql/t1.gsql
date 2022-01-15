@@ -1,14 +1,17 @@
 <?xml-model href="t11.xsd"?>
-<q-set id="q-set">
-    <hdr>
+<q-set id="q-set-id">
+    <hdr>     
+        header line 1
+          header 1.1
+        header line 2
         <!-- header part to be included into generated file immediatelly after the guard
             <?xml-model href="gsql_file.xsd"?>
         -->
     </hdr>
-    <q id="q-name">
+    <q id="q-id1">
         <!-- query -->
-        <qp id="qp-name"/> <!-- query parameters -->
-        <qr id="qr-name"/> <!-- query result -->
+        <qp id="qp-id"/> <!-- query parameters -->
+        <qr id="qr-id"/> <!-- query result -->
         <sql-set>
             <!-- sql set 
                 rdbms ::= sql | db2 | mariadb | oracle

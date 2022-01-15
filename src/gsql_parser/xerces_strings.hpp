@@ -13,6 +13,7 @@
 namespace dbgen3
 {
   using XercesString = std::basic_string<XMLCh>;
+  using XS = XercesString;
   /// Converts from a narrow-character string to a wide-character string.
   XercesString fromNative(const char* str);
   /// Converts from a narrow-character string to a wide-charactr string.

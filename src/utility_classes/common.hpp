@@ -42,7 +42,14 @@ namespace dbgen3
    * @return string version of the token id
    */
   const str_t& g_token_str(uint token_id, const str_vec& token_set);
-
+  /**
+   * @brief split the provided string into vector of stringa
+   *
+   * @param s string to be decomposed
+   * @param delim split point
+   * @return str_vec
+   */
+  str_vec split(const std::string& s, char delim);
   /**
    * @brief test whether the provided path/file exists
    *

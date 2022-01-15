@@ -1,6 +1,7 @@
-#ifndef CORE_PARSER_H
-#define CORE_PARSER_H
+#ifndef CORE_PARSER_HPP
+#define CORE_PARSER_HPP
 
+#include <filesystem>
 #include <array>
 #include <memory>
 
@@ -19,7 +20,9 @@
 
 namespace dbgen3
 {
-  namespace x = xercesc;
+  namespace x  = xercesc;
+  namespace fs = std::filesystem;
+
   class gsql_eh : public xercesc::DOMErrorHandler
   {
   public:
@@ -44,22 +47,35 @@ namespace dbgen3
     core_parser& operator=(core_parser&&) = delete;
     /// @name getters
     ///@{
-    bool isValid() const { return valid_; }
-    gsql_q_set parse_file(const str_t& a_file);
+    bool        isValid() const;
+    std::string g_id(const x::DOMElement* a_node, cstr_t a_filename) const;
+    ///@}
+    gsql_q_set parse_file(cstr_t a_file);
   private:
-    gsql_q_set load_q_set(const x::DOMNode* a_node)const;
-    gsql_q_set load_q(const x::DOMNode* a_node, gsql_q_set& q_set) const;
-    bool g_init();
+    /// @name query set structure
+    ///@{
+    gsql_q_set load_q_set(const x::DOMElement* a_node,
+                          cstr_t   a_filename) const;
+    gsql_q     load_q(const x::DOMElement* a_node, uint a_ndx) const;
+    static gsql_qbuf_dscr load_qp(const x::DOMElement* a_node, uint a_ndx);
+    static gsql_qbuf_dscr load_qr(const x::DOMElement* a_node, uint a_ndx);
+    ///@}
+    static std::string attr_value(const x::DOMElement* a_node,
+                                  cstr_t   an_attr_name,
+                                  cstr_t   a_default);
+    static bool attr_value(const x::DOMElement* a_node,
+                           const std::string&   an_attr_name,
+                           bool   a_default);
+    bool        g_init();
     /* .........................................................*/
     bool                     valid_;  //!< is instance valid ?
     bool                     init_;   //!< is initialization done?
     x::DOMImplementation*    impl_;   //!< implementation
     x::DOMLSParser*          parser_; //!< DOM parser
     std::unique_ptr<gsql_eh> eh_;     //!< error handler
-
-  protected:
-    gsql_q_set load_q_set(x::DOMNode* a_node) const;
   };
+
+  inline bool core_parser::isValid() const { return valid_; }
 }; // namespace dbgen3
 
-#endif
+#endif // CORE_PARSER_HPP

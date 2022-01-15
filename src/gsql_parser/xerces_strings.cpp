@@ -50,7 +50,7 @@ namespace dbgen3
   /// Converts from a narrow-character string to a wide-charactr string.
   XercesString fromNative(const std::string& str)
   {
-    return fromNative(str.c_str());
+    return fromNative(str.data());
   }
 
   /// Converts from a wide-character string to a narrow-character string.

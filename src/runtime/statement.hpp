@@ -32,8 +32,8 @@ namespace db
     //@}
     //! @name Operator(s)
     //@{
-    statement& operator=(const statement& o) = default; //!< Assignment operator
-    statement& operator=(statement&& o) = default;      //!< move assignement operator
+    statement& operator=(const statement& o) = delete; //!< Assignment operator
+    statement& operator=(statement&& o) = delete;      //!< move assignement operator
     statement* assign(const statement& o);              //!< assign attributes
     //@}
     //! @name Getters

@@ -16,4 +16,15 @@ namespace dbgen3
     assert(token_id < token_set.size()); // NOLINT
     return token_set.at(token_id);
   }
+
+  str_vec split(const std::string& s, char delim)
+  {
+    str_vec r;
+    std::stringstream   ss(s);
+    std::string         item;
+  
+    while (std::getline(ss, item, delim)) { r.push_back(item); }
+  
+    return r;
+  }
 } // namespace dbgen3

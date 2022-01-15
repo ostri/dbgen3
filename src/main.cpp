@@ -45,8 +45,13 @@ int main(int argc, char** argv)
   {
     err << out::sl(dbgen3::program_status().g_dscr(e.g_status()));
   }
+  catch (const std::runtime_error& e)
+  {
+    err << "internal error " << out::sl(e.what());
+  }
   catch (...)
   {
     std::cerr << "unknown exception" << '\n';
   }
+  //TODO each exception should return distinct error code
 }
