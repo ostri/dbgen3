@@ -14,16 +14,12 @@ namespace dbgen3
     s += out::sl("{", offs);
     s += out::sl("  id: '" + id_ + "'", offs);
     for (auto b : buf_dscr_) s += out::sl(b.dump("", offs + 2), 0);
+    s += out::sl(sql_set_.dump("", offs + 2), 0);
     s += out::sl("}", offs);
     return s;
   }
 
-  void gsql_q::s_sql(uint ndx, const str_t& sql)
-  {
-    assert(sql_.size() == 3); // NOLINT
-    assert(ndx < 3);          // NOLINT
-    sql_[ndx] = sql;
-  }
+  bool gsql_q::insert(gsql_sql an_sql) { return sql_set_.insert(an_sql); }
 
   const gsql_qbuf_dscr& gsql_q::buf_dscr(enum gsql_qbuf_dscr::type ndx) const
   {

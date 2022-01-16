@@ -23,6 +23,7 @@ namespace dbgen3
     unk_db_name          = 6,
     unk_exception        = 7,
     gsql_file_not_exists = 8,
+    duplicate_sql_def    = 9,
   };
 
   /**
@@ -53,7 +54,9 @@ namespace dbgen3
 			{p_sts::no_gsql_files,         "No gsql filenames provided."},
       {p_sts::unk_db_name,           "Unknown db name provided"},
       {p_sts::unk_exception,         "Unknown exception"},
-      {p_sts::gsql_file_not_exists,  "Provided GSQL file doesnot exist."}
+      {p_sts::gsql_file_not_exists,  "Provided GSQL file doesnot exist."},
+      {p_sts::duplicate_sql_def,     "Two or more sql definitions for the same rdbms and phase pair"},
+      
     }){};
     // clang-format on
     ~program_status()                     = default;

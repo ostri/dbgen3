@@ -1,28 +1,15 @@
 #ifndef CMDLINE_PARAMETERS_HPP
 #define CMDLINE_PARAMETERS_HPP
 
+#include "magic_enum.hpp"
+
 #include "common.hpp"
 #include "program_status.hpp"
+#include "enums.hpp"
 
 namespace dbgen3
 {
-  /// list of supported language generators
-  enum class prog_lang
-  {
-    invalid = 0, //!< placeholder for all invalid inputs
-    cpp     = 1, //!< c++ code generation
-    java    = 2  //!< java code generation
-  };
 
-  /// list of supported RDBMS
-  enum class db_type : std::int8_t
-  {
-    invalid = 0, //!< invalid database type
-    db2     = 1, //!< IBM db2
-    oracle  = 2, //!< Oracle database - placeholder
-    mssql   = 3, //!< Microsoft SQL server - placeholder
-    mariadb = 4  //!< Maria database (MYSQL clone) - placeholder
-  };
   ///////////////////////////////////////////////////////////
   /// @brief cmdline_parameters
   ///
@@ -61,7 +48,7 @@ namespace dbgen3
 
     ///@}
   private:
-    const str_vec lang_str;    //!< programming languages names
+//    const str_vec lang_str;    //!< programming languages names
     const str_vec db_type_str; //!< database type names
     const str_vec verbose_str; //!< verbosity names
 

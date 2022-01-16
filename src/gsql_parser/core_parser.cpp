@@ -5,6 +5,7 @@
 #include "xerces_strings.hpp"
 #include "gsql_q_set.hpp"
 #include "gsql_q.hpp"
+#include "exceptions.hpp"
 
 
 namespace dbgen3
@@ -91,20 +92,20 @@ namespace dbgen3
     };
     return {};
   }
-  std::string core_parser::attr_value(const x::DOMElement* a_node,
-                                      cstr_t   an_attr_name,
-                                      cstr_t   a_default)
+  std::string core_parser::attr_value(const x::DOMElement* an_el,
+                                      cstr_t               an_attr_name,
+                                      cstr_t               a_default)
   {
-    XS attr_id = a_node->getAttribute(fromNative(str_t(an_attr_name)).data());
+    XS attr_id = an_el->getAttribute(fromNative(str_t(an_attr_name)).data());
     if (! attr_id.empty()) return toNative(attr_id);
     else return std::string(a_default);
   }
-  bool core_parser::attr_value(const x::DOMElement* a_node,
+  bool core_parser::attr_value(const x::DOMElement* an_el,
                                const std::string&   an_attr_name,
                                bool                 a_default)
   {
     /// load attributes
-    XS attr_id(a_node->getAttribute(fromNative(an_attr_name).data()));
+    XS attr_id(an_el->getAttribute(fromNative(an_attr_name).data()));
     if (! attr_id.empty())
     {
       if (toNative(attr_id) == "false") return false;
@@ -112,24 +113,60 @@ namespace dbgen3
     }
     else return a_default;
   }
-  gsql_qbuf_dscr core_parser::load_qp(const x::DOMElement* a_node, uint a_ndx)
+  gsql_qbuf_dscr core_parser::load_qp(const x::DOMElement* an_el, uint a_ndx)
   {
     gsql_qbuf_dscr r(gsql_qbuf_dscr::type::par);
     /// load attributes
-    r.set_id(attr_value(a_node, "id", "qp_" + std::to_string(a_ndx)));
-    r.set_skip(attr_value(a_node, "skip", false));
+    r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
+    r.set_skip(attr_value(an_el, "skip", false));
     return r;
   }
-  gsql_qbuf_dscr core_parser::load_qr(const x::DOMElement* a_node, uint a_ndx)
+  gsql_qbuf_dscr core_parser::load_qr(const x::DOMElement* an_el, uint a_ndx)
   {
     gsql_qbuf_dscr r(gsql_qbuf_dscr::type::res);
     /// load attributes
-    r.set_id(attr_value(a_node, "id", "qp_" + std::to_string(a_ndx)));
-    r.set_skip(attr_value(a_node, "skip", false));
+    r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
+    r.set_skip(attr_value(an_el, "skip", false));
     return r;
   }
 
-  gsql_q core_parser::load_q(const x::DOMElement* a_node, uint a_ndx) const
+  gsql_sql_set core_parser::load_sql_set(const x::DOMElement* an_el)
+  {
+    gsql_sql_set r;
+    for (x::DOMNode* n = an_el->getFirstChild(); n != nullptr; n = n->getNextSibling())
+    {
+      auto n_type = static_cast<NT>(n->getNodeType()); // tag type
+      auto ln     = n->getLocalName();
+      auto l_name = (ln != nullptr) ? toNative(ln) : ""; // tag name in utf8
+      err << "local name: '" << l_name << "'\t node type: " << ME::enum_name(n_type) << std::endl;
+      if (n_type == NT::ELEMENT_NODE)
+      {
+        if (l_name == "sql")
+        { /* only sql tag is allowed */
+          auto el    = static_cast<const x::DOMElement*>(n);
+          auto rdbms = ME::enum_cast<RDBMS>(attr_value(el, "rdbms", ME::enum_name(RDBMS::db2))); // no enum value testing; XSD handles that
+          auto phase = ME::enum_cast<PHASE>(attr_value(el, "phase", ME::enum_name(PHASE::main))); // no enum value testing; XSD handles that
+          gsql_sql sql_dscr(rdbms.value(), phase.value(), "");
+          if (! r.insert(sql_dscr))
+          throw dbgen3_exc(p_sts::duplicate_sql_def, program_status().g_dscr(p_sts::duplicate_sql_def)+"TODO");
+          //TODO clearly define the location of the error
+        }
+        else err << out::sl(std::string("unhandled within sql: ") + " " + l_name);
+      }
+      else if (n_type == NT::COMMENT_NODE)
+      { // comments are skipped
+        //        err << "comment" << std::endl;
+      }
+      else if (n_type == NT::TEXT_NODE) {
+        //        err << "ignorable WS" << std::endl;
+        // ignorable whitespace is ignored
+      }
+      else err << out::sl(std::string("unhandled: ") + str_t(ME::enum_name(n_type)) + " " + l_name);
+      //      node = node->getNextSibling();
+    }
+    return r;
+  }
+  gsql_q core_parser::load_q(const x::DOMElement* a_node, uint a_ndx)
   {
     gsql_q      r; /// result
     x::DOMNode* node = a_node->getFirstChild();
@@ -150,7 +187,9 @@ namespace dbgen3
         auto loc_name = toNative(node->getLocalName());
         if (loc_name == "qp") r.set_buf_dscr(load_qp(el, a_ndx));
         else if (loc_name == "qr") r.set_buf_dscr(load_qr(el, a_ndx));
-        else if (loc_name == "sql-set") { /*TODO*/
+        else if (loc_name == "sql-set") {
+          auto res = load_sql_set(el);
+          err << res.dump();
         }
         else
           throw std::runtime_error(std::string("internal error ") + loc_name + " " +
@@ -168,21 +207,20 @@ namespace dbgen3
     }
     return r;
   }
-  std::string core_parser::g_id(const x::DOMElement* a_node, cstr_t a_filename) const
+  std::string core_parser::g_id(const x::DOMElement* an_el, cstr_t a_filename) const
   {
-    return attr_value(a_node, "id", fs::path(a_filename).stem().string());
+    return attr_value(an_el, "id", fs::path(a_filename).stem().string());
   }
 
-  gsql_q_set core_parser::load_q_set(const x::DOMElement* a_node,
-                                     cstr_t   a_filename) const
+  gsql_q_set core_parser::load_q_set(const x::DOMElement* an_el, cstr_t a_filename) const
   {
-    assert(a_node != nullptr);
+    assert(an_el != nullptr);
     const XS   tag_hdr{u"hdr"};
     const XS   tag_q{u"q"};
     gsql_q_set q_set;
-    q_set.set_id(g_id(a_node, a_filename));
+    q_set.set_id(g_id(an_el, a_filename));
 
-    const x::DOMNode* node  = a_node->getFirstChild();
+    const x::DOMNode* node  = an_el->getFirstChild();
     auto              q_ndx = 0;
     while (node != nullptr)
     {

@@ -19,9 +19,9 @@ namespace dbgen3
    * @param an_argv names of the files to be processed
    */
   cmdline_parameters::cmdline_parameters(int an_argc, char** an_argv)
-  : lang_str({"invalid", "cpp", "java"})                          // NOLINT
-  , db_type_str({"invalid", "db2", "oracle", "mssql", "mariadb"}) // NOLINT
-  , verbose_str({"false", "true"})                                // NOLINT
+  : // lang_str({"invalid", "cpp", "java"})                      // NOLINT
+   db_type_str({"sql", "db2", "oracle", "mssql", "mariadb"}) // NOLINT
+  , verbose_str({"false", "true"})                            // NOLINT
   , db_name_(FLAGS_db_name)
   , out_folder_(FLAGS_out_folder)
   , gsql_list_(g_filenames_from_argv(an_argc, an_argv))
@@ -32,7 +32,7 @@ namespace dbgen3
   p_sts cmdline_parameters::check_parameters() const
   {
     if (db_name_.empty()) { return p_sts::no_db_name; };
-    if (database_type_ == db_type::invalid) { return p_sts::unknown_db_type; };
+    if (database_type_ == db_type::sql) { return p_sts::unknown_db_type; };
     if (lang_ == prog_lang::invalid) { return p_sts::unknown_lang; };
     if (! file_exists(out_folder_)) { return p_sts::out_folder_not_exist; };
     if (gsql_list_.empty()) { return p_sts::no_gsql_files; }
@@ -71,7 +71,7 @@ namespace dbgen3
 
   prog_lang cmdline_parameters::g_lang_code(const str_t& token) const
   {
-    return static_cast<prog_lang>(g_token_ndx(token, lang_str));
+    return static_cast<prog_lang>(g_token_ndx(token, enums::lang_str()));
   }
 
   db_type cmdline_parameters::g_db_type_code(const str_t& token) const
@@ -97,7 +97,7 @@ namespace dbgen3
 
   const str_t& cmdline_parameters::g_lang_str(prog_lang token) const
   {
-    return g_token_str(static_cast<int>(token), lang_str);
+    return g_token_str(static_cast<int>(token), enums::lang_str());
   }
 
   const str_t& cmdline_parameters::g_db_type_str(db_type token) const

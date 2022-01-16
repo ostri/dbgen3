@@ -23,7 +23,7 @@ set (src_list
   utility_classes/log
   utility_classes/program_status
   utility_classes/multi_line
-
+  utility_classes/enums
 
   cmd_param/cmdline_parameters
 
@@ -32,6 +32,8 @@ set (src_list
   gsql_parser/gsql_q
   gsql_parser/gsql_q_set
   gsql_parser/gsql_qbuf_dscr
+  gsql_parser/gsql_sql_set
+  gsql_parser/gsql_sql
   gsql_parser/xerces_strings
 
 )
@@ -47,10 +49,13 @@ target_sources(${PROJ_LIB}
     ${cpp_list}
     ${hpp_list}
     ${rt_hpp_list}
+    ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
   PUBLIC
     ${hpp_list}
     ${rt_hpp_list}
 )
+target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS} ${magic_enum_SOURCE_DIR}/include)
+
 # ## This depends on (header only) boost
 # target_link_libraries(${PROJ_LIB} PRIVATE ${RT_LIB})
 
@@ -73,7 +78,7 @@ set (rt_src_list
   runtime/statement
 )
 set (rt_cpp_list ${rt_src_list})
-set (rt_hpp_list ${rt_src_list})
+set (rt_hpp_list ${rt_src_list} )
 list(TRANSFORM rt_cpp_list APPEND ".cpp")
 list(TRANSFORM rt_hpp_list APPEND ".hpp")
 message (STATUS "${rt_cpp_list}")
@@ -83,19 +88,21 @@ target_sources(${RT_LIB}
   PRIVATE
     ${rt_cpp_list}
     ${rt_hpp_list}
+    ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
   PUBLIC
     ${rt_hpp_list}
 )
 message(STATUS "FMT LIB ${fmtlib_SOURCE_DIR}")
 target_compile_features(${RT_LIB} PUBLIC cxx_std_20)
 #target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS} ${fmtlib_SOURCE_DIR}/include/fmt/)
-target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS})
+message (STATUS "magic_enum ${magic_enum_SOURCE_DIR}")
+target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS} ${magic_enum_SOURCE_DIR}/include)
 # target_link_libraries(${RT_LIB} PRIVATE fmt::fmt ${DB2_LIBRARIES})
 
 
-add_executable(${PROG_NAME} main.cpp ${hpp_list} ${GLOG_INCLUDE_DIRS})
+add_executable(${PROG_NAME} main.cpp ${hpp_list} ${GLOG_INCLUDE_DIRS} ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp)
 target_compile_features(${PROG_NAME} PRIVATE cxx_std_20)
-target_include_directories(${PROG_NAME} PUBLIC ${SUBDIRS} )
+target_include_directories(${PROG_NAME} PUBLIC ${SUBDIRS} ${magic_enum_SOURCE_DIR}/include)
 
 target_link_libraries(${PROG_NAME}
   PRIVATE

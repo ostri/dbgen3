@@ -20,15 +20,22 @@ namespace dbgen3
     string_format& operator=(string_format&& other) = default;
 
     static str_t ln();
-    static str_t s(const str_t& a_msg, uint8_t offs);
-    static str_t sl(const str_t& a_msg, uint8_t offs = 0);
-    static str_t s(const str_t& a_prompt, const str_t& a_msg, uint8_t offs = 0);
-    static str_t sl(const str_t& a_prompt, const str_t& a_msg, uint8_t offs);
+//    static str_t s(const str_t& a_msg, uint8_t offs);
+//    static str_t sl(cstr_t const a_msg, uint8_t offs = 0);
+//    static str_t s(const str_t& a_prompt, const str_t& a_msg, uint8_t offs = 0);
+//    static str_t sl(const str_t& a_prompt, const str_t& a_msg, uint8_t offs);
 
-    // static str_t s(cstr_t a_msg, uint8_t offs);
-    // static str_t sl(cstr_t a_msg, uint8_t offs = 0);
-    // static str_t s(cstr_t a_prompt, cstr_t a_msg, uint8_t offs = 0);
-    // static str_t sl(cstr_t a_prompt, cstr_t a_msg, uint8_t offs);
+//    str_t sl(cstr_t a_prompt, cstr_t a_msg, uint8_t offs);
+//    str_t sl(const std::string& a_prompt, const std::string& a_msg, uint8_t offs);
+
+    //str_t s(cstr_t const a_prompt, cstr_t const a_msg, uint8_t offs);
+
+    //str_t s(cstr_t const a_msg, uint8_t offs);
+
+    static str_t s(cstr_t a_msg, uint8_t offs);
+    static str_t sl(cstr_t a_msg, uint8_t offs = 0);
+    static str_t s(cstr_t a_prompt, cstr_t a_msg, uint8_t offs = 0);
+    static str_t sl(cstr_t a_prompt, cstr_t a_msg, uint8_t offs);
   private:
     // Members
   };

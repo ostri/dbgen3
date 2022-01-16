@@ -17,7 +17,7 @@
 #include "log.hpp"
 #include "string_format.hpp"
 #include "xerces_strings.hpp"
-
+#include "gsql_sql_set.hpp"
 namespace dbgen3
 {
   namespace x  = xercesc;
@@ -48,25 +48,25 @@ namespace dbgen3
     /// @name getters
     ///@{
     bool        isValid() const;
-    std::string g_id(const x::DOMElement* a_node, cstr_t a_filename) const;
+    std::string g_id(const x::DOMElement* an_el, cstr_t a_filename) const;
     ///@}
     gsql_q_set parse_file(cstr_t a_file);
   private:
     /// @name query set structure
     ///@{
-    gsql_q_set load_q_set(const x::DOMElement* a_node,
-                          cstr_t   a_filename) const;
-    gsql_q     load_q(const x::DOMElement* a_node, uint a_ndx) const;
-    static gsql_qbuf_dscr load_qp(const x::DOMElement* a_node, uint a_ndx);
-    static gsql_qbuf_dscr load_qr(const x::DOMElement* a_node, uint a_ndx);
+    gsql_q_set            load_q_set(const x::DOMElement* an_el, cstr_t a_filename) const;
+    static gsql_q         load_q(const x::DOMElement* an_el, uint a_ndx);
+    static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
+    static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
+    static gsql_sql_set   load_sql_set(const x::DOMElement* an_el);
     ///@}
     static std::string attr_value(const x::DOMElement* a_node,
-                                  cstr_t   an_attr_name,
-                                  cstr_t   a_default);
-    static bool attr_value(const x::DOMElement* a_node,
-                           const std::string&   an_attr_name,
-                           bool   a_default);
-    bool        g_init();
+                                  cstr_t               an_attr_name,
+                                  cstr_t               a_default);
+    static bool        attr_value(const x::DOMElement* a_node,
+                                  const std::string&   an_attr_name,
+                                  bool                 a_default);
+    bool               g_init();
     /* .........................................................*/
     bool                     valid_;  //!< is instance valid ?
     bool                     init_;   //!< is initialization done?
