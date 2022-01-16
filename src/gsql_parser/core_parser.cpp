@@ -1,6 +1,5 @@
 #include <filesystem>
 #include <xercesc/dom/DOMText.hpp>
-//#include <fmt/core.h>
 
 #include "core_parser.hpp"
 #include "xerces_strings.hpp"
@@ -25,14 +24,13 @@ namespace dbgen3
     try
     {
       valid_ = true;
-      // parser_->getDomConfig()->setParameter(x::XMLUni::fgDOMValidate, // NOLINT
+      auto c = parser_->getDomConfig();
+      // c->setParameter(x::XMLUni::fgDOMValidate,
       //                                       true);
-      parser_->getDomConfig()->setParameter(x::XMLUni::fgDOMNamespaces, // NOLINT
-                                            true);
-      parser_->getDomConfig()->setParameter(x::XMLUni::fgDOMDatatypeNormalization, true); // NOLINT
+      c->setParameter(x::XMLUni::fgDOMNamespaces, true);
+      c->setParameter(x::XMLUni::fgDOMDatatypeNormalization, true);
       /// error handler
-      parser_->getDomConfig()->setParameter(xercesc::XMLUni::fgDOMErrorHandler, // NOLINT
-                                            eh_.get());
+      c->setParameter(xercesc::XMLUni::fgDOMErrorHandler, eh_.get());
     }
     catch (const x::XMLException& e)
     {
@@ -194,9 +192,7 @@ namespace dbgen3
         if (loc_name == "qp") r.set_buf_dscr(load_qp(el, a_ndx));
         else if (loc_name == "qr") r.set_buf_dscr(load_qr(el, a_ndx));
         else if (loc_name == "sql-set") {
-          // auto res = load_sql_set(el, a_ctx);
           r.set_sql_set(load_sql_set(el, a_ctx));
-          // err << res.dump();
         }
         else
           throw std::runtime_error(std::string("internal error only qp, qr and sql-set allowed.") +
@@ -211,7 +207,6 @@ namespace dbgen3
         // ignorable whitespace is ignored
       }
       else err << out::sl(std::string("unhandled: ") + std::to_string(n->getNodeType()));
-      //      n = n->getNextSibling();
     }
     return r;
   }
@@ -230,27 +225,25 @@ namespace dbgen3
     gsql_q_set q_set;
     q_set.set_id(g_id(an_el, a_filename));
     a_ctx.emplace_back(q_set.id());
-    const x::DOMNode* node  = an_el->getFirstChild();
-    auto              q_ndx = 0;
-    while (node != nullptr)
+    auto q_ndx = 0;
+    for (x::DOMNode* n = an_el->getFirstChild(); n != nullptr; n = n->getNextSibling())
     {
-      if (node->getNodeType() == x::DOMNode::ELEMENT_NODE)
+      if (n->getNodeType() == x::DOMNode::ELEMENT_NODE)
       {
-        XS loc_name = node->getLocalName();
-        //        err << out::sl(toNative(loc_name));
-        if (loc_name == tag_hdr)
+        auto el       = static_cast<x::DOMElement*>(n);
+        auto loc_name = toNative(n->getLocalName());
+        if (loc_name == "hdr")
         { /* header */
-          auto txt = static_cast<x::DOMText*>(node->getFirstChild());
+          auto txt = static_cast<x::DOMText*>(el->getFirstChild());
           q_set.set_header(toNative(txt->getWholeText()));
         }
-        else if (loc_name == tag_q) { /* query set */
-          err << out::sl(toNative(loc_name));
-          auto q_result = load_q(static_cast<const x::DOMElement*>(node), ++q_ndx, a_ctx);
+        else if (loc_name == "q") { /* query set */
+          err << out::sl(loc_name);
+          auto q_result = load_q(el, ++q_ndx, a_ctx);
           auto sts      = q_set.q_insert(q_result);
           err << " status: " << sts << std::endl;
         }
       }
-      node = node->getNextSibling();
     };
     return q_set;
   }
