@@ -38,7 +38,7 @@
                 -->
                 select * from test
             </sql>
-            <sql rdbms="db2" phase="main">
+            <sql rdbms="db2" phase="cleanup">
                 <!-- default sql specific sql 
                     rdbms = sql
                     phase = main
