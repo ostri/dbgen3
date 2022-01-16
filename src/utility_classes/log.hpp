@@ -6,7 +6,7 @@ namespace dbgen3
   {
   };
 } // namespace dbgen3
-using log = dbgen3::log;
+//using log = dbgen3::log;
 #define info LOG(INFO)    // NOLINT
 #define warn LOG(WARNING) // NOLINT
 #define err LOG(ERROR)    // NOLINT

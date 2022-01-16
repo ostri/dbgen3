@@ -40,6 +40,13 @@ namespace dbgen3
     DOCUMENT_FRAGMENT_NODE      = 11,
     NOTATION_NODE               = 12
   };
+
+  enum class BUF_TYPE
+  {
+    par = 0, //!< parameter
+    res = 1, //!< result
+    unk = 2, //!< unknown / uninitialized
+  };
   /// list of supported language generators
   enum class prog_lang
   {

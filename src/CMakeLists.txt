@@ -33,7 +33,7 @@ set (src_list
   gsql_parser/gsql_q_set
   gsql_parser/gsql_qbuf_dscr
   gsql_parser/gsql_sql_set
-  gsql_parser/gsql_sql
+  gsql_parser/gsql_sql_dscr
   gsql_parser/xerces_strings
 
 )
@@ -50,11 +50,17 @@ target_sources(${PROJ_LIB}
     ${hpp_list}
     ${rt_hpp_list}
     ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
+    ${fmt_SOURCE_DIR}/include/fmt/
   PUBLIC
     ${hpp_list}
     ${rt_hpp_list}
 )
-target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS} ${magic_enum_SOURCE_DIR}/include)
+target_include_directories(${PROJ_LIB} 
+  PUBLIC 
+    ${SUBDIRS} 
+    ${magic_enum_SOURCE_DIR}/include
+    ${fmt_SOURCE_DIR}/include/
+)
 
 # ## This depends on (header only) boost
 # target_link_libraries(${PROJ_LIB} PRIVATE ${RT_LIB})
@@ -92,22 +98,36 @@ target_sources(${RT_LIB}
   PUBLIC
     ${rt_hpp_list}
 )
-message(STATUS "FMT LIB ${fmtlib_SOURCE_DIR}")
+message(STATUS "fmt        ${fmt_SOURCE_DIR}")
+message(STATUS "magic_enum ${magic_enum_SOURCE_DIR}")
 target_compile_features(${RT_LIB} PUBLIC cxx_std_20)
 #target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS} ${fmtlib_SOURCE_DIR}/include/fmt/)
-message (STATUS "magic_enum ${magic_enum_SOURCE_DIR}")
-target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS} ${magic_enum_SOURCE_DIR}/include)
-# target_link_libraries(${RT_LIB} PRIVATE fmt::fmt ${DB2_LIBRARIES})
+target_include_directories(${RT_LIB} 
+  PRIVATE 
+    ${RT_SUBDIRS} 
+    ${DB2_INCLUDE_DIRS} 
+    ${magic_enum_SOURCE_DIR}/include
+    ${fmtlib_SOURCE_DIR}/include/fmt/
+)
+target_link_libraries(${RT_LIB} 
+  PRIVATE 
+    fmt::fmt 
+    ${DB2_LIBRARIES}
+)
 
 
 add_executable(${PROG_NAME} main.cpp ${hpp_list} ${GLOG_INCLUDE_DIRS} ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp)
 target_compile_features(${PROG_NAME} PRIVATE cxx_std_20)
-target_include_directories(${PROG_NAME} PUBLIC ${SUBDIRS} ${magic_enum_SOURCE_DIR}/include)
+target_include_directories(${PROG_NAME} 
+  PUBLIC 
+    ${SUBDIRS} 
+    ${magic_enum_SOURCE_DIR}/include
+)
 
 target_link_libraries(${PROG_NAME}
   PRIVATE
     proj_lib
-#    fmt::fmt
+    fmt::fmt
     ${GLOG_LIBRARY}
     gflags
     xerces-c

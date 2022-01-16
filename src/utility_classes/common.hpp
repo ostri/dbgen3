@@ -7,9 +7,14 @@
 #include <vector>
 
 #include <sys/stat.h>
+#include <fmt/core.h>
+#include <fmt/ranges.h>
+#include <fmt/color.h>
+#include <fmt/format.h>
 
 #include "log.hpp"
 #include "program_status.hpp"
+//#include "enums.hpp"
 
 namespace dbgen3
 {
@@ -61,6 +66,21 @@ namespace dbgen3
   {
     struct stat buffer;
     return (stat(path.c_str(), &buffer) == 0);
+  }
+
+  inline std::string ctx_to_str(str_vec a_ctx, cstr_t last)
+  {
+    const str_vec prompts = {"q-set", "q"};
+    std::string r;
+    for (auto cnt=0UL; cnt < a_ctx.size(); ++cnt)
+    {
+      if (cnt < prompts.size())
+        r += fmt::format("/{}:{}",prompts[cnt], a_ctx[cnt]);
+        else 
+        r += fmt::format("/:{}", a_ctx[cnt]);
+    }
+    r += std::string("/") + std::string(last);
+    return r;
   }
 } // namespace dbgen3
 #endif // COMMON_HPP

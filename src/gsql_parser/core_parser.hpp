@@ -54,11 +54,11 @@ namespace dbgen3
   private:
     /// @name query set structure
     ///@{
-    gsql_q_set            load_q_set(const x::DOMElement* an_el, cstr_t a_filename) const;
-    static gsql_q         load_q(const x::DOMElement* an_el, uint a_ndx);
+    gsql_q_set            load_q_set(const x::DOMElement* an_el, cstr_t a_filename, str_vec a_ctx) const;
+    static gsql_q         load_q(const x::DOMElement* an_el, uint a_ndx, str_vec a_ctx);
     static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
     static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
-    static gsql_sql_set   load_sql_set(const x::DOMElement* an_el);
+    static gsql_sql_set   load_sql_set(const x::DOMElement* an_el, str_vec a_ctx);
     ///@}
     static std::string attr_value(const x::DOMElement* a_node,
                                   cstr_t               an_attr_name,

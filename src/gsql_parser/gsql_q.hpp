@@ -46,10 +46,11 @@ namespace dbgen3
     void set_id(const str_t& o) { id_ = o; }
     // void                  s_sql(const sql_arr& sql) { sql_set_ = sql; }
     void                  s_sql(uint ndx, const str_t& sql);
-    const gsql_qbuf_dscr& buf_dscr(enum gsql_qbuf_dscr::type ndx) const;
+    const gsql_qbuf_dscr& buf_dscr(const BUF_TYPE& a_type) const; // TODO enum
     // void                  set_buf_dscr(const gsql_qbuf_dscr& buf_dscr, uint ndx);
     void set_buf_dscr(const gsql_qbuf_dscr& buf_dscr);
-    bool insert(gsql_sql an_sql);
+    void set_sql_set(const gsql_sql_set&  o) {sql_set_ = o;}
+//    bool insert(const gsql_sql_dscr& an_sql);
     ///@}
   private:
     str_t        id_;       //!< name of the gsql_id (unique id)

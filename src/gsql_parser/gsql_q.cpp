@@ -14,22 +14,19 @@ namespace dbgen3
     s += out::sl("{", offs);
     s += out::sl("  id: '" + id_ + "'", offs);
     for (auto b : buf_dscr_) s += out::sl(b.dump("", offs + 2), 0);
-    s += out::sl(sql_set_.dump("", offs + 2), 0);
+    s += sql_set_.dump("", offs + 2);
     s += out::sl("}", offs);
     return s;
   }
-
-  bool gsql_q::insert(gsql_sql an_sql) { return sql_set_.insert(an_sql); }
-
-  const gsql_qbuf_dscr& gsql_q::buf_dscr(enum gsql_qbuf_dscr::type ndx) const
+  const gsql_qbuf_dscr& gsql_q::buf_dscr(const BUF_TYPE& a_type) const
   {
-    return this->buf_dscr_[static_cast<int>(ndx)];
+    return this->buf_dscr_[ME::enum_integer(a_type)];
   }
 
   void gsql_q::set_buf_dscr(const gsql_qbuf_dscr& buf_dscr)
   {
-    assert((buf_dscr.type() == gsql_qbuf_dscr::type::par) ||
-           (buf_dscr.type() == gsql_qbuf_dscr::type::res));
+    assert((buf_dscr.type() == BUF_TYPE::par) ||
+           (buf_dscr.type() == BUF_TYPE::res));
     this->buf_dscr_[static_cast<uint>(buf_dscr.type())] = buf_dscr;
   }
 
