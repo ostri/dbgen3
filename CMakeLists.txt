@@ -52,22 +52,29 @@ find_package (XercesC REQUIRED)   # sudo dnf install xerces-c-devel.x86_64
 find_package (DB2 REQUIRED)
 #find_package (doctest REQUIRED)   # sudo dnf install  doctest-devel.x86_64
 
-
-FetchContent_Declare(
-        DocTest
-        GIT_REPOSITORY "https://github.com/doctest/doctest.git"
-        GIT_TAG "2.4.7"
-)
-
-# # Formatting library
-# FetchContent_Declare(fmtlib GIT_REPOSITORY https://github.com/fmtlib/fmt.git GIT_TAG 8.1.0)
-# FetchContent_MakeAvailable(fmtlib)
-# # Adds fmt::fmt
-
+# unit testing
+FetchContent_Declare(DocTest GIT_REPOSITORY "https://github.com/doctest/doctest.git" GIT_TAG "2.4.7")
 FetchContent_MakeAvailable(DocTest)
+
+# Adds fmt::fmt
+FetchContent_Declare(fmt GIT_REPOSITORY "https://github.com/fmtlib/fmt.git" GIT_TAG master)
+FetchContent_MakeAvailable(fmt)
+
+# static enums
+FetchContent_Declare(magic_enum GIT_REPOSITORY "https://github.com/Neargye/magic_enum.git" GIT_TAG v0.7.3)
+FetchContent_MakeAvailable(magic_enum)
 
 # The compiled library code is here
 add_subdirectory(src)
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+    set(OPTIONS -Wall -Wextra -pedantic-errors -Werror)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(OPTIONS /W4 /WX)
+    if(HAS_PERMISSIVE_FLAG)
+        set(OPTIONS ${OPTIONS} /permissive-)
+    endif()
+endif()
 
 # Testing only available if this is the main app
 # Emergency override MODERN_CMAKE_BUILD_TESTING provided as well
