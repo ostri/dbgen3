@@ -50,7 +50,6 @@ target_sources(${PROJ_LIB}
     ${hpp_list}
     ${rt_hpp_list}
     ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
-    ${fmt_SOURCE_DIR}/include/fmt/
   PUBLIC
     ${hpp_list}
     ${rt_hpp_list}
@@ -107,7 +106,7 @@ target_include_directories(${RT_LIB}
     ${RT_SUBDIRS} 
     ${DB2_INCLUDE_DIRS} 
     ${magic_enum_SOURCE_DIR}/include
-    ${fmtlib_SOURCE_DIR}/include/fmt/
+    ${fmtlib_SOURCE_DIR}/include
 )
 target_link_libraries(${RT_LIB} 
   PRIVATE 
@@ -116,7 +115,11 @@ target_link_libraries(${RT_LIB}
 )
 
 
-add_executable(${PROG_NAME} main.cpp ${hpp_list} ${GLOG_INCLUDE_DIRS} ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp)
+add_executable(${PROG_NAME} main.cpp 
+  ${hpp_list} 
+  ${GLOG_INCLUDE_DIRS} 
+  ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
+)
 target_compile_features(${PROG_NAME} PRIVATE cxx_std_20)
 target_include_directories(${PROG_NAME} 
   PUBLIC 

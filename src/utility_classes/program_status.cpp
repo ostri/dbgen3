@@ -1,12 +1,12 @@
 #include "program_status.hpp"
-
+#include "enums.hpp"
 namespace dbgen3
 {
 
-  const std::string& program_status::g_dscr(p_sts code) const
+  const std::string& program_status::dscr(const P_STS& code) const
   {
-    assert(static_cast<uint>(code) >= 0);          // NOLINT
     assert(static_cast<uint>(code) < dic_.size()); // NOLINT
-    return dic_.at(static_cast<uint>(code)).dscr;
+    uint ndx = ME::enum_integer<P_STS>(code);
+    return dic_.at(ndx).dscr;
   }
 } // namespace dbgen3

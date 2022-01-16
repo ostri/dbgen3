@@ -12,7 +12,7 @@ DEFINE_string(db_name,        "", "database name");                          // 
 DEFINE_string(out_folder,     "./", "folder for generated files");           // NOLINT
 DEFINE_string(lang,           "cpp", "language we generate source code in"); // NOLINT
 DEFINE_string(db_type,        "db2", "database type");                       // NOLINT
-DEFINE_bool  (verbose, false, "verbosity");                                  // NOLINT
+DEFINE_string(verbose,        "FALSE", "verbosity");                         // NOLINT
 // clang-format on
 
 using out = dbgen3::string_format;
@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     dbgen3::cmdline_parameters cmd_par(argc, argv);
     info << cmd_par.dump("command line parameters:");
     auto sts = cmd_par.check_parameters();
-    if (sts == dbgen3::p_sts::success)
+    if (sts == dbgen3::P_STS::success)
     { /* parameters are OK */
       info << out::sl("parameters are ok.", 0);
       xercesc::XMLPlatformUtils::Initialize();
@@ -36,14 +36,14 @@ int main(int argc, char** argv)
       if (qe.isValid()) { info << out::sl("environment is ok"); }
     }
     else { /* invalid or missing parameters */
-      auto tmp = dbgen3::program_status().g_dscr(sts);
+      auto tmp = dbgen3::program_status().dscr(sts);
       err << out::sl(tmp, 0);
     }
     return static_cast<int>(sts);
   }
   catch (const dbgen3::gsql_file_not_exsts& e)
   {
-    err << out::sl(dbgen3::program_status().g_dscr(e.g_status()));
+    err << out::sl(dbgen3::program_status().dscr(e.g_status()));
   }
   catch (const std::runtime_error& e)
   {
@@ -53,5 +53,5 @@ int main(int argc, char** argv)
   {
     std::cerr << "unknown exception" << '\n';
   }
-  //TODO each exception should return distinct error code
+  // TODO each exception should return distinct error code
 }

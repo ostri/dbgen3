@@ -6,13 +6,15 @@
 #include <sys/types.h>
 #include <vector>
 
+#include "enums.hpp"
+
 namespace dbgen3
 {
   /**
 	 * @brief program return status code
 	 *
 	 */
-  enum class p_sts : uint
+  enum class P_STS
   {
     success              = 0,
     no_db_name           = 1,
@@ -32,7 +34,7 @@ namespace dbgen3
 	 */
   struct status_dscr
   {
-    p_sts       code;             //!< status code 0..255
+    P_STS       code;             //!< status code 0..255
     std::string dscr;             //!< human readable description of the status
   } __attribute__((aligned(64))); // NOLINT
   /**
@@ -46,16 +48,16 @@ namespace dbgen3
     program_status()
     : dic_
 		({
-			{p_sts::success,               "Program successfuly finished"	},
-			{p_sts::no_db_name,            "Database name was not provided"},
-			{p_sts::unknown_db_type,       "Datatbase type was not provided or unknown"},
-			{p_sts::unknown_lang,          "Target programming language was not provided or unknown" },
-			{p_sts::out_folder_not_exist,  "Output folder was not provided or does not exist"},
-			{p_sts::no_gsql_files,         "No gsql filenames provided."},
-      {p_sts::unk_db_name,           "Unknown db name provided"},
-      {p_sts::unk_exception,         "Unknown exception"},
-      {p_sts::gsql_file_not_exists,  "Provided GSQL file doesnot exist."},
-      {p_sts::duplicate_sql_def,     "Two or more sql definitions for the same rdbms and phase pair"},
+			{P_STS::success,               "Program successfuly finished"	},
+			{P_STS::no_db_name,            "Database name was not provided"},
+			{P_STS::unknown_db_type,       "Datatbase type was not provided or unknown. '{}'"}, //FIXME
+			{P_STS::unknown_lang,          "Target programming language was not provided or unknown. '{}'" }, //FIXME
+			{P_STS::out_folder_not_exist,  "Output folder was not provided or does not exist. '{}'"}, //FIXME
+			{P_STS::no_gsql_files,         "No gsql filenames provided."},
+      {P_STS::unk_db_name,           "Unknown db name provided. '{}'"}, //FIXME
+      {P_STS::unk_exception,         "Unknown exception"},
+      {P_STS::gsql_file_not_exists,  "Provided GSQL file does not exist. '{}'"}, //FIXME
+      {P_STS::duplicate_sql_def,     "Duplicate SQL definition. query id: {} sql#: {} rdbms: {} phase: {}"},
       
     }){};
     // clang-format on
@@ -64,7 +66,7 @@ namespace dbgen3
     program_status(program_status&&)      = default;
     program_status&    operator=(const program_status&) = delete;
     program_status&    operator=(program_status&&) = delete;
-    const std::string& g_dscr(p_sts code)const ;
+    const std::string& dscr(const P_STS& code)const ;
   private:
     const std::vector<status_dscr> dic_; //!< dictionary of relevant statuses
   };

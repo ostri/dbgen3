@@ -1,6 +1,6 @@
 #include <filesystem>
 #include <xercesc/dom/DOMText.hpp>
-#include <fmt/core.h>
+//#include <fmt/core.h>
 
 #include "core_parser.hpp"
 #include "xerces_strings.hpp"
@@ -156,10 +156,12 @@ namespace dbgen3
           {
             auto ctx = ctx_to_str(a_ctx, std::to_string(sql_cnt));
             auto msg = fmt::format(fg(fmt::color::crimson),
-                                   "{} ctx: {}",
-                                   program_status().g_dscr(p_sts::duplicate_sql_def),
-                                   ctx);
-            throw dbgen3_exc(p_sts::duplicate_sql_def, msg);
+                                   program_status().dscr(P_STS::duplicate_sql_def),
+                                   a_ctx[1],
+                                   sql_cnt,
+                                   ME::enum_name<RDBMS>(rdbms.value()),
+                                   ME::enum_name<PHASE>(phase.value()));
+            throw dbgen3_exc(P_STS::duplicate_sql_def, msg);
           }
         }
         else err << out::sl(fmt::format("unknown tag within sql: query id:'{}'", l_name));
@@ -174,7 +176,7 @@ namespace dbgen3
   }
   gsql_q core_parser::load_q(const x::DOMElement* an_el, uint a_ndx, str_vec a_ctx)
   {
-    gsql_q      r; /// result
+    gsql_q r; /// result
     /// load attributes
     r.set_id(attr_value(an_el, "id", "q_" + std::to_string(a_ndx))); // load unique query id
     a_ctx.emplace_back(std::string(r.id()));
@@ -192,9 +194,9 @@ namespace dbgen3
         if (loc_name == "qp") r.set_buf_dscr(load_qp(el, a_ndx));
         else if (loc_name == "qr") r.set_buf_dscr(load_qr(el, a_ndx));
         else if (loc_name == "sql-set") {
-          //auto res = load_sql_set(el, a_ctx);
+          // auto res = load_sql_set(el, a_ctx);
           r.set_sql_set(load_sql_set(el, a_ctx));
-          //err << res.dump();
+          // err << res.dump();
         }
         else
           throw std::runtime_error(std::string("internal error only qp, qr and sql-set allowed.") +

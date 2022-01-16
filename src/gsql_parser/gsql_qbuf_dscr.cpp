@@ -8,10 +8,9 @@ namespace dbgen3
   std::string gsql_qbuf_dscr::dump(const std::string& a_msg, uint offs) const
   {
     std::string s;
-    s += out::s(fmt::format("{} {}: {}", a_msg, ME::enum_name(type_), '{'), offs);
-    s += out::s(fmt::format("id: '{}'", id_), 0);
-    s += out::s("skip: '" + std::string(skip_ ? "true" : "false") + "' ", 0);
-    s += out::s("}", 0);
+    if (!a_msg.empty()) s += out::s(a_msg, offs);
+    s += out::s(fmt::format("{}: {{ id: '{}' skip: {} }}", 
+    ME::enum_name(type_), id_, skip_), offs);
     return s;
   }
 } // namespace dbgen3

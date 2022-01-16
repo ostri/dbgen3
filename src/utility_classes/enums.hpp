@@ -48,20 +48,17 @@ namespace dbgen3
     unk = 2, //!< unknown / uninitialized
   };
   /// list of supported language generators
-  enum class prog_lang
+  enum class PROG_LANG
   {
     invalid = 0, //!< placeholder for all invalid inputs
     cpp     = 1, //!< c++ code generation
     java    = 2  //!< java code generation
   };
-  /// list of supported RDBMS
-  enum class db_type
+
+  enum class VERBOSE
   {
-    sql     = 0, //!< standard sql
-    db2     = 1, //!< IBM db2
-    oracle  = 2, //!< Oracle database - placeholder
-    mssql   = 3, //!< Microsoft SQL server - placeholder
-    mariadb = 4  //!< Maria database (MYSQL clone) - placeholder
+    FALSE = 0, //<! non verbose execution
+    TRUE  = 1, //<! verbose execution
   };
 
   class enums
