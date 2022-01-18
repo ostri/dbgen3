@@ -47,15 +47,16 @@ namespace dbgen3
     core_parser& operator=(core_parser&&) = delete;
     /// @name getters
     ///@{
-    bool        isValid() const;
-    std::string g_id(const x::DOMElement* an_el, cstr_t a_filename) const;
+    bool               isValid() const;
+    static std::string q_set_id(const x::DOMElement* an_el, cstr_t a_filename);
     ///@}
     gsql_q_set parse_file(cstr_t a_file);
+  protected:
   private:
     /// @name query set structure
     ///@{
-    gsql_q_set    load_q_set(const x::DOMElement* an_el, cstr_t a_filename, str_vec a_ctx) const;
-    static gsql_q load_q(const x::DOMElement* an_el, uint a_ndx, str_vec a_ctx);
+    static gsql_q_set     load_q_set(const x::DOMElement* an_el, cstr_t a_filename);
+    static gsql_q         load_q(const x::DOMElement* an_el, uint a_ndx, str_vec a_ctx);
     static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
     static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
     static gsql_sql_set   load_sql_set(const x::DOMElement* an_el, str_vec a_ctx);
@@ -68,6 +69,7 @@ namespace dbgen3
                                   bool                 a_default);
     bool               g_init();
     static std::string get_statement(const x::DOMElement* an_el, str_vec a_ctx);
+    static std::string get_text_node(const x::DOMElement* an_el, str_vec a_ctx);
     /* .........................................................*/
     bool                     valid_;  //!< is instance valid ?
     bool                     init_;   //!< is initialization done?

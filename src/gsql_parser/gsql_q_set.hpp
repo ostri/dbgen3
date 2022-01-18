@@ -34,7 +34,7 @@ namespace dbgen3
     bool q_insert(const gsql_q& q)
     {
       const auto [key, sts] = q_dic_.emplace(q.id(), q);
-      err << "key" << key->first ;//<< " status " << sts << std::endl;
+      err << "key" << key->first << " " << dump();//<< " status " << sts << std::endl;
       return sts;
     }
     //@}
