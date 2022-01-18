@@ -26,6 +26,7 @@ namespace dbgen3
     unk_exception        = 7,
     gsql_file_not_exists = 8,
     duplicate_sql_def    = 9,
+    sql_stat_too_long    = 10,
   };
 
   /**
@@ -58,6 +59,7 @@ namespace dbgen3
       {P_STS::unk_exception,         "Unknown exception"},
       {P_STS::gsql_file_not_exists,  "Provided GSQL file does not exist. '{}'"}, //FIXME
       {P_STS::duplicate_sql_def,     "Duplicate SQL definition. query id: {} sql#: {} rdbms: {} phase: {}"},
+      {P_STS:: sql_stat_too_long,    "SQL statement length exceeds hard limit {}. Shorten it. query id: {} sql#: {}"},
       
     }){};
     // clang-format on
@@ -66,7 +68,12 @@ namespace dbgen3
     program_status(program_status&&)      = default;
     program_status&    operator=(const program_status&) = delete;
     program_status&    operator=(program_status&&) = delete;
-    const std::string& dscr(const P_STS& code)const ;
+    const std::string& dscr(const P_STS& code)const
+    {
+      uint ndx = ME::enum_integer<P_STS>(code);
+      assert (ndx < dic_.size());
+      return dic_.at(ndx).dscr;
+    }
   private:
     const std::vector<status_dscr> dic_; //!< dictionary of relevant statuses
   };

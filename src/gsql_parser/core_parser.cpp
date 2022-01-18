@@ -129,6 +129,44 @@ namespace dbgen3
     return r;
   }
 
+  std::string core_parser::get_statement(const x::DOMElement* an_el, str_vec a_ctx)
+  {
+    std::string r;
+    for (auto n(an_el->getFirstChild()); n != nullptr; n = n->getNextSibling())
+    {
+      auto n_type = static_cast<NT>(n->getNodeType()); // tag type
+      switch (n_type)
+      {
+      case NT::TEXT_NODE:
+      case NT::CDATA_SECTION_NODE:
+      {
+        auto     txt = static_cast<const x::DOMText*>(n);
+        uint64_t len = txt->getLength();
+        if (len >= r.max_size())
+        {
+          auto max_len = r.max_size();
+          auto msg     = fmt::format(fg(fmt::color::crimson),
+                                 program_status().dscr(P_STS::sql_stat_too_long),
+                                 max_len,
+                                 a_ctx[1],
+                                 a_ctx[2]);
+          throw dbgen3_exc(P_STS::sql_stat_too_long, msg);
+        }
+        XS tmp = txt->substringData(0, len);
+        r += toNative(tmp);
+        break;
+      }
+      case NT::ELEMENT_NODE: throw std::runtime_error("mixed contents");
+      case NT::COMMENT_NODE: continue;
+      default:
+      {
+        throw std::runtime_error(fmt::format(
+          "Should be DOMText, it was {} ctx: {}", ME::enum_name<NT>(n_type), ctx_to_str(a_ctx)));
+      }
+      }
+    }
+    return r;
+  }
   gsql_sql_set core_parser::load_sql_set(const x::DOMElement* an_el, str_vec a_ctx)
   {
     gsql_sql_set r; //!< result of the method
@@ -139,7 +177,7 @@ namespace dbgen3
       auto n_type = static_cast<NT>(n->getNodeType()); // tag type
       auto ln     = n->getLocalName();
       auto l_name = (ln != nullptr) ? toNative(ln) : ""; // tag name in utf8
-      err << fmt::format("local name '{}' node type '{}'", l_name, ME::enum_name(n_type));
+//      err << fmt::format("local name '{}' node type '{}'", l_name, ME::enum_name(n_type));
       if (n_type == NT::ELEMENT_NODE)
       {
         if (l_name == "sql")
@@ -149,10 +187,11 @@ namespace dbgen3
           // no enum value testing; XSD handles that
           auto rdbms = ME::enum_cast<RDBMS>(attr_value(el, "rdbms", ME::enum_name(RDBMS::db2)));
           auto phase = ME::enum_cast<PHASE>(attr_value(el, "phase", ME::enum_name(PHASE::main)));
-          gsql_sql_dscr sql_dscr(rdbms.value(), phase.value(), "");
+          const std::string stmt = get_statement(el, a_ctx);
+          gsql_sql_dscr     sql_dscr(rdbms.value(), phase.value(), stmt);
           if (! r.insert(sql_dscr))
           {
-            auto ctx = ctx_to_str(a_ctx, std::to_string(sql_cnt));
+            // auto ctx = ctx_to_str(a_ctx, std::to_string(sql_cnt));
             auto msg = fmt::format(fg(fmt::color::crimson),
                                    program_status().dscr(P_STS::duplicate_sql_def),
                                    a_ctx[1],

@@ -54,8 +54,8 @@ namespace dbgen3
   private:
     /// @name query set structure
     ///@{
-    gsql_q_set            load_q_set(const x::DOMElement* an_el, cstr_t a_filename, str_vec a_ctx) const;
-    static gsql_q         load_q(const x::DOMElement* an_el, uint a_ndx, str_vec a_ctx);
+    gsql_q_set    load_q_set(const x::DOMElement* an_el, cstr_t a_filename, str_vec a_ctx) const;
+    static gsql_q load_q(const x::DOMElement* an_el, uint a_ndx, str_vec a_ctx);
     static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
     static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
     static gsql_sql_set   load_sql_set(const x::DOMElement* an_el, str_vec a_ctx);
@@ -67,6 +67,7 @@ namespace dbgen3
                                   const std::string&   an_attr_name,
                                   bool                 a_default);
     bool               g_init();
+    static std::string get_statement(const x::DOMElement* an_el, str_vec a_ctx);
     /* .........................................................*/
     bool                     valid_;  //!< is instance valid ?
     bool                     init_;   //!< is initialization done?

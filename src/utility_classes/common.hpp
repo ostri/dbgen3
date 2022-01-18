@@ -28,25 +28,28 @@ namespace dbgen3
 
   const uint align_64 = 64; //!< align to 64 byte boundry
 
-  /**
-   * @brief fetch token id
-   *
-   * The method returns the token id from the token set or 0
-   * if not found.
-   *
-   * @param token     token which index we are looking for
-   * @param token_set set of tokens that we are searching in
-   * @return
-   */
-  uint g_token_ndx(const str_t& token, const str_vec& token_set);
-  /**
-   * @brief it returns string associated with the token id from the token set.
-   *
-   * @param token_id token id that searching for string
-   * @param token_set set of tokens
-   * @return string version of the token id
-   */
-  const str_t& g_token_str(uint token_id, const str_vec& token_set);
+  std::string ctx_to_str(const str_vec a_ctx);
+  std::string ctx_to_str(const str_vec a_ctx, cstr_t last);
+
+  // /**
+  //  * @brief fetch token id
+  //  *
+  //  * The method returns the token id from the token set or 0
+  //  * if not found.
+  //  *
+  //  * @param token     token which index we are looking for
+  //  * @param token_set set of tokens that we are searching in
+  //  * @return
+  //  */
+  // uint g_token_ndx(const str_t& token, const str_vec& token_set);
+  // /**
+  //  * @brief it returns string associated with the token id from the token set.
+  //  *
+  //  * @param token_id token id that searching for string
+  //  * @param token_set set of tokens
+  //  * @return string version of the token id
+  //  */
+  // const str_t& g_token_str(uint token_id, const str_vec& token_set);
   /**
    * @brief split the provided string into vector of stringa
    *
@@ -68,19 +71,19 @@ namespace dbgen3
     return (stat(path.c_str(), &buffer) == 0);
   }
 
-  inline std::string ctx_to_str(str_vec a_ctx, cstr_t last)
+  inline std::string ctx_to_str(const str_vec a_ctx) { return ctx_to_str(a_ctx, ""); }
+  inline std::string ctx_to_str(const str_vec a_ctx, cstr_t last)
   {
     const str_vec prompts = {"q-set", "q"};
-    std::string r;
-    for (auto cnt=0UL; cnt < a_ctx.size(); ++cnt)
+    std::string   r;
+    for (auto cnt = 0UL; cnt < a_ctx.size(); ++cnt)
     {
-      if (cnt < prompts.size())
-        r += fmt::format("/{}:{}",prompts[cnt], a_ctx[cnt]);
-        else 
-        r += fmt::format("/:{}", a_ctx[cnt]);
+      if (cnt < prompts.size()) r += fmt::format("/{}:{}", prompts[cnt], a_ctx[cnt]);
+      else r += fmt::format("/:{}", a_ctx[cnt]);
     }
-    r += std::string("/") + std::string(last);
+    if (! last.empty()) r += std::string("/") + std::string(last);
     return r;
   }
+
 } // namespace dbgen3
 #endif // COMMON_HPP

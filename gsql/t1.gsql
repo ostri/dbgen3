@@ -7,6 +7,7 @@
         <!-- header part to be included into generated file immediatelly after the guard
             <?xml-model href="gsql_file.xsd"?>
         -->
+        header line 3
     </hdr>
     <q id="q-id1">
         <!-- query -->
@@ -17,39 +18,25 @@
                 rdbms ::= sql | db2 | mariadb | oracle
                 phase ::= prepare | main | cleanup
             -->
-            <sql rdbms="sql" phase="main">
-                <!-- default sql specific sql 
-                    rdbms = sql
-                    phase = main
-                -->
-                select * from test
+            <sql rdbms="sql" phase="main">x
+               <!-- comment -->
+               select *a 
+                 from testa
+               <!-- comment -->
+                 where 1=1
             </sql>
             <sql rdbms="sql" phase="prepare">
-                <!-- default sql specific sql 
-                    rdbms = sql
-                    phase = prepare
-                -->
-                select * from test
+                               select * from test
             </sql>
             <sql rdbms="sql" phase="cleanup">
-                <!-- default sql specific sql 
-                    rdbms = sql
-                    phase = cleanup
-                -->
                 select * from test
             </sql>
             <sql rdbms="db2" phase="cleanup">
-                <!-- default sql specific sql 
-                    rdbms = sql
-                    phase = main
-                -->
+                
                 select * from test
             </sql>
             <sql rdbms="db2" >
-                <!-- default sql specific sql 
-                    rdbms = sql
-                    phase = main
-                -->
+             
                 select * from test
             </sql>
         </sql-set>
