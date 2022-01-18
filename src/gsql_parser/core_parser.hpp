@@ -51,6 +51,7 @@ namespace dbgen3
     static std::string q_set_id(const x::DOMElement* an_el, cstr_t a_filename);
     ///@}
     gsql_q_set parse_file(cstr_t a_file);
+    int parse_set(const str_vec& gsql_files);
   protected:
   private:
     /// @name query set structure
@@ -67,7 +68,7 @@ namespace dbgen3
     static bool        attr_value(const x::DOMElement* a_node,
                                   const std::string&   an_attr_name,
                                   bool                 a_default);
-    bool               g_init();
+    bool               init();
     static std::string get_statement(const x::DOMElement* an_el, str_vec a_ctx);
     static std::string get_text_node(const x::DOMElement* an_el, str_vec a_ctx);
     /* .........................................................*/

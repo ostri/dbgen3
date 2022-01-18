@@ -30,6 +30,7 @@ namespace dbgen3
 
   std::string ctx_to_str(const str_vec a_ctx);
   std::string ctx_to_str(const str_vec a_ctx, cstr_t last);
+  bool file_exists(cstr_t path);
 
   // /**
   //  * @brief fetch token id
@@ -65,10 +66,10 @@ namespace dbgen3
    * @return true - the provided path exists
    *         false - the provided path does not exist
    */
-  inline bool file_exists(const str_t& path)
+  inline bool file_exists(cstr_t path)
   {
     struct stat buffer;
-    return (stat(path.c_str(), &buffer) == 0);
+    return (stat(std::string(path).data(), &buffer) == 0);
   }
 
   inline std::string ctx_to_str(const str_vec a_ctx) { return ctx_to_str(a_ctx, ""); }
@@ -84,6 +85,7 @@ namespace dbgen3
     if (! last.empty()) r += std::string("/") + std::string(last);
     return r;
   }
+
 
 } // namespace dbgen3
 #endif // COMMON_HPP

@@ -28,7 +28,6 @@ set (src_list
   cmd_param/cmdline_parameters
 
   gsql_parser/core_parser
-  gsql_parser/gsql_parser
   gsql_parser/gsql_q
   gsql_parser/gsql_q_set
   gsql_parser/gsql_qbuf_dscr

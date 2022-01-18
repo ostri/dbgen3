@@ -10,15 +10,14 @@
 
 namespace dbgen3
 {
-  const XS tag_id{u"id"};
+//  const XS tag_id{u"id"};
   namespace x = xercesc;
   core_parser::core_parser()
   : valid_(false)
-  , init_(g_init())
+  , init_(init())
   , impl_(xercesc::DOMImplementationRegistry::getDOMImplementation(u"LS"))
-  , parser_(static_cast<xercesc::DOMImplementationLS*>(impl_)->createLSParser(
-      xercesc::DOMImplementationLS::MODE_SYNCHRONOUS,
-      nullptr))
+  , parser_(static_cast<xercesc::DOMImplementationLS*>(impl_) //
+              ->createLSParser(xercesc::DOMImplementationLS::MODE_SYNCHRONOUS, nullptr))
   , eh_(new gsql_eh())
   {
     try
@@ -52,23 +51,38 @@ namespace dbgen3
       init_ = false;
     }
   }
-  bool core_parser::g_init()
+  bool core_parser::init()
   {
     if (! init_) xercesc::XMLPlatformUtils::Initialize();
     init_ = true;
     return init_;
   }
-  gsql_q_set core_parser::parse_file(cstr_t a_file)
+
+  int core_parser::parse_set(const str_vec& gsql_files)
+  {
+    auto sts = 0;
+    for (const auto& file : gsql_files)
+    {
+      auto dscr = parse_file(file);
+      err << dscr.dump("finale");
+    }
+    return sts;
+  }
+  gsql_q_set core_parser::parse_file(cstr_t a_filename)
   {
     try
     {
-      auto doc = parser_->parseURI(a_file.data());
-      if (doc != nullptr)
+      auto fn = fs::absolute(a_filename).string();
+      if (file_exists(fn))
       {
-        const x::DOMElement* root = doc->getDocumentElement();
-        auto                 y    = load_q_set(root, a_file);
-        err << y.dump(" ", 0);
-      };
+        auto doc = parser_->parseURI(fn.data());
+        if (doc != nullptr) return load_q_set(doc->getDocumentElement(), fn);
+        throw std::runtime_error(fmt::format("Internal error: xerces document is NULL"));
+      }
+      auto msg = fmt::format(fg(fmt::color::crimson), //
+                             program_status().dscr(P_STS::gsql_file_not_exists),
+                             fn);
+      throw dbgen3_exc(P_STS::gsql_file_not_exists, msg);
     }
     catch (const x::XMLException& e)
     {

@@ -3,9 +3,10 @@
 
 #include "cmdline_parameters.hpp"
 #include "common.hpp"
-#include "gsql_parser.hpp"
+#include "core_parser.hpp"
 #include "program_status.hpp"
 #include "string_format.hpp"
+#include "exceptions.hpp"
 
 // clang-format off
 DEFINE_string(db_name,        "", "database name");                          // NOLINT
@@ -31,7 +32,7 @@ int main(int argc, char** argv)
     { /* parameters are OK */
       info << out::sl("parameters are ok.", 0);
       xercesc::XMLPlatformUtils::Initialize();
-      dbgen3::gsql_parser qe; // xercesc environment
+      dbgen3::core_parser qe; // xercesc environment
       qe.parse_set(cmd_par.g_qsql_list());
       if (qe.isValid()) { info << out::sl("environment is ok"); }
     }
