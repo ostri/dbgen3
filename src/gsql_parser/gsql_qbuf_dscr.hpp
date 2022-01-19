@@ -15,22 +15,20 @@ namespace dbgen3
     gsql_qbuf_dscr(const gsql_qbuf_dscr&) = default;
     gsql_qbuf_dscr(gsql_qbuf_dscr&&)      = default;
     gsql_qbuf_dscr operator               =(const gsql_qbuf_dscr& o);
-    BUF_TYPE      type() const { return type_; }
+    BUF_TYPE       type() const { return type_; }
     std::string    id() const;
     bool           should_skip() const;
     std::string    dump() const;
     std::string    dump(uint offs) const;
     std::string    dump(const std::string& a_msg, uint offs) const;
 
-    void               set_type(const BUF_TYPE& type) { this->type_ = type; }
-    void               set_id(const std::string& id);
-    void               set_skip(bool skip);
-//    const std::string& type_str(const BUF_TYPE& type) const;
+    void set_type(const BUF_TYPE& type) { this->type_ = type; }
+    void set_id(const std::string& id);
+    void set_skip(bool skip);
   private:
     BUF_TYPE    type_ = BUF_TYPE::unk; //!< type fo the buffer definition
     std::string id_;                   //!< buffer unique name
     bool        skip_;                 //!< should we skip this buffer from the generation phase
-    // const str_vec type_str_ = {"parameter", "result", "unknown"};
   };
 
   inline gsql_qbuf_dscr::gsql_qbuf_dscr()

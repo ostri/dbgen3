@@ -3,7 +3,7 @@ set(RT_LIB db3)
 set(PROG_NAME dbgen3)
 set(HEADER_LIST "")
 set (RT_SUBDIRS runtime)
-set (SUBDIRS utility_classes cmd_param gsql_parser exceptions ${RT_SUBDIRS})
+set (SUBDIRS utility_classes cmd_param gsql_parser exceptions db_integration core ${RT_SUBDIRS})
 
 foreach (SUBDIR ${SUBDIRS})
     add_subdirectory(${SUBDIR})
@@ -11,10 +11,8 @@ foreach (SUBDIR ${SUBDIRS})
 endforeach()
 message (STATUS "proj_lib '${PROJ_LIB}'")
 
-# Make an automatic library - will be static or dynamic based on user setting
 add_library(${PROJ_LIB})
 
-# We need this directory, and users of our library will need it too
 target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS})
 
 set (src_list
@@ -35,6 +33,7 @@ set (src_list
   gsql_parser/gsql_sql_dscr
   gsql_parser/xerces_strings
 
+  core/executor
 )
 set (cpp_list ${src_list})
 set (hpp_list ${src_list})

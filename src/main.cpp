@@ -7,6 +7,7 @@
 #include "program_status.hpp"
 #include "string_format.hpp"
 #include "exceptions.hpp"
+#include "executor.hpp"
 
 // clang-format off
 DEFINE_string(db_name,        "", "database name");                          // NOLINT
@@ -32,9 +33,11 @@ int main(int argc, char** argv)
     { /* parameters are OK */
       info << out::sl("parameters are ok.", 0);
       xercesc::XMLPlatformUtils::Initialize();
-      dbgen3::core_parser qe; // xercesc environment
-      qe.parse_set(cmd_par.g_qsql_list());
-      if (qe.isValid()) { info << out::sl("environment is ok"); }
+      dbgen3::executor e(cmd_par);
+      //dbgen3::core_parser qe; // xercesc environment
+      e.process_files();
+      // qe.parse_set(cmd_par.g_qsql_list());
+      // if (qe.isValid()) { info << out::sl("environment is ok"); }
     }
     else { /* invalid or missing parameters */
       auto tmp = dbgen3::program_status().dscr(sts);

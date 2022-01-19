@@ -18,12 +18,13 @@
                 rdbms ::= sql | db2 | mariadb | oracle
                 phase ::= prepare | main | cleanup
             -->
-            <sql rdbms="sql" phase="main">x
-               <!-- comment -->
-               select *a 
+            <sql rdbms="sql" phase="main">
+                x
+                <!-- comment -->
+                select *a 
                  from testa
-               <!-- comment -->
-                 where 1=1
+                <!-- comment -->
+                where 1=1
             </sql>
             <sql rdbms="sql" phase="prepare">
                                select * from test
@@ -35,7 +36,7 @@
                 
                 select * from test
             </sql>
-            <sql rdbms="db2" >
+            <sql rdbms="db2">
              
                 select * from test
             </sql>

@@ -7,7 +7,6 @@
 #include "string_format.hpp"
 #include "cmdline_parameters.hpp"
 #include "multi_line.hpp"
-
 namespace dbgen3
 {
   class gsql_sql_dscr
@@ -18,9 +17,7 @@ namespace dbgen3
     gsql_sql_dscr(const RDBMS& a_db, const PHASE& a_phase, const std::string& sql);
 
     ~gsql_sql_dscr()                    = default;
-//    ~gsql_sql_dscr() { err << dump(fmt::format("destructor: {}", fmt::ptr(this)), 0); }
     gsql_sql_dscr(const gsql_sql_dscr&) = default;
-//    gsql_sql_dscr(const gsql_sql_dscr&) { err << dump(fmt::format("copy constructor: {}", fmt::ptr(this)), 0); }
     gsql_sql_dscr(gsql_sql_dscr&&)      = default;
     gsql_sql_dscr& operator=(const gsql_sql_dscr&) = default;
     gsql_sql_dscr& operator=(gsql_sql_dscr&&) = default;
@@ -43,10 +40,7 @@ namespace dbgen3
   : db_type_(a_db)
   , phase_(a_phase)
   , ml_sql_(sql)
-  {
-    // err << out::sl("multiline");
-    // err << dump(fmt::format("constructor: {}", fmt::ptr(this)));
-  }
+  { }
 
   inline gsql_sql_dscr::gsql_sql_dscr(const RDBMS&       a_db,
                                       const PHASE&       a_phase,
@@ -54,10 +48,7 @@ namespace dbgen3
   : db_type_(a_db)
   , phase_(a_phase)
   , ml_sql_(sql)
-  {
-    // // ml_sql_ = sql;
-    // err << dump(fmt::format("constructor: {}", fmt::ptr(this)));
-  }
+  { }
 
   inline std::string gsql_sql_dscr::dump() const { return dump("", 0); }
 
@@ -68,14 +59,16 @@ namespace dbgen3
   inline std::string gsql_sql_dscr::dump(cstr_t a_msg, uint offs) const
   {
     std::string s;
+    // clang-format off
     if (! a_msg.empty()) s += out::sl(a_msg, offs);
     s += out::sl("sql:", offs);
     s += out::sl("{", offs);
-    s += out::sl("  key      :", std::to_string(key()), offs);
-    s += out::sl("  db_type  :", ME::enum_name(db_type_), offs);
-    s += out::sl("  phase    :", ME::enum_name(phase_), offs);
+    s += out::sl(fmt::format("  key      : {}", key()), offs);
+    s += out::sl(fmt::format("  db_type  : {:<7} {}", ME::enum_name(db_type_), ME::enum_integer(db_type_)), offs);
+    s += out::sl(fmt::format("  phase    : {:<7} {}", ME::enum_name(phase_), ME::enum_integer(phase_)), offs);
     s += out::sl("  statement:", ml_sql_.dump(offs), offs);
     s += out::sl("}", offs);
+    // clang-format on
     return s;
   }
 
