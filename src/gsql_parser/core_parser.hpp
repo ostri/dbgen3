@@ -18,6 +18,8 @@
 #include "string_format.hpp"
 #include "xerces_strings.hpp"
 #include "gsql_sql_set.hpp"
+#include "db2_reader.hpp"
+
 namespace dbgen3
 {
   namespace x  = xercesc;
@@ -50,14 +52,15 @@ namespace dbgen3
     bool               isValid() const;
     static std::string q_set_id(const x::DOMElement* an_el, cstr_t a_filename);
     ///@}
-    gsql_q_set parse_file(cstr_t a_file);
+    // static gsql_q_set parse_file(cstr_t a_filename, const db2_reader& a_dbr);
     int parse_set(const str_vec& gsql_files);
+    gsql_q_set parse_file(cstr_t a_filename, const db2_reader& a_dbr);
   protected:
   private:
     /// @name query set structure
     ///@{
-    static gsql_q_set     load_q_set(const x::DOMElement* an_el, cstr_t a_filename);
-    static gsql_q         load_q(const x::DOMElement* an_el, uint a_ndx, str_vec a_ctx);
+    static gsql_q_set     load_q_set(const x::DOMElement* an_el, cstr_t a_filename, const db2_reader& a_dbr);
+    static gsql_q         load_q(const x::DOMElement* an_el, uint a_ndx, str_vec a_ctx, const db2_reader& a_dbr);
     static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
     static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
     static gsql_sql_set   load_sql_set(const x::DOMElement* an_el, str_vec a_ctx);

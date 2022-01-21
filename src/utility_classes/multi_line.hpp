@@ -29,7 +29,13 @@ namespace dbgen3
       lines_ = str_to_vec(o);
       return *this;
     }
-
+    explicit operator const std::string () const 
+    {
+      std::string r;
+      for(auto l: lines_) r += l+' ';
+      return r;
+    }
+    //operator const std::string () const {return static_cast<const std::string>(*this);}
     std::string    dump() const;
     std::string    dump(int offs) const;
     std::string    dump(cstr_t o, int offs) const;

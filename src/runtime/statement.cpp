@@ -75,10 +75,10 @@ namespace db
    * \param an_sql an sql statement to be prepared
    * \returns return code of the operation 0 == ok
    */
-  std::int16_t statement::prepare(const std::string& an_sql)
+  std::int16_t statement::prepare(cstr_t an_sql)
   {
     std::int16_t rc = SQL_SUCCESS;
-    if (an_sql.empty()) sql_ = an_sql;
+    if (! an_sql.empty()) sql_ = an_sql;
     if (! is_prepared_)
     {
       auto ok_ans  = std::string("prepare ok :- sql='") + sql_ + std::string("'.");

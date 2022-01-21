@@ -11,7 +11,7 @@ namespace dbgen3
   class gsql_q_set
   {
   public:
-    using q_dic                   = std::map<std::string, gsql_q>;
+    using q_dic_t                 = std::map<std::string, gsql_q>;
     gsql_q_set()                  = default;
     ~gsql_q_set()                 = default;
     gsql_q_set(const gsql_q_set&) = delete;
@@ -22,40 +22,23 @@ namespace dbgen3
     //@{
     std::string       header_str(int offs) const;
     const multi_line& header_multi_line() const;
-    std::string       dump() const { return dump("", 0); }
-    std::string       dump(int offs) const { return dump("", offs); }
-    std::string       id() const { return this->id_; }
+    std::string       dump() const;
+    std::string       dump(int offs) const;
+    std::string       id() const;
+    const q_dic_t&    q_dic() const { return q_dic_; }
     //@}
     /// @name setters
     //@{
-    void set_header(const std::string& header_str);
-    void set_id(const std::string& id);
-    bool q_insert(const gsql_q& q)
-    {
-      const auto [key, sts] = q_dic_.emplace(q.id(), q);
-      return sts;
-    }
-    std::string dump(cstr_t msg) const { return dump(msg, 0); }
-    std::string dump(cstr_t a_msg, int offs) const
-    {
-      std::string s;
-      if (! a_msg.empty()) s += out::sl(a_msg, offs);
-      s += out::sl("query-set:", offs);
-      s += out::sl("{", offs);
-      s += out::sl("  id: '" + id_ + "'", offs);
-      s += out::sl("  header:", offs);
-      s += out::sl("  {", offs);
-      s += header_.dump("", offs + 4);
-      s += out::sl("  }", offs);
-      for (auto const& [key, val] : q_dic_) { s += val.dump(offs + 2); }
-      s += out::sl("}", offs);
-      return s;
-    };
+    void        set_header(const std::string& header_str);
+    void        set_id(const std::string& id);
+    bool        q_insert(const gsql_q& q);
+    std::string dump(cstr_t msg) const;
+    std::string dump(cstr_t a_msg, int offs) const;
     //@}
   private:
     multi_line  header_; //!< contents of the header of query set (q-set)
     std::string id_;     //!< q_set unique id; if not provided the basename of gsql filename
-    q_dic       q_dic_;  //!< dictionary of queries
+    q_dic_t     q_dic_;  //!< dictionary of queries
   };
 
 
@@ -64,8 +47,38 @@ namespace dbgen3
   /// fetch header as multiline vector
   inline const multi_line& gsql_q_set::header_multi_line() const { return header_; }
 
+  inline std::string gsql_q_set::dump() const { return dump("", 0); }
+
+  inline std::string gsql_q_set::dump(int offs) const { return dump("", offs); }
+
+  inline std::string gsql_q_set::id() const { return this->id_; }
+
   /// set id of the query set
   inline void gsql_q_set::set_id(const std::string& id) { this->id_ = id; }
+
+  inline bool gsql_q_set::q_insert(const gsql_q& q)
+  {
+    const auto [key, sts] = q_dic_.emplace(q.id(), q);
+    return sts;
+  }
+
+  inline std::string gsql_q_set::dump(cstr_t msg) const { return dump(msg, 0); }
+
+  inline std::string gsql_q_set::dump(cstr_t a_msg, int offs) const
+  {
+    std::string s;
+    if (! a_msg.empty()) s += out::sl(a_msg, offs);
+    s += out::sl("query-set:", offs);
+    s += out::sl("{", offs);
+    s += out::sl("  id: '" + id_ + "'", offs);
+    s += out::sl("  header:", offs);
+    s += out::sl("  {", offs);
+    s += header_.dump("", offs + 4);
+    s += out::sl("  }", offs);
+    for (auto const& [key, val] : q_dic_) { s += val.dump(offs + 2); }
+    s += out::sl("}", offs);
+    return s;
+  };
 
 }; // namespace dbgen3
 

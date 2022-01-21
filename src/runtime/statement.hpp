@@ -82,7 +82,7 @@ namespace db
     /// execute an a query
     std::int16_t exec_direct(const std::string& an_sql, bool should_throw);
     std::int16_t exec() const; //!< execute an a query with pre-loaded sql statement
-    std::int16_t prepare(const std::string& an_sql = ""); //!< prepare the statement
+    std::int16_t prepare(cstr_t an_sql = ""); //!< prepare the statement
     std::int16_t commit() const;                          //!< commit statements
     std::int16_t rollback() const;                        //!< rollback statements
     /// fetch buffer set

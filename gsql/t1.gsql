@@ -19,14 +19,11 @@
                 phase ::= prepare | main | cleanup
             -->
             <sql rdbms="sql" phase="main">
-                x
-                <!-- comment -->
-                select *a 
-                 from testa
-                <!-- comment -->
-                where 1=1
+                select *
+                from tbl
+                where c1_smallint=?
             </sql>
-            <sql rdbms="sql" phase="prepare">
+            <!-- <sql rdbms="sql" phase="prepare">
                                select * from test
             </sql>
             <sql rdbms="sql" phase="cleanup">
@@ -39,7 +36,7 @@
             <sql rdbms="db2">
              
                 select * from test
-            </sql>
+            </sql> -->
         </sql-set>
     </q>
     <q>

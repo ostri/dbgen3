@@ -13,7 +13,7 @@ namespace dbgen3
     s += out::sl("query", offs);
     s += out::sl("{", offs);
     s += out::sl("  id: '" + id_ + "'", offs);
-    for (auto b : buf_dscr_) s += out::sl(b.dump("", offs + 2), 0);
+    for (auto b : buf_dscr_) s += b.dump("", offs + 2);
     s += sql_set_.dump("", offs + 2);
     s += out::sl("}", offs);
     return s;

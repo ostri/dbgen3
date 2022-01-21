@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <string>
 namespace db
-{
+{ 
   /*!
    * Error constructor for handle usage
    * \param a_handle      - handle about which we want to obtain an error description

@@ -1,7 +1,7 @@
 #ifndef CMDLINE_PARAMETERS_HPP
 #define CMDLINE_PARAMETERS_HPP
 
-#include "magic_enum.hpp"
+//#include "magic_enum.hpp"
 
 #include "common.hpp"
 #include "program_status.hpp"

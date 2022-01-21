@@ -27,11 +27,31 @@ namespace dbgen3
     std::string dump(uint offs) const;
     std::string dump(cstr_t a_msg, uint offs) const;
 
-    bool           insert(const gsql_sql_dscr a_sql);
-    const gsql_sql_dscr fetch(const RDBMS& a_db, const PHASE& a_phase) const;
-    const gsql_sql_dscr smart_fetch(const RDBMS& a_db, const PHASE& a_phase) const;
+    bool                 insert(const gsql_sql_dscr a_sql);
+    const gsql_sql_dscr fetch(const RDBMS& a_db, const PHASE& a_phase) const
+    {
+      auto key = gsql_sql_dscr::make_key(a_db, a_phase);
+      auto it  = sql_map_.find(key);
+      if (it != sql_map_.end()) { return (sql_set_[it->second]); }
+      else return {};
+    }
+    const gsql_sql_dscr smart_fetch(const RDBMS& a_db, const PHASE& a_phase) const
+    {
+      auto r = fetch(a_db, a_phase);
+      /// if not found for specific database, try to fetch definition fo rgeneric database
+      if (r.key() == gsql_sql_dscr().key()) r = fetch(RDBMS::sql, a_phase);
+      return r;
+    }
+    const std::string smart_fetch_sql(const RDBMS& a_db, const PHASE& a_phase) const
+    {
+      auto r = fetch(a_db, a_phase);
+      /// if not found for specific database, try to fetch definition fo rgeneric database
+      if (r.key() == gsql_sql_dscr().key()) r = fetch(RDBMS::sql, a_phase);
+      return smart_fetch(a_db, a_phase).sql();
+    }
+
   private:
-    sql_set sql_set_; //!< vector of sqls associated with signle query
+    sql_set sql_set_; //!< vector of sql statement descriptions
     sql_map sql_map_; //!< ditionary of sql statements index by (rdbms, phase)
   };
 

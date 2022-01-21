@@ -27,6 +27,7 @@ namespace dbgen3
     std::string    dump(cstr_t a_msg, uint offs) const;
     static uint    make_key(const RDBMS& a_db, const PHASE& a_phase);
     uint           key() const;
+    std::string    sql() const { return static_cast<const std::string>(ml_sql_);}
   private:
     /*............................................................*/
     enum RDBMS db_type_ = RDBMS::sql;     //!< rdbms type (dialect)

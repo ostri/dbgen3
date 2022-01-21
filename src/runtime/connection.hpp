@@ -15,6 +15,9 @@ namespace db
 {
 
   using err_log = void (*)(const std::string&); //!< prototype for log function callback
+  using str_t = std::string;
+  using cstr_t = std::string_view;
+  
   struct h_pair
   {
     std::int32_t handle; //!< handle

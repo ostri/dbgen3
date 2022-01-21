@@ -1,8 +1,13 @@
 #ifndef ENUMS_HPP
 #define ENUMS_HPP
 
+#undef MAGIC_ENUM_RANGE_MIN
+#undef MAGIC_ENUM_RANGE_MAX
+#define MAGIC_ENUM_RANGE_MIN -1000
+#define MAGIC_ENUM_RANGE_MAX 1000
+#include <magic_enum.hpp>
+
 #include "common.hpp"
-#include "magic_enum.hpp"
 
 namespace dbgen3
 {
@@ -25,7 +30,7 @@ namespace dbgen3
     mariadb = 4  //!< Maria database (MYSQL clone) - placeholder
   };
 
-  enum class NT // xercesc nodetypes
+  enum class NT : int // xercesc nodetypes
   {
     ELEMENT_NODE                = 1,
     ATTRIBUTE_NODE              = 2,
@@ -55,18 +60,63 @@ namespace dbgen3
     java    = 2  //!< java code generation
   };
 
+  enum class DBN : int16_t
+  {
+    NO_NULLS         = 0, //<! no null
+    NULLABLE         = 1, //<! NULL
+    NULLABLE_UNKNOWN = 2  //!< we dont know (default null)
+  };
+
   enum class VERBOSE
   {
     FALSE = 0, //<! non verbose execution
     TRUE  = 1, //<! verbose execution
   };
 
-  class enums
+  enum class ODBC_TYPE : int
   {
-  public:
-    static str_vec lang_str() { return lang_str_; }
-  private:
-    static str_vec lang_str_;
+    /* Standard SQL data types */
+    UNKNOWN_TYPE                 = 0,
+    CHAR                         = 1,
+    NUMERIC                      = 2,
+    DECIMAL                      = 3,
+    INTEGER                      = 4,
+    SMALLINT                     = 5,
+    FLOAT                        = 6,
+    REAL                         = 7,
+    DOUBLE                       = 8,
+    DATETIME                     = 9,
+    INTERVAL                     = 10,
+    TIMESTAMP                    = 11,
+    VARCHAR                      = 12,
+    BOOLEAN                      = 16,
+    ROW                          = 19,
+    TYPE_DATE                    = 91,
+    TYPE_TIME                    = 92,
+    TYPE_TIMESTAMP               = 93,
+    TYPE_TIMESTAMP_WITH_TIMEZONE = 95,
+    LONGVARCHAR                  = -1,
+    BINARY                       = -2,
+    VARBINARY                    = -3,
+    LONGVARBINARY                = -4,
+    BIGINT                       = -5,
+    TINYINT                      = -6,
+    BIT                          = -7,
+    WCHAR                        = -8,
+    WVARCHAR                     = -9,
+    WLONGVARCHAR                 = -10,
+    GUID                         = -11,
+    GRAPHIC                      = -95,
+    VARGRAPHIC                   = -96,
+    LONGVARGRAPHIC               = -97,
+    BLOB                         = -98,
+    CLOB                         = -99,
+    DBCLOB                       = -350,
+    DECFLOAT                     = -360,
+    XML                          = -370,
+    CURSORHANDLE                 = -380,
+    DATALINK                     = -400,
+    USER_DEFINED_TYPE            = -450
   };
 }; // namespace dbgen3
 

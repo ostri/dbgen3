@@ -29,11 +29,11 @@ namespace db
   {
   public:
     /// ctor
-    explicit error_exception(const error& err) noexcept;
+    explicit error_exception(const error& an_err);
     /// ctor
-    explicit error_exception(const std::string& str) noexcept;
+    explicit error_exception(const std::string& str);
     /// copy ctor
-    error_exception(const error_exception& o) noexcept;
+    error_exception(const error_exception& o);
     /// move constructor
     error_exception(error_exception&& o) noexcept = default;
     error_exception& operator=(const error_exception& o) = default;
@@ -45,12 +45,12 @@ namespace db
   /// Serialisation to string stream
   std::ostream& operator<<(std::ostream& s, const error_exception& o);
   /// ctor
-  inline error_exception::error_exception(const error& err) noexcept
-  : std::runtime_error(err.dump(""))
+  inline error_exception::error_exception(const error& an_err) 
+  : std::runtime_error(an_err.dump(""))
   {
   }
   /// ctor
-  inline error_exception::error_exception(const std::string& str) noexcept
+  inline error_exception::error_exception(const std::string& str) 
   : std::runtime_error(str)
   {
   }

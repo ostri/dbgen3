@@ -11,18 +11,4 @@ namespace dbgen3
     return sts;
   }
 
-  const gsql_sql_dscr gsql_sql_set::fetch(const RDBMS& a_db, const PHASE& a_phase) const
-  {
-    auto key = gsql_sql_dscr::make_key(a_db, a_phase);
-    auto it  = sql_map_.find(key);
-    if (it != sql_map_.end()) { return sql_set_[it->second]; }
-    else return{};
-  }
-
-  const gsql_sql_dscr gsql_sql_set::smart_fetch(const RDBMS& a_db, const PHASE& a_phase) const
-  {
-    auto r = fetch(a_db, a_phase);
-    if (r.key() == gsql_sql_dscr().key()) r = fetch(RDBMS::db2, a_phase);
-    return r;
-  }
 } // namespace dbgen3

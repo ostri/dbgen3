@@ -9,8 +9,14 @@ namespace dbgen3
   {
     std::string s;
     if (!a_msg.empty()) s += out::s(a_msg, offs);
-    s += out::s(fmt::format("{}: {{ id: '{}' skip: {} }}", 
-    ME::enum_name(type_), id_, skip_), offs);
+    s += out::sl(fmt::format("{}:", ME::enum_name(type_)), offs);
+    s += out::sl("{", offs);
+    s += out::sl(fmt::format("  id: '{}' skip: {}", id_, skip_), offs);
+    s += out::sl("  flds: ",offs);
+    s += out::sl("  {", offs);
+    for (const auto& fld: flds_) s += fld.dump(offs+4);
+    s += out::sl("  }", offs);
+    s += out::sl("}", offs);
     return s;
   }
 } // namespace dbgen3

@@ -3,7 +3,7 @@ set(RT_LIB db3)
 set(PROG_NAME dbgen3)
 set(HEADER_LIST "")
 set (RT_SUBDIRS runtime)
-set (SUBDIRS utility_classes cmd_param gsql_parser exceptions db_integration core ${RT_SUBDIRS})
+set (SUBDIRS utility_classes cmd_param gsql_parser exceptions db_integration core ${RT_SUBDIRS} )
 
 foreach (SUBDIR ${SUBDIRS})
     add_subdirectory(${SUBDIR})
@@ -13,7 +13,7 @@ message (STATUS "proj_lib '${PROJ_LIB}'")
 
 add_library(${PROJ_LIB})
 
-target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS})
+target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS} ${DB2_INCLUDE_DIRS})
 
 set (src_list
   utility_classes/common
@@ -34,6 +34,9 @@ set (src_list
   gsql_parser/xerces_strings
 
   core/executor
+
+  db_integration/db2_reader
+  db_integration/fld_dscr
 )
 set (cpp_list ${src_list})
 set (hpp_list ${src_list})
@@ -54,7 +57,8 @@ target_sources(${PROJ_LIB}
 )
 target_include_directories(${PROJ_LIB} 
   PUBLIC 
-    ${SUBDIRS} 
+    ${SUBDIRS}
+    ${DB2_INCLUDE_DIRS}
     ${magic_enum_SOURCE_DIR}/include
     ${fmt_SOURCE_DIR}/include/
 )
@@ -128,6 +132,7 @@ target_include_directories(${PROG_NAME}
 target_link_libraries(${PROG_NAME}
   PRIVATE
     proj_lib
+    ${RT_LIB}
     fmt::fmt
     ${GLOG_LIBRARY}
     gflags
