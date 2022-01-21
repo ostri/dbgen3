@@ -187,12 +187,12 @@ namespace dbgen3
    * @param a_sql sql statement which parameters we are interested in
    * @return int status of the operation
    */
-  static fld_vec fetch_param_dscr(const BUF_TYPE& a_bt, db::statement& a_stmt /*, cstr_t a_sql*/)
+  static fld_vec fetch_param_dscr(const BUF_TYPE& a_bt, db::statement& a_stmt)
   {
     assert(a_bt != BUF_TYPE::unk);
     fld_vec r;
     auto    h       = a_stmt.get_stmt_handle();
-    auto    rc      = SQL_SUCCESS; // FIXME
+    auto    rc      = SQL_SUCCESS;
     int16_t par_cnt = 0;
     rc = (a_bt == BUF_TYPE::par) ? SQLNumParams(h, &par_cnt) : SQLNumResultCols(h, &par_cnt);
     if (SQL_SUCCESS == rc)
@@ -219,7 +219,8 @@ namespace dbgen3
                                                       &nullable);
         if (SQL_SUCCESS == rc)
         {
-          std::string name(buf.data(), col_name_len);
+          std::string name =
+            (a_bt == BUF_TYPE::par) ? "par_" + std::to_string(cnt + 1) : std::string(buf.data(), col_name_len);
 
           auto n  = ME::enum_cast<DBN>(nullable);
           auto ot = ME::enum_cast<ODBC_TYPE>(type);
