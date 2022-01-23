@@ -1,5 +1,6 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+#include <magic_enum.hpp>
 
 #include "cmdline_parameters.hpp"
 #include "common.hpp"
@@ -32,26 +33,25 @@ int main(int argc, char** argv)
     if (sts == dbgen3::P_STS::success)
     { /* parameters are OK */
       info << out::sl("parameters are ok.", 0);
-      xercesc::XMLPlatformUtils::Initialize();
+      xercesc::XMLPlatformUtils::Initialize(); /// FIXME why we need it here?
       dbgen3::executor e(cmd_par);
-      //dbgen3::core_parser qe; // xercesc environment
       e.process_files();
-      // qe.parse_set(cmd_par.g_qsql_list());
-      // if (qe.isValid()) { info << out::sl("environment is ok"); }
     }
     else { /* invalid or missing parameters */
-      auto tmp = dbgen3::program_status().dscr(sts);
+      auto tmp = dbgen3::PS::dscr(sts);
       err << out::sl(tmp, 0);
     }
-    return static_cast<int>(sts);
+    return dbgen3::ME::enum_integer<dbgen3::P_STS>(sts);
   }
   catch (const dbgen3::gsql_file_not_exsts& e)
   {
-    err << out::sl(dbgen3::program_status().dscr(e.g_status()));
+    err << out::sl(dbgen3::PS::dscr(e.g_status()));
+    return dbgen3::ME::enum_integer<dbgen3::P_STS>(e.g_status());
   }
   catch (const std::runtime_error& e)
   {
     err << "internal error " << out::sl(e.what());
+    return dbgen3::ME::enum_integer<dbgen3::P_STS>(dbgen3::P_STS::unk_exception);
   }
   catch (...)
   {
