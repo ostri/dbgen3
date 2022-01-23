@@ -26,4 +26,31 @@ target_link_libraries(t0
     xerces-c
     ${DB2_LIBRARIES}
     ${RT_LIB}
+    )
+#
+# test_templ
+#
+add_executable(templ
+  test_templ.cpp 
+#  ${CMAKE_SOURCE_DIR}/src/utility_classes/program_status.cpp
+  ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
+)
+
+target_compile_features(templ PUBLIC cxx_std_20)
+target_include_directories(templ 
+  PRIVATE
+    ${RT_SUBDIRS} 
+    ${DB2_INCLUDE_DIRS} 
+    ${magic_enum_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src/utility_classes/
+    ${fmt_SOURCE_DIR}/include
+    )
+target_link_libraries(templ
+  PRIVATE
+    fmt::fmt
+    ${GLOG_LIBRARY}
+    gflags
+    xerces-c
+    ${DB2_LIBRARIES}
+    ${RT_LIB}
 )

@@ -83,6 +83,7 @@ set (rt_src_list
   runtime/error_dscr
   runtime/error_exception
   runtime/statement
+  runtime/dbgen3_templ
 )
 set (rt_cpp_list ${rt_src_list})
 set (rt_hpp_list ${rt_src_list} )
