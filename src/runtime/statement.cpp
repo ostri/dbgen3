@@ -269,6 +269,13 @@ namespace db
         "' value:'" + std::to_string(*value) + "'.");
     return ret;
   }
+  std::int16_t statement::set_attr(const int attr, std::size_t* value) const
+  {
+    std::int16_t ret = SQLSetStmtAttr(handle_, attr, static_cast<SQLPOINTER>(value), 0);
+    log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
+        "' value:'" + std::to_string(*value) + "'.");
+    return ret;
+  }
   std::int16_t statement::set_attr(const int attr, SQLCHAR* value) const
   {
     std::int16_t ret = SQLSetStmtAttr(handle_,

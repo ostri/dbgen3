@@ -76,6 +76,7 @@ namespace db
     std::int16_t set_attr(int attr, SQLCHAR* value) const;
     std::int16_t set_attr(int attr, void* value, uint len) const;
     std::int16_t set_attr(int attr, int value) const;
+    std::int16_t set_attr(const int attr, std::size_t* value) const;
     //@}
     //! @name database operations
     //@{

@@ -227,7 +227,7 @@ namespace dbgen3
           if (! ot.has_value())
             throw std::runtime_error("Unsupported column type " + std::to_string(type));
           err << fmt::format(
-            "[{:3}]: name: '{:30}' type:{:5} {:15} width:{:5} dec:{:3} nullable:{:20}\n",
+            "[{:3}]: name:'{:24}' type:{:4} {:14} width:{:5} dec:{:3} null:{:20}",
             cnt + 1,
             name,
             ME::enum_integer(ot.value()),

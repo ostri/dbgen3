@@ -156,7 +156,7 @@ namespace db
   /*!
    * The method dumps all error descriptions in one string an returns it to the caller
    */
-  std::string error::dump(const std::string& a_msg) const
+  std::string error::dump(cstr_t a_msg) const
   {
     std::string s(a_msg);
     for (const auto& e_dscr : errors_) { s += "[" + e_dscr.dump("") + "]\n"; }

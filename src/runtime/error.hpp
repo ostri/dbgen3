@@ -21,6 +21,7 @@
 //#include "statement.hpp"
 namespace db
 {
+  using cstr_t = std::string_view;
   /*!
    * \brief It holds information about errors of the associated statement
    *
@@ -65,7 +66,7 @@ namespace db
     /// fetch the number of error descriptions
     uint get_number_of_messages() const;
     /// it writes all errors into a string
-    std::string dump(const std::string& a_msg = nullptr) const;
+    std::string dump(cstr_t a_msg = "") const;
   private:
     /// log - for statements only
     static void log(const std::string& msg);
