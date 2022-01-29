@@ -58,8 +58,8 @@ namespace dbgen3
     // clang-format on
   }
 
-  auto           cmdline_parameters::g_db_name() const { return cstr_t(db_name_); }
-  auto           cmdline_parameters::g_out_folder() const { return cstr_t(out_folder_); }
+  cstr_t         cmdline_parameters::g_db_name() const { return cstr_t(db_name_); }
+  cstr_t         cmdline_parameters::out_folder() const { return cstr_t(out_folder_); }
   const str_vec& cmdline_parameters::g_qsql_list() const { return gsql_list_; }
 
   RDBMS cmdline_parameters::g_database_type() const { return database_type_; }

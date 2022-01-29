@@ -30,16 +30,16 @@ namespace dbgen3
     str_t dump(const str_t& msg = "", int offs = 0) const;
     /// @name getters
     ///@{
-    auto           g_db_name() const;       //!< fetch database name
-    auto           g_out_folder() const;    //!< fetch output folder
+    cstr_t         g_db_name() const;       //!< fetch database name
+    cstr_t         out_folder() const;    //!< fetch output folder
     const str_vec& g_qsql_list() const;     //!< fetch list of gsql filenames
-    PROG_LANG      g_lang()const ;          //!< fetch generator language
+    PROG_LANG      g_lang() const;          //!< fetch generator language
     RDBMS          g_database_type() const; //!< fetch database type
     VERBOSE        g_verbose(const std::string& val) const;
     PROG_LANG      g_lang_code(const std::string& token) const;
     RDBMS          g_db_type_code(const std::string& token) const;
     static str_vec g_filenames_from_argv(int argc, char** argv);
-    VERBOSE g_verbose_code() const { return verbose_; };
+    VERBOSE        g_verbose_code() const { return verbose_; };
     // const str_t&   g_lang_str(const PROG_LANG& token) const;
     // const str_t&   g_db_type_str(db_type token) const;
     // const str_t&   g_verbose_str(bool token) const;
@@ -47,8 +47,8 @@ namespace dbgen3
     ///@}
   private:
     //    const str_vec lang_str;    //!< programming languages names
-    //const str_vec db_type_str; //!< database type names
-    //const str_vec verbose_str; //!< verbosity names
+    // const str_vec db_type_str; //!< database type names
+    // const str_vec verbose_str; //!< verbosity names
 
     std::string db_name_;    //!< name of the database
     std::string out_folder_; //!< output folder
@@ -60,7 +60,7 @@ namespace dbgen3
     VERBOSE verbose_ = VERBOSE::FALSE; //!< verbose program operation
   };
 
-  inline VERBOSE        cmdline_parameters::g_verbose(const std::string& val) const
+  inline VERBOSE cmdline_parameters::g_verbose(const std::string& val) const
   {
     if (ME::enum_contains<VERBOSE>(val)) return ME::enum_cast<VERBOSE>(val).value();
     else return VERBOSE::FALSE;
@@ -69,7 +69,7 @@ namespace dbgen3
   ///@}
   /// @name auxiliary methods
   ///@{
-  inline PROG_LANG      cmdline_parameters::g_lang_code(const std::string& token) const
+  inline PROG_LANG cmdline_parameters::g_lang_code(const std::string& token) const
   {
     if (ME::enum_contains<PROG_LANG>(token)) return ME::enum_cast<PROG_LANG>(token).value();
     else return PROG_LANG::invalid;

@@ -52,7 +52,7 @@ namespace db
     T                     value(std::size_t ndx) const;
     void                  set_value(const T& data);
     void                  set_value(const T& data, std::size_t ndx);
-    constexpr std::size_t size();
+    consteval std::size_t size();
     constexpr std::size_t el_max_size() const { return sizeof(T); }
     int16_t               bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx)
     {
@@ -217,7 +217,7 @@ namespace db
   }
 
   template <typename T, std::size_t arr_size>
-  inline constexpr std::size_t atomic<T, arr_size>::size()
+  inline consteval std::size_t atomic<T, arr_size>::size()
   {
     return data_.size();
   }

@@ -118,6 +118,12 @@ namespace dbgen3
     DATALINK                     = -400,
     USER_DEFINED_TYPE            = -450
   };
+
+  enum class FILE_TYPE : int
+  {
+    hpp = 1, //!< it denotes hpp header file
+    cpp = 2, //!< it denotes cpp source file
+  };
 }; // namespace dbgen3
 
 #endif // ENUMS_HPP

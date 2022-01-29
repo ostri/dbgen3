@@ -29,6 +29,7 @@ namespace dbgen3
     duplicate_sql_buf_def  = 9,
     duplicate_sql_dscr_def = 10,
     sql_stat_too_long      = 11,
+    cant_open_for_writing  = 12,
   };
   namespace
   {
@@ -47,6 +48,7 @@ namespace dbgen3
       {P_STS::duplicate_sql_buf_def,  "Duplicate SQL buffer definition. query id: {} sql#: {} rdbms: {} phase: {}"},
       {P_STS::duplicate_sql_dscr_def, "Duplicate SQL description definition. query id: {}"},
       {P_STS::sql_stat_too_long,      "SQL statement length exceeds hard limit {}. Shorten it. query id: {} sql#: {}"},
+      {P_STS::cant_open_for_writing,  "Can't open file '{}' for  writing."},
     };
     // clang-format on
 
