@@ -1,17 +1,10 @@
+#include "common.hpp"
 #include "multi_line.hpp"
 #include "string_format.hpp"
 
 namespace dbgen3
 {
-  // rtrim
-  static inline std::string rtrim(cstr_t o)
-  {
-    std::string s(o);
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return ! std::isspace(ch); })
-              .base(),
-            s.end());
-    return s;
-  }
+
   str_vec multi_line::str_to_vec(cstr_t a_str)
   {
     str_vec r;
@@ -22,19 +15,6 @@ namespace dbgen3
     r = trim_left(r);
     return r;
   }
-  // /**
-  //  * @brief Construct a new dbgen3::multi line::multi line object
-  //  *
-  //  * @param ml string to be converted into multiline
-  //  */
-  // dbgen3::multi_line::multi_line(cstr_t ml)
-  // {
-  //   auto o(rtrim(ml)); /// remove trailing whitespaces
-  //   lines_ = split(o, '\n');
-  //   if (! lines_.empty() && rtrim(lines_[0]).empty()) // trim leading empty lines
-  //     lines_.erase(lines_.begin());
-  //   lines_ = trim_left(lines_);
-  // }
   str_vec multi_line::trim_left(const str_vec& o)
   {
     const std::string WHITESPACE = " \n\r\t\f\v";

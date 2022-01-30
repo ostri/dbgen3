@@ -33,11 +33,11 @@ namespace dbgen3
     cstr_t         g_db_name() const;       //!< fetch database name
     cstr_t         out_folder() const;    //!< fetch output folder
     const str_vec& g_qsql_list() const;     //!< fetch list of gsql filenames
-    PROG_LANG      g_lang() const;          //!< fetch generator language
-    RDBMS          g_database_type() const; //!< fetch database type
+    PROG_LANG      lang() const;
+    RDBMS          database_type() const; //!< fetch database type
     VERBOSE        g_verbose(const std::string& val) const;
     PROG_LANG      g_lang_code(const std::string& token) const;
-    RDBMS          g_db_type_code(const std::string& token) const;
+    RDBMS          db_type_code(const std::string& token) const;
     static str_vec g_filenames_from_argv(int argc, char** argv);
     VERBOSE        g_verbose_code() const { return verbose_; };
     // const str_t&   g_lang_str(const PROG_LANG& token) const;

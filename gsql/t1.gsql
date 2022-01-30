@@ -23,20 +23,20 @@
                 from tbl
                 where c1_smallint=?
             </sql>
-            <!-- <sql rdbms="sql" phase="prepare">
-                               select * from test
+            <sql rdbms="sql" phase="prepare">
+                               select * from tbl
             </sql>
             <sql rdbms="sql" phase="cleanup">
-                select * from test
+                select * from tbl
             </sql>
             <sql rdbms="db2" phase="cleanup">
                 
-                select * from test
+                select * from tbl
             </sql>
             <sql rdbms="db2">
              
-                select * from test
-            </sql> -->
+                select * from tbl
+            </sql>
         </sql-set>
     </q>
     <q>

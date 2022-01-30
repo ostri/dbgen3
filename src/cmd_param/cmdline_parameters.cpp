@@ -23,7 +23,7 @@ namespace dbgen3
   , out_folder_(FLAGS_out_folder)
   , gsql_list_(g_filenames_from_argv(an_argc, an_argv))
   , lang_(g_lang_code(FLAGS_lang))
-  , database_type_(g_db_type_code(FLAGS_db_type))
+  , database_type_(db_type_code(FLAGS_db_type))
   , verbose_(g_verbose(std::string(FLAGS_verbose)))
   { }
   P_STS cmdline_parameters::check_parameters() const
@@ -62,10 +62,12 @@ namespace dbgen3
   cstr_t         cmdline_parameters::out_folder() const { return cstr_t(out_folder_); }
   const str_vec& cmdline_parameters::g_qsql_list() const { return gsql_list_; }
 
-  RDBMS cmdline_parameters::g_database_type() const { return database_type_; }
+  PROG_LANG      cmdline_parameters::lang() const {return lang_;};
+
+  RDBMS cmdline_parameters::database_type() const { return database_type_; }
 
   // TODO remove g_token_ndx
-  RDBMS cmdline_parameters::g_db_type_code(const std::string& token) const
+  RDBMS cmdline_parameters::db_type_code(const std::string& token) const
   {
     if (ME::enum_contains<RDBMS>(token)) return ME::enum_cast<RDBMS>(token).value();
     else return RDBMS::sql;
@@ -87,18 +89,4 @@ namespace dbgen3
     return {};
   }
 
-  // const str_t& cmdline_parameters::g_lang_str(const PROG_LANG& token) const
-  // {
-  //   return g_token_str(static_cast<int>(token), enums::lang_str());
-  // }
-
-  // const str_t& cmdline_parameters::g_db_type_str(db_type token) const
-  // {
-  //   return g_token_str(static_cast<int>(token), db_type_str);
-  // }
-
-  // const str_t& cmdline_parameters::g_verbose_str(bool token) const
-  // {
-  //   return token ? verbose_str.at(1) : verbose_str.at(0);
-  // }
 } // namespace dbgen3

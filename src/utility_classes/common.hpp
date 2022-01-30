@@ -5,7 +5,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
 #include <fmt/core.h>
 #include <sys/stat.h>
 #include <fmt/ranges.h>
@@ -30,27 +29,26 @@ namespace dbgen3
 
   std::string ctx_to_str(const str_vec a_ctx);
   std::string ctx_to_str(const str_vec a_ctx, cstr_t last);
-  bool file_exists(cstr_t path);
+  bool        file_exists(cstr_t path);
 
-  // /**
-  //  * @brief fetch token id
-  //  *
-  //  * The method returns the token id from the token set or 0
-  //  * if not found.
-  //  *
-  //  * @param token     token which index we are looking for
-  //  * @param token_set set of tokens that we are searching in
-  //  * @return
-  //  */
-  // uint g_token_ndx(const str_t& token, const str_vec& token_set);
-  // /**
-  //  * @brief it returns string associated with the token id from the token set.
-  //  *
-  //  * @param token_id token id that searching for string
-  //  * @param token_set set of tokens
-  //  * @return string version of the token id
-  //  */
-  // const str_t& g_token_str(uint token_id, const str_vec& token_set);
+  // rtrim
+  inline std::string rtrim(cstr_t o)
+  {
+    std::string s(o);
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return ! std::isspace(ch); })
+              .base(),
+            s.end());
+    return s;
+  }
+  // ltrim
+  inline std::string ltrim(cstr_t o)
+  {
+    std::string s(o);
+    auto        pos = std::find_if_not(s.begin(), s.end(), [](char ch) { return isspace(ch); });
+    s.erase(s.begin(), pos);
+    return s;
+  }
+  inline std::string trim(cstr_t o) { return ltrim(rtrim(o)); }
   /**
    * @brief split the provided string into vector of stringa
    *

@@ -3,7 +3,7 @@ set(RT_LIB db3)
 set(PROG_NAME dbgen3)
 set(HEADER_LIST "")
 set (RT_SUBDIRS runtime)
-set (SUBDIRS utility_classes cmd_param gsql_parser exceptions db_integration core ${RT_SUBDIRS} )
+set (SUBDIRS utility_classes cmd_param gsql_parser exceptions db_integration core gen ${RT_SUBDIRS} )
 
 foreach (SUBDIR ${SUBDIRS})
     add_subdirectory(${SUBDIR})
@@ -37,6 +37,9 @@ set (src_list
 
   db_integration/db2_reader
   db_integration/fld_dscr
+
+  gen/gen
+  gen/gen_cpp
 )
 set (cpp_list ${src_list})
 set (hpp_list ${src_list})

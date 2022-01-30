@@ -3,11 +3,14 @@
 #define EXECUTOR_HPP
 
 #include <fstream>
+#include <memory>
 
 #include "cmdline_parameters.hpp"
 #include "gsql_q_set.hpp"
 #include "core_parser.hpp"
 #include "db2_reader.hpp"
+#include "gen.hpp"
+#include "gen_cpp.hpp"
 
 namespace dbgen3
 {
@@ -23,34 +26,25 @@ namespace dbgen3
     {
       if (hpp_file_.is_open()) hpp_file_.close();
     }
-    // static std::ofstream& open_out_file(const FILE_TYPE&          ft,
-    //                                     const cmdline_parameters& cmd_p,
-    //                                     cstr_t                    a_file)
-    // {
-    //   std::ofstream o_stream;
-    //   fs::path      p(a_file);
-    //   auto          fn = std::string(cmd_p.out_folder()) + fs::path::preferred_separator +
-    //   p.stem().string() +
-    //             ME::enum_name<FILE_TYPE>(ft);
-    //   o_stream.open(fn, std::ios::out | std::ios::app);
-    //   if (! o_stream.is_open()) throw dbgen3_exc(P_STS::cant_open_for_writing, fn);
-    //   return o_stream;
-    // }
     int process_files()
     {
       auto        sts = 0;
       core_parser p;
       db2_reader  r;
       r.connect(this->cmd_p_.g_db_name(), "", ""); // FIXME username and password also
+      std::unique_ptr<gen> gen;
+      if (cmd_p_.lang() == PROG_LANG::cpp) gen = std::make_unique<gen_cpp>();
+      assert(gen.get() != nullptr);
       for (const auto& file : cmd_p_.g_qsql_list())
       {
-        auto     gsql_struct = p.parse_file(file, r);
+        auto     gsql_struct = p.parse_file(file, r, cmd_p_.database_type());
         fs::path p(file);
         fs::path fn(cmd_p_.out_folder());
         fn /= p.stem().string() + "." + std::string(ME::enum_name<FILE_TYPE>(FILE_TYPE::hpp));
         hpp_file_.open(fn);
-
-        for (auto q : gsql_struct.q_dic()) { hpp_file_ << q.first << "\n"; }
+        gen->set_set(gsql_struct);
+        gen->set_rdbm(cmd_p_.database_type());
+        hpp_file_ << gen->gen_file(0);
         //        err << gsql_struct.dump("finale");
         hpp_file_.close();
       }
