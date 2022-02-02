@@ -249,21 +249,13 @@ namespace dbgen3
     else throw db::error_exception(db::error(h, SQL_HANDLE_STMT));
     return r;
   }
-  gsql_q core_parser::load_q(const x::DOMElement* an_el,
-                             uint                 a_ndx,
-                             str_vec              a_ctx,
-                             const db2_reader&    a_dbr,
-                             const RDBMS&         a_db_type)
+  gsql_q core_parser::load_q_children(const x::DOMElement* an_el,
+                                      uint                 a_ndx,
+                                      str_vec              a_ctx,
+                                      const db2_reader&    a_dbr,
+                                      const RDBMS&         a_db_type,
+                                      gsql_q&              r)
   {
-    gsql_q r(a_db_type); /// result
-    /// load attributes
-    r.set_id(attr_value(an_el, "id", "q_" + std::to_string(a_ndx))); // load unique query id
-    a_ctx.emplace_back(std::string(r.id()));
-    auto ndx_str = std::to_string(a_ndx);
-    // implicit values unless explicit are provided
-    r.set_buf_dscr(gsql_qbuf_dscr(BUF_TYPE::par, "qp_" + ndx_str, true));
-    r.set_buf_dscr(gsql_qbuf_dscr(BUF_TYPE::res, "qr_" + ndx_str, true));
-    /// load children
     for (x::DOMNode* n = an_el->getFirstChild(); n != nullptr; n = n->getNextSibling())
     {
       if (n->getNodeType() == x::DOMNode::ELEMENT_NODE)
@@ -273,24 +265,26 @@ namespace dbgen3
         if (loc_name == "qp") r.set_buf_dscr(load_qp(el, a_ndx));
         else if (loc_name == "qr") r.set_buf_dscr(load_qr(el, a_ndx));
         else if (loc_name == "sql-set") //
-        {
+        { // TODO think if we need only prepare, main and no cleanup, since we have rollback
           r.set_sql_set(load_sql_set(el, a_ctx, a_db_type));
           auto sql_m = r.sql(PHASE::main);
           auto sql_p = r.sql(PHASE::prepare); // preparation
           auto sql_c = r.sql(PHASE::cleanup); // cleanup
           if (! sql_m.empty())
           {
-            db::statement stmt(*(a_dbr.connection()));
-            auto          rc = stmt.prepare(sql_m);
-            if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt.exec_direct(sql_p, true);
-
-            // auto par_vec = fetch_param_dscr(stmt);
-            r.set_buf_dscr_flds(BUF_TYPE::par, fetch_param_dscr(BUF_TYPE::par, stmt));
-            r.set_buf_dscr_flds(BUF_TYPE::res, fetch_param_dscr(BUF_TYPE::res, stmt));
-            rc = stmt.prepare(sql_m);
-            if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt.exec_direct(sql_c, true);
+            auto          rc = SQL_SUCCESS;
+            db::statement stmt_m(*(a_dbr.connection()));
+            db::statement stmt_p(*(a_dbr.connection()));
+            db::statement stmt_c(*(a_dbr.connection()));
+            if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt_p.exec_direct(sql_p, true);
+            rc = stmt_m.prepare(sql_m);
+            r.set_buf_dscr_flds(BUF_TYPE::par, fetch_param_dscr(BUF_TYPE::par, stmt_m));
+            r.set_buf_dscr_flds(BUF_TYPE::res, fetch_param_dscr(BUF_TYPE::res, stmt_m));
+            if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
             //            err << sts;
-            stmt.rollback();
+            stmt_p.rollback();
+            stmt_m.rollback();
+            stmt_c.rollback();
           }
         }
         else
@@ -308,6 +302,71 @@ namespace dbgen3
       else err << out::sl(std::string("unhandled: ") + std::to_string(n->getNodeType()));
     }
     return r;
+  }
+  gsql_q core_parser::load_q(const x::DOMElement* an_el,
+                             uint                 a_ndx,
+                             str_vec              a_ctx,
+                             const db2_reader&    a_dbr,
+                             const RDBMS&         a_db_type)
+  {
+    gsql_q r(a_db_type); /// result
+    /// load attributes
+    r.set_id(attr_value(an_el, "id", "q_" + std::to_string(a_ndx))); // load unique query id
+    a_ctx.emplace_back(std::string(r.id()));
+    auto ndx_str = std::to_string(a_ndx);
+    // implicit values unless explicit are provided
+    r.set_buf_dscr(gsql_qbuf_dscr(BUF_TYPE::par, "qp_" + ndx_str, true));
+    r.set_buf_dscr(gsql_qbuf_dscr(BUF_TYPE::res, "qr_" + ndx_str, true));
+    r = load_q_children(an_el, a_ndx, a_ctx, a_dbr, a_db_type, r);
+      /// load children
+      // for (x::DOMNode* n = an_el->getFirstChild(); n != nullptr; n = n->getNextSibling())
+      // {
+      //   if (n->getNodeType() == x::DOMNode::ELEMENT_NODE)
+      //   {
+      //     auto el       = static_cast<x::DOMElement*>(n);
+      //     auto loc_name = toNative(n->getLocalName());
+      //     if (loc_name == "qp") r.set_buf_dscr(load_qp(el, a_ndx));
+      //     else if (loc_name == "qr") r.set_buf_dscr(load_qr(el, a_ndx));
+      //     else if (loc_name == "sql-set") //
+      //     { //TODO think if we need only prepare, main and no cleanup, since we have rollback
+      //       r.set_sql_set(load_sql_set(el, a_ctx, a_db_type));
+      //       auto sql_m = r.sql(PHASE::main);
+      //       auto sql_p = r.sql(PHASE::prepare); // preparation
+      //       auto sql_c = r.sql(PHASE::cleanup); // cleanup
+      //       if (! sql_m.empty())
+      //       {
+      //         auto          rc = SQL_SUCCESS;
+      //         db::statement stmt_m(*(a_dbr.connection()));
+      //         db::statement stmt_p(*(a_dbr.connection()));
+      //         db::statement stmt_c(*(a_dbr.connection()));
+      //         if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt_p.exec_direct(sql_p, true);
+      //         rc = stmt_m.prepare(sql_m);
+      //         r.set_buf_dscr_flds(BUF_TYPE::par, fetch_param_dscr(BUF_TYPE::par, stmt_m));
+      //         r.set_buf_dscr_flds(BUF_TYPE::res, fetch_param_dscr(BUF_TYPE::res, stmt_m));
+      //         if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
+      //         //            err << sts;
+      //         stmt_p.rollback();
+      //         stmt_m.rollback();
+      //         stmt_c.rollback();
+      //       }
+      //     }
+      //     else
+      //       throw std::runtime_error(std::string("internal error only qp, qr and sql-set
+      //       allowed.")
+      //       +
+      //                                loc_name + " " + std::string(__FILE__) + " " +
+      //                                std::to_string(__LINE__));
+      //     a_ndx++;
+      //   }
+      //   else if (n->getNodeType() == x::DOMNode::COMMENT_NODE) {
+      //     // comments are skipped
+      //   }
+      //   else if (n->getNodeType() == x::DOMNode::TEXT_NODE) {
+      //     // ignorable whitespace is ignored
+      //   }
+      //   else err << out::sl(std::string("unhandled: ") + std::to_string(n->getNodeType()));
+      // }
+      return r;
   }
   std::string core_parser::q_set_id(const x::DOMElement* an_el, cstr_t a_filename)
   {

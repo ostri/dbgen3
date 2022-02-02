@@ -87,6 +87,7 @@ set (rt_src_list
   runtime/error_exception
   runtime/statement
   runtime/dbgen3_templ
+  runtime/odbc_db
 )
 set (rt_cpp_list ${rt_src_list})
 set (rt_hpp_list ${rt_src_list} )

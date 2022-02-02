@@ -62,12 +62,18 @@ namespace dbgen3
     static gsql_q_set     load_q_set(const x::DOMElement* an_el,
                                      cstr_t               a_filename,
                                      const db2_reader&    a_dbr,
-                                     const RDBMS& a_db_type);
+                                     const RDBMS&         a_db_type);
     static gsql_q         load_q(const x::DOMElement* an_el,
                                  uint                 a_ndx,
                                  str_vec              a_ctx,
                                  const db2_reader&    a_dbr,
                                  const RDBMS&         a_db_type);
+    static gsql_q         load_q_children(const x::DOMElement* an_el,
+                                          uint                 a_ndx,
+                                          str_vec              a_ctx,
+                                          const db2_reader&    a_dbr,
+                                          const RDBMS&         a_db_type,
+                                          gsql_q&              r);
     static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
     static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
     static gsql_sql_set   load_sql_set(const x::DOMElement* an_el,

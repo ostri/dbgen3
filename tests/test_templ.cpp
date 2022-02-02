@@ -21,9 +21,10 @@ TEST_SUITE("templates")
 {
   TEST_CASE("atomic")
   {
-    const auto               v   = 10;
-    constexpr auto           dim = 5;
-    db::atomic<int16_t, dim> f1(5, 0);
+    const auto                            v        = 10;
+    constexpr auto                        dim      = 5;
+    constexpr auto                        smallint = 5;
+    db::atomic<int16_t, smallint, 0, dim> f1;
     REQUIRE_EQ(f1.size(), dim);
     f1.set_value(v);
     REQUIRE_EQ(f1.value(), v);
@@ -33,7 +34,8 @@ TEST_SUITE("templates")
     CHECK_THROWS_AS(f1.set_value(v, dim), std::out_of_range);
     CHECK_THROWS_AS(f1.value(dim), std::out_of_range);
 
-    db::atomic<int16_t, 0> f0(5, 0);
+    // vector with dimension 0
+    db::atomic<int16_t, smallint, 0, 0> f0;
     REQUIRE_EQ(f0.size(), 0);
     //  fails with SIGSEGV
     //    CHECK_THROWS_AS(f0.set_value(v, 0), std::out_of_range);
@@ -63,7 +65,7 @@ TEST_SUITE("templates")
     db::string<str_len, 0> f0;
     REQUIRE_EQ(f0.size(), 0);
   }
-  TEST_CASE("mem_blk")
+  TEST_CASE("bstring")
   {
     using Q = std::array<int, 5>;
 
@@ -72,7 +74,7 @@ TEST_SUITE("templates")
     constexpr auto v0  = Q{};
     auto           v1  = std::array{1, 2, 3, 4, 5, 6};
 
-    db::mem_blk<5, dim, int> f1;
+    db::bstring<5, dim, int> f1;
     REQUIRE_EQ(f1.size(), dim);
     f1.set_value(v);
     REQUIRE_EQ(std::equal(f1.value().begin(), f1.value().end(), v.begin()), true);
@@ -87,7 +89,7 @@ TEST_SUITE("templates")
     REQUIRE_EQ(std::equal(f1.value().begin(), f1.value().end(), v.begin()),
                true); // yes v and not v1
 
-    db::mem_blk<5, 0, char> f0;
+    db::bstring<5, 0, char> f0;
     REQUIRE_EQ(f0.size(), 0);
   }
 
@@ -122,18 +124,18 @@ TEST_SUITE("templates")
     // }
     {
       // insert new record
-      auto                   rc  = SQL_SUCCESS;
-      auto                   sql = "insert into tbl (C1_smallint, C2_int, C3_bigint) values (?,?,?)";
-      db::atomic<int16_t, 3> val1( 5, 0);
-      db::atomic<int32_t, 3> val2( 4, 0);
-      db::atomic<int64_t, 3> val3(-5, 0);
-      db::statement          s(c, sql); //!< final cleanup
+      auto rc  = SQL_SUCCESS;
+      auto sql = "insert into tbl (C1_smallint, C2_int, C3_bigint) values (?,?,?)";
+      db::atomic<int16_t, 5, 0, 3>  val1;
+      db::atomic<int32_t, 4, 0, 3>  val2;
+      db::atomic<int64_t, -5, 0, 3> val3;
+      db::statement                 s(c, sql); //!< final cleanup
 
       for (auto cnt = 0UL; cnt < val1.size(); cnt++)
       {
-        val1.set_value((cnt + 1) * 10+1, cnt); //
-        val2.set_value((cnt + 1) * 10+2, cnt); //
-        val3.set_value((cnt + 1) * 10+3, cnt); //
+        val1.set_value((cnt + 1) * 10 + 1, cnt); //
+        val2.set_value((cnt + 1) * 10 + 2, cnt); //
+        val3.set_value((cnt + 1) * 10 + 3, cnt); //
       }
 
       rc = s.set_attr(SQL_ATTR_PARAMSET_SIZE, val1.size());
@@ -143,7 +145,7 @@ TEST_SUITE("templates")
       diag(rc, s, "prepare");
 
       auto h = s.get_stmt_handle();
-      rc = val1.bind_par(h, 1);
+      rc     = val1.bind_par(h, 1);
       diag(rc, s, "bind par smallint");
       rc = val2.bind_par(h, 2);
       diag(rc, s, "bind par int ");
@@ -155,12 +157,13 @@ TEST_SUITE("templates")
       REQUIRE(rc == SQL_SUCCESS);
     }
     {
-      auto                     rc  = SQL_SUCCESS;
-      auto                     sql = "select C1_smallint, C2_int, C3_bigint from tbl";
-      db::atomic<int16_t, 2> val1( 5, 0);
-      db::atomic<int32_t, 2> val2( 4, 0);
-      db::atomic<int64_t, 2> val3(-5, 0);
-      db::statement            s(c, sql); //!< final cleanup
+      auto rc  = SQL_SUCCESS;
+      auto sql = "select C1_smallint, C2_int, C3_bigint from tbl";
+
+      db::atomic<int16_t, 5, 0, 2>  val1;
+      db::atomic<int32_t, 4, 0, 2>  val2;
+      db::atomic<int64_t, -5, 0, 2> val3;
+      db::statement                 s(c, sql); //!< final cleanup
 
       rc = s.prepare();
       diag(rc, s, "prepare");

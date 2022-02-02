@@ -124,6 +124,18 @@ namespace dbgen3
     hpp = 1, //!< it denotes hpp header file
     cpp = 2, //!< it denotes cpp source file
   };
+
+  /* RETCODE values             */
+  enum class RC : int
+  {
+    SUCCESS           = 0,
+    SUCCESS_WITH_INFO = 1,
+    NEED_DATA         = 99,
+    NO_DATA           = 100,
+    STILL_EXECUTING   = 2,
+    ERROR             = -1,
+    INVALID_HANDLE    = -2,
+  };
 }; // namespace dbgen3
 
 #endif // ENUMS_HPP

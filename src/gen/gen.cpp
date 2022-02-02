@@ -1,6 +1,9 @@
+#include <sqlcli1.h>
+#include <array>
 
 #include "gen.hpp"
 #include "string_format.hpp"
+#include "enums.hpp"
 
 namespace dbgen3
 {
@@ -9,16 +12,18 @@ namespace dbgen3
 
   str_t gen::line(uint a_len, uint offs, char ch)
   {
-      str_t r = "/* " + std::string(a_len, ch) + " */";
-      return out::sl(r, offs);
+    str_t r = "/* " + std::string(a_len, ch) + " */";
+    return out::sl(r, offs);
   }
 
   str_t gen::snake_case(cstr_t a_name)
   {
-      str_t r;
-      for (auto ch: a_name)
-      if (ch == '-') r += '_'; else r += ch;
-      return r;
+    //str_t r(std::to_string(c_type(SQL_BIGINT))); /// FIXME mora ven
+    str_t r;
+    for (auto ch : a_name)
+      if (ch == '-') r += '_';
+      else r += ch;
+    return r;
   }
 
 

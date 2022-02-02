@@ -8,6 +8,8 @@
 namespace dbgen3
 {
   using str_t = std::string;
+
+
   class gen
   {
   public:

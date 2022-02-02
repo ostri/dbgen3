@@ -14,6 +14,9 @@ namespace dbgen3
   private:
     static str_t gen_buf(const gsql_q& q, const BUF_TYPE& a_type, uint offs);
     static str_t gen_utl(const gsql_q& q, uint offs);
+
+  protected:
+    static str_t define_attributes(const fld_vec& flds, uint offs);
   };
 }; // namespace dbgen3
 

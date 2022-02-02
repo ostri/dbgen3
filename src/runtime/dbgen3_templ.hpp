@@ -11,73 +11,54 @@
 #include <sstream>
 #include <map>
 
+#include "odbc_db.hpp"
 namespace db
 {
   using cstr_t = std::string_view;
   using str_t  = std::string;
 
-  //  using a5 = std::array<char, 5>;
-  namespace
-  {
-    struct type_dscr
-    {
-      int c_type_  = 0; //!< C type
-      int db_type_ = 0; //!< equivalent ODBC type
-    };
-    // clang-format off
-    const std::map<int, type_dscr> dscr_ = 
-    {
-      { 5, {SQL_C_SHORT, SQL_SMALLINT}},    //!<smallint
-      { 4, {SQL_C_LONG, SQL_INTEGER}},     //!<int
-      {-5, {SQL_C_SBIGINT, SQL_BIGINT}},  //!<signed bigint
-    };
-    // clang-format on
-    static inline const type_dscr& dscr(int a_type)
-    {
-      if (dscr_.contains(a_type)) return dscr_.at(a_type);
-      throw std::runtime_error("undefined type:"+std::to_string(a_type));
-    }
-  }; // namespace
-  template <typename T, std::size_t arr_size = 1>
+
+  template <typename T, int DB_TYPE, int DEC = 0, std::size_t arr_size = 1>
   class atomic
   {
   public:
     using t_vec = std::array<T, arr_size>;
-    atomic(int16_t type, /*int32_t width,*/ int16_t dec)
-    : type_(type)
-    , width_(sizeof(T))
-    , dec_(dec)
-    { }
-    T                     value() const;
-    T                     value(std::size_t ndx) const;
-    void                  set_value(const T& data);
-    void                  set_value(const T& data, std::size_t ndx);
-    consteval std::size_t size();
-    constexpr std::size_t el_max_size() const { return sizeof(T); }
-    int16_t               bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx)
+    using l_vec = std::array<int32_t, arr_size>;
+    constexpr atomic(/*int16_t type,*/ /*int32_t width, int16_t dec*/) = default;
+      //    : type_(type)
+      //    : type_(DB_TYPE)
+      //    , width_(sizeof(T))
+      // ,
+      //: dec_(dec)
+      //{ }
+      T value() const;
+    T                            value(std::size_t ndx) const;
+    void                         set_value(const T& data);
+    void                         set_value(const T& data, std::size_t ndx);
+    consteval static std::size_t size();
+    consteval static std::size_t el_max_size() { return sizeof(T); }
+    int16_t                      bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx)
     {
-      int32_t len = 0;
-      auto    rc  = SQLBindParameter(a_stmt_handle,
+      auto rc = SQLBindParameter(a_stmt_handle,
                                  a_ndx,
                                  SQL_PARAM_INPUT,
-                                 dscr(type_).c_type_,
-                                 dscr(type_).db_type_,
-                                 this->el_max_size(),
+                                 (c_type(DB_TYPE)),
+                                 (DB_TYPE),
+                                 el_max_size(),
                                  dec_,
                                  static_cast<void*>(data_.data()),
-                                 this->el_max_size(),
-                                 &len);
+                                 el_max_size(),
+                                 static_cast<int*>(len_.data()));
       return rc;
     }
     int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx)
     {
-      int32_t len = 0;
-      auto    rc  = SQLBindCol(a_stmt_handle,
+      auto rc = SQLBindCol(a_stmt_handle,
                            a_ndx,
                            SQL_C_DEFAULT,
                            static_cast<void*>(data_.data()),
                            this->el_max_size(),
-                           &len);
+                           static_cast<int*>(len_.data()));
       return rc;
     }
     std::string dump(cstr_t a_msg, uint a_ndx, uint offs) const
@@ -95,10 +76,11 @@ namespace db
       return s;
     }
   private:
-    t_vec   data_{}; //!< value buffer
-    int16_t type_;   //!< parameter type
-    int32_t width_=sizeof(T);  //!< parameter width
-    int16_t dec_;    //!< decimal places
+    t_vec                          data_{};            //!< value buffer
+    l_vec                          len_{};             //!< value length
+    constexpr static const int16_t type_  = DB_TYPE;   //!< parameter type
+    constexpr static const int32_t width_ = sizeof(T); //!< parameter width
+    constexpr static const int16_t dec_   = DEC;       //!< decimal places
   public:
   };
   /**
@@ -108,12 +90,13 @@ namespace db
    * @tparam arr_size
    */
   template <std::size_t blk_size, std::size_t arr_size = 1, typename EL = char>
-  class mem_blk
+  class bstring
   {
   public:
     using T     = std::array<EL, blk_size>;
     using T_ref = std::span<const EL>;
     using t_vec = std::array<T, arr_size>;
+    using l_vec = std::array<int32_t, arr_size>;
     T_ref value() const { return value(0); }
     T_ref value(std::size_t ndx) const { return T_ref(this->data_.at(ndx).data(), el_max_size()); }
 
@@ -128,6 +111,7 @@ namespace db
     std::size_t el_max_size() const { return data_[0].size(); }
   private:
     t_vec data_{};
+    l_vec len_{}; //!< value length
   public:
   };
 
@@ -143,6 +127,7 @@ namespace db
   {
   public:
     using t_vec = std::array<std::array<T, item_size + 1>, arr_size>;
+    using l_vec = std::array<int32_t, arr_size>;
     cstr_t      value() const;
     cstr_t      value(std::size_t ndx) const;
     void        set_value(cstr_t data);
@@ -150,6 +135,7 @@ namespace db
     std::size_t size();
   private:
     t_vec data_{};
+    l_vec len_{}; //!< value length
   public:
   };
 
@@ -192,34 +178,34 @@ namespace db
     return data_.size();
   }
 
-  template <typename T, std::size_t arr_size>
-  inline T atomic<T, arr_size>::value() const
+  template <typename T, int DB_TYPE, int DEC, std::size_t arr_size>
+  inline T atomic<T, DB_TYPE, DEC, arr_size>::value() const
   {
     return data_[0];
   }
 
-  template <typename T, std::size_t arr_size>
-  inline T atomic<T, arr_size>::value(std::size_t ndx) const
+  template <typename T, int DB_TYPE, int DEC, std::size_t arr_size>
+  inline T atomic<T, DB_TYPE, DEC, arr_size>::value(std::size_t ndx) const
   {
     return this->data_.at(ndx);
   }
 
-  template <typename T, std::size_t arr_size>
-  inline void atomic<T, arr_size>::set_value(const T& data)
+  template <typename T, int DB_TYPE, int DEC, std::size_t arr_size>
+  inline void atomic<T, DB_TYPE, DEC, arr_size>::set_value(const T& data)
   {
     set_value(data, 0);
   }
 
-  template <typename T, std::size_t arr_size>
-  inline void atomic<T, arr_size>::set_value(const T& data, std::size_t ndx)
+  template <typename T, int DB_TYPE, int DEC, std::size_t arr_size>
+  inline void atomic<T, DB_TYPE, DEC, arr_size>::set_value(const T& data, std::size_t ndx)
   {
     this->data_.at(ndx) = data;
   }
 
-  template <typename T, std::size_t arr_size>
-  inline consteval std::size_t atomic<T, arr_size>::size()
+  template <typename T, int DB_TYPE, int DEC, std::size_t arr_size>
+  inline consteval std::size_t atomic<T, DB_TYPE, DEC, arr_size>::size()
   {
-    return data_.size();
+    return arr_size;
   }
 };     // namespace db
 #endif // DBGEN3_TEMPL_HPP

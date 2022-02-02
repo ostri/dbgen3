@@ -30,12 +30,12 @@ namespace dbgen3
     { }
     // @name getters
     //@{
-    int              pos() const { return this->pos_; }
-    str_t            name() const { return this->name_; }
-    const ODBC_TYPE& type() const { return this->type_; }
-    uint32_t         width() const { return this->width_; }
-    int16_t          dec() const { return this->dec_; }
-    int16_t          nullable() const;
+    int       pos() const { return this->pos_; }
+    str_t     name() const { return this->name_; }
+    ODBC_TYPE type() const { return this->type_; }
+    uint32_t  width() const { return this->width_; }
+    int16_t   dec() const { return this->dec_; }
+    int16_t   nullable() const;
     //@}
     /// @name getters
     //@{
@@ -58,13 +58,12 @@ namespace dbgen3
           "{}[{:3}]:{{name: {:25} type: {:5} t.name: {:20} width: {:5} dec: {:2} null: {:12} }}",
           a_msg,
           pos_,
-          name_ ,
+          name_,
           ME::enum_integer<ODBC_TYPE>(type_),
           ME::enum_name<ODBC_TYPE>(type_),
           width_,
           dec_,
-          ME::enum_name<DBN>(nullable_)
-          ),
+          ME::enum_name<DBN>(nullable_)),
         offs);
       return r;
     }
@@ -79,7 +78,7 @@ namespace dbgen3
   public:
   };
 
-  inline int16_t          fld_dscr::nullable() const { return ME::enum_integer<DBN>(this->nullable_); }
+  inline int16_t fld_dscr::nullable() const { return ME::enum_integer<DBN>(this->nullable_); }
 }; // namespace dbgen3
 
 #endif // FLD_DSCR_HPP
