@@ -1,4 +1,4 @@
-set(PROJ_LIB proj_lib)
+set(PROJ_LIB proj)
 set(RT_LIB db3)
 set(PROG_NAME dbgen3)
 set(HEADER_LIST "")
@@ -11,7 +11,7 @@ foreach (SUBDIR ${SUBDIRS})
 endforeach()
 message (STATUS "proj_lib '${PROJ_LIB}'")
 
-add_library(${PROJ_LIB})
+add_library(${PROJ_LIB} OBJECT)
 
 target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS} ${DB2_INCLUDE_DIRS})
 
@@ -104,8 +104,9 @@ target_sources(${RT_LIB}
   PUBLIC
     ${rt_hpp_list}
 )
-message(STATUS "fmt        ${fmt_SOURCE_DIR}")
-message(STATUS "magic_enum ${magic_enum_SOURCE_DIR}")
+message(STATUS "fmt           ${fmt_SOURCE_DIR}")
+message(STATUS "magic_enum    ${magic_enum_SOURCE_DIR}")
+message(STATUS "db2 incl dirm ${DB2_INCLUDE_DIRS}")
 target_compile_features(${RT_LIB} PUBLIC cxx_std_20)
 #target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS} ${fmtlib_SOURCE_DIR}/include/fmt/)
 target_include_directories(${RT_LIB} 
@@ -121,22 +122,27 @@ target_link_libraries(${RT_LIB}
     ${DB2_LIBRARIES}
 )
 
-
+#------------------------------------------------------------------------------
+configure_file(version.cpp.in version.cpp)
 add_executable(${PROG_NAME} main.cpp 
   ${hpp_list} 
   ${GLOG_INCLUDE_DIRS} 
   ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
 )
 target_compile_features(${PROG_NAME} PRIVATE cxx_std_20)
 target_include_directories(${PROG_NAME} 
   PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${SUBDIRS} 
+    ${DB2_INCLUDE_DIRS} 
+    ${fmtlib_SOURCE_DIR}/include
     ${magic_enum_SOURCE_DIR}/include
 )
 
 target_link_libraries(${PROG_NAME}
   PRIVATE
-    proj_lib
+    ${PROJ_LIB}
     ${RT_LIB}
     fmt::fmt
     ${GLOG_LIBRARY}

@@ -9,6 +9,7 @@
 #include "string_format.hpp"
 #include "exceptions.hpp"
 #include "executor.hpp"
+#include "version.hpp"
 
 // clang-format off
 DEFINE_string(db_name,        "", "database name");                          // NOLINT
@@ -28,6 +29,7 @@ int main(int argc, char** argv)
     FLAGS_log_dir = "/tmp";
     google::InitGoogleLogging(argv[0]); // NOLINT
     dbgen3::cmdline_parameters cmd_par(argc, argv);
+    info << "version: " << get_version();
     info << cmd_par.dump("command line parameters:");
     auto sts = cmd_par.check_parameters();
     if (sts == dbgen3::P_STS::success)

@@ -53,6 +53,7 @@ namespace dbgen3
       init_ = false;
     }
   }
+  bool core_parser::isValid() const { return valid_; }
   bool core_parser::init()
   {
     if (! init_) xercesc::XMLPlatformUtils::Initialize();
@@ -226,6 +227,7 @@ namespace dbgen3
         {
           std::string name = (a_bt == BUF_TYPE::par) ? "par_" + std::to_string(cnt + 1)
                                                      : std::string(buf.data(), col_name_len);
+          for (auto& ch:name) ch = std::tolower(ch); //FIXME dosn't work with utf-9
 
           auto n  = ME::enum_cast<DBN>(nullable);
           auto ot = ME::enum_cast<ODBC_TYPE>(type);
@@ -318,55 +320,7 @@ namespace dbgen3
     r.set_buf_dscr(gsql_qbuf_dscr(BUF_TYPE::par, "qp_" + ndx_str, true));
     r.set_buf_dscr(gsql_qbuf_dscr(BUF_TYPE::res, "qr_" + ndx_str, true));
     r = load_q_children(an_el, a_ndx, a_ctx, a_dbr, a_db_type, r);
-      /// load children
-      // for (x::DOMNode* n = an_el->getFirstChild(); n != nullptr; n = n->getNextSibling())
-      // {
-      //   if (n->getNodeType() == x::DOMNode::ELEMENT_NODE)
-      //   {
-      //     auto el       = static_cast<x::DOMElement*>(n);
-      //     auto loc_name = toNative(n->getLocalName());
-      //     if (loc_name == "qp") r.set_buf_dscr(load_qp(el, a_ndx));
-      //     else if (loc_name == "qr") r.set_buf_dscr(load_qr(el, a_ndx));
-      //     else if (loc_name == "sql-set") //
-      //     { //TODO think if we need only prepare, main and no cleanup, since we have rollback
-      //       r.set_sql_set(load_sql_set(el, a_ctx, a_db_type));
-      //       auto sql_m = r.sql(PHASE::main);
-      //       auto sql_p = r.sql(PHASE::prepare); // preparation
-      //       auto sql_c = r.sql(PHASE::cleanup); // cleanup
-      //       if (! sql_m.empty())
-      //       {
-      //         auto          rc = SQL_SUCCESS;
-      //         db::statement stmt_m(*(a_dbr.connection()));
-      //         db::statement stmt_p(*(a_dbr.connection()));
-      //         db::statement stmt_c(*(a_dbr.connection()));
-      //         if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt_p.exec_direct(sql_p, true);
-      //         rc = stmt_m.prepare(sql_m);
-      //         r.set_buf_dscr_flds(BUF_TYPE::par, fetch_param_dscr(BUF_TYPE::par, stmt_m));
-      //         r.set_buf_dscr_flds(BUF_TYPE::res, fetch_param_dscr(BUF_TYPE::res, stmt_m));
-      //         if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
-      //         //            err << sts;
-      //         stmt_p.rollback();
-      //         stmt_m.rollback();
-      //         stmt_c.rollback();
-      //       }
-      //     }
-      //     else
-      //       throw std::runtime_error(std::string("internal error only qp, qr and sql-set
-      //       allowed.")
-      //       +
-      //                                loc_name + " " + std::string(__FILE__) + " " +
-      //                                std::to_string(__LINE__));
-      //     a_ndx++;
-      //   }
-      //   else if (n->getNodeType() == x::DOMNode::COMMENT_NODE) {
-      //     // comments are skipped
-      //   }
-      //   else if (n->getNodeType() == x::DOMNode::TEXT_NODE) {
-      //     // ignorable whitespace is ignored
-      //   }
-      //   else err << out::sl(std::string("unhandled: ") + std::to_string(n->getNodeType()));
-      // }
-      return r;
+    return r;
   }
   std::string core_parser::q_set_id(const x::DOMElement* an_el, cstr_t a_filename)
   {
@@ -386,8 +340,10 @@ namespace dbgen3
   {
     try
     {
-      // auto fn = fs::absolute(a_filename).string();
-      auto fn = a_filename;
+      std::error_code ec;
+      fs::path        path(a_filename);
+      auto            fn = fs::weakly_canonical(path, ec).string();
+      // auto fn = a_filename;
       if (file_exists(fn))
       {
         auto doc = parser_->parseURI(fn.data());
@@ -458,4 +414,6 @@ namespace dbgen3
     };
     return q_set;
   }
+
+  bool gsql_eh::handleError(const xercesc::DOMError& /*de*/) { return false; };
 } // namespace dbgen3

@@ -15,7 +15,11 @@ namespace dbgen3
     static str_t gen_buf(const gsql_q& q, const BUF_TYPE& a_type, uint offs);
     static str_t gen_utl(const gsql_q& q, uint offs);
 
-  protected:
+    static str_t define_trivial_getters(const fld_vec& flds, uint max_name_len, uint offs);
+    static str_t define_getters(const fld_vec& flds, uint max_name_len, uint offs);
+    static str_t define_trivial_setters(const fld_vec& flds, uint max_name_len, uint offs);
+    static str_t define_setters(const fld_vec& flds, uint max_name_len, uint offs);
+    static str_t define_dump(const fld_vec& flds, uint max_name_len, uint offs);
     static str_t define_attributes(const fld_vec& flds, uint offs);
   };
 }; // namespace dbgen3

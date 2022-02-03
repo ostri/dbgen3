@@ -43,9 +43,9 @@ namespace db
       {SQL_CHAR,           SQL_C_CHAR,           AT::string,  "char",                 "SQL_CHAR"}, 
       {SQL_VARCHAR,        SQL_C_CHAR,           AT::string,  "char",                 "SQL_VARCHAR"}, 
       // binary strings
-      {SQL_BINARY,         SQL_C_CHAR,           AT::bstring,  "char",                "SQL_BINARY"}, 
-      {SQL_VARBINARY,      SQL_C_CHAR,           AT::bstring,  "char",                "SQL_VARBINARY"}, 
-      {SQL_LONGVARBINARY,  SQL_C_CHAR,           AT::bstring,  "char",                "SQL_LONGVARBINARY"}, 
+      {SQL_BINARY,         SQL_C_CHAR,           AT::bstring,  "std::byte",           "SQL_BINARY"}, 
+      {SQL_VARBINARY,      SQL_C_CHAR,           AT::bstring,  "std::byte",           "SQL_VARBINARY"}, 
+      {SQL_LONGVARBINARY,  SQL_C_CHAR,           AT::bstring,  "std::byte",           "SQL_LONGVARBINARY"}, 
       // decimal strings
       {SQL_DECIMAL,        SQL_C_CHAR,           AT::string,  "char",                 "SQL_DECIMAL"}, 
       {SQL_NUMERIC,        SQL_C_CHAR,           AT::string,  "char",                 "SQL_NUMERIC"}, 

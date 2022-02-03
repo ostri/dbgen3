@@ -34,6 +34,29 @@ namespace dbgen3
     }
     else return o;
   }
+  multi_line::multi_line(const str_vec& o)
+  : lines_(o)
+  { 
+  }
+  multi_line::multi_line(cstr_t a_str)
+  : lines_(str_to_vec(a_str))
+  { }
+  multi_line::multi_line(const std::string& a_str)
+  : lines_(str_to_vec(a_str))
+  {
+  }
+  //  multi_line&    operator=(multi_line&&) = default;
+  multi_line& multi_line::operator=(const std::string& o)
+  {
+    lines_ = str_to_vec(o);
+    return *this;
+  }
+  multi_line::operator const std::string () const 
+  {
+    std::string r;
+    for(auto l: lines_) r += l+' ';
+    return r;
+  }
   std::string multi_line::dump() const { return dump("", 0); }
   std::string multi_line::dump(int offs) const { return dump("", offs); }
 

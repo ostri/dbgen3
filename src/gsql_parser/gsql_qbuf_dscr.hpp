@@ -20,6 +20,7 @@ namespace dbgen3
     std::string    id() const;
     bool           should_skip() const;
     const fld_vec& flds() const;
+    uint           max_name_len() const;
 
     std::string dump() const;
     std::string dump(uint offs) const;
@@ -30,10 +31,13 @@ namespace dbgen3
     void set_skip(bool skip);
     void set_flds(const fld_vec& flds);
   private:
+    static uint calc_max_name_length(const fld_vec& vec);
+    /*........................................................................................*/
     BUF_TYPE    type_ = BUF_TYPE::unk; //!< type fo the buffer definition
     std::string id_;                   //!< buffer unique name
     bool        skip_;                 //!< should we skip this buffer from the generation phase
     fld_vec     flds_;                 //!< set of field descriptions
+    uint        max_name_len_;         //!< maximum filed name length
   };
 
   inline gsql_qbuf_dscr::gsql_qbuf_dscr()
@@ -74,7 +78,11 @@ namespace dbgen3
 
   inline void gsql_qbuf_dscr::set_skip(bool skip) { this->skip_ = skip; }
 
-  inline void gsql_qbuf_dscr::set_flds(const fld_vec& flds) { this->flds_ = flds; }
+  inline void gsql_qbuf_dscr::set_flds(const fld_vec& flds)
+  {
+    max_name_len_ = calc_max_name_length(flds);
+    flds_         = flds;
+  }
 } // namespace dbgen3
 
 #endif // GSQL_QBUF_DSCR_HPP

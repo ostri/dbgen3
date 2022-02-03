@@ -27,8 +27,8 @@ namespace dbgen3
     std::string    dump(cstr_t a_msg, uint offs) const;
     uint8_t        key() const;
     std::string    sql() const;
-    RDBMS          db_type() const { return db_type_; }
-    PHASE          phase() const { return phase_; }
+    RDBMS          db_type() const;
+    PHASE          phase() const;
   private:
     /*............................................................*/
     enum RDBMS db_type_ = RDBMS::sql;     //!< rdbms type (dialect)

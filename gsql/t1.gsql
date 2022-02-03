@@ -1,13 +1,19 @@
 <?xml-model href="t11.xsd"?>
 <q-set id="q-set-id">
-    <hdr>
-        header line 1
+    <hdr><![CDATA[ 
+        /*
+        you can insert arbitrary c++ code here 
+        #include <string>
+        #include <array>
+        */
+        ]]>
+        <!-- header line 1
           header 1.1
-        header line 2
+        header line 2 -->
         <!-- header part to be included into generated file immediatelly after the guard
             <?xml-model href="gsql_file.xsd"?>
         -->
-        header line 3
+        <!-- header line 3 -->
     </hdr>
     <q id="q-id1">
         <!-- query -->
@@ -33,10 +39,10 @@
                 
                 select * from tbl
             </sql>
-            <sql rdbms="db2">
+            <!-- <sql rdbms="db2">
              
                 select * from tbl
-            </sql>
+            </sql> -->
         </sql-set>
     </q>
     <q>

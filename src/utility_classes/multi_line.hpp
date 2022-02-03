@@ -10,37 +10,20 @@ namespace dbgen3
     multi_line()                  = default;
     ~multi_line()                 = default;
     multi_line(const multi_line&) = default;
-    multi_line(const str_vec& o)
-    : lines_(o)
-    { 
-    }
-    multi_line(cstr_t a_str)
-    : lines_(str_to_vec(a_str))
-    { }
-    multi_line(const std::string& a_str)
-    : lines_(str_to_vec(a_str))
-    {
-    }
+    multi_line(const str_vec& o);
+    multi_line(cstr_t a_str);
+    multi_line(const std::string& a_str);
     // multi_line(multi_line&&) = default;
     multi_line& operator=(const multi_line&) = default;
-    //  multi_line&    operator=(multi_line&&) = default;
-    multi_line& operator=(const std::string& o)
-    {
-      lines_ = str_to_vec(o);
-      return *this;
-    }
-    explicit operator const std::string () const 
-    {
-      std::string r;
-      for(auto l: lines_) r += l+' ';
-      return r;
-    }
+    multi_line& operator=(const std::string& o);
+    explicit operator const std::string () const;
     //operator const std::string () const {return static_cast<const std::string>(*this);}
     std::string    dump() const;
     std::string    dump(int offs) const;
     std::string    dump(cstr_t o, int offs) const;
     static str_vec str_to_vec(cstr_t a_str);
     static str_vec trim_left(const str_vec& o);
+    str_vec lines() const { return this->lines_; }
   private:
     /*.......................................................*/
     str_vec lines_; //!< text split into lines and timmed left

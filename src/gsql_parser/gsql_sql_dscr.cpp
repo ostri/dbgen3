@@ -44,4 +44,8 @@ namespace dbgen3
   uint8_t gsql_sql_dscr::key() const { return ME::enum_integer<PHASE>(phase_); }
   std::string    gsql_sql_dscr::sql() const { return static_cast<const std::string>(ml_sql_);}
 
+  RDBMS          gsql_sql_dscr::db_type() const { return db_type_; }
+
+  PHASE          gsql_sql_dscr::phase() const { return phase_; }
+
 }

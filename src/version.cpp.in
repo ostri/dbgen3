@@ -1,0 +1,5 @@
+#include "version.hpp"
+const char* get_version()
+{
+    return "@dbgen3_VERSION@";
+}

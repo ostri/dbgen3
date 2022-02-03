@@ -34,7 +34,7 @@ namespace dbgen3
     gsql_eh(gsql_eh&&)      = delete;
     gsql_eh& operator=(const gsql_eh&) = delete;
     gsql_eh& operator=(gsql_eh&&) = delete;
-    bool     handleError(const xercesc::DOMError& /*de*/) override { return false; };
+    bool     handleError(const xercesc::DOMError& /*de*/) override;
   private:
   };
 
@@ -97,7 +97,6 @@ namespace dbgen3
     std::unique_ptr<gsql_eh> eh_;     //!< error handler
   };
 
-  inline bool core_parser::isValid() const { return valid_; }
 }; // namespace dbgen3
 
 #endif // CORE_PARSER_HPP
