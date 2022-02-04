@@ -5,6 +5,7 @@
  * when       who what
  * 05.08.2009 Os3 method set_attribute added
  */
+#include <cstddef>
 #include <mutex>
 #include <string>
 
@@ -35,7 +36,7 @@ namespace db
   /// lock mutex
   std::mutex mtx; // NOLINT -cppcoreguidelines-avoid-non-const-global-variables
 
-  h_pair connection::allocate_env_handle() const
+  h_pair connection::allocate_env_handle()
   {
     std::lock_guard<std::mutex> lck(mtx);
     std::int32_t                env_handle = 0;
@@ -223,13 +224,13 @@ namespace db
    * @param a_msg message to be prepended to the serialized contnets
    * @return std::string serialized contents of the instance
    */
-  std::string connection::dump(const std::string a_msg) const
+  std::string connection::dump(const std::string& a_msg) const
   {
     std::stringstream s;
     s << a_msg << " dbenvh: " << static_cast<int>(henv_)
       << " henv ref cnt: " << static_cast<int>(henv_ref_cnt_) << " user: " << user_
       << " db: " << db_name_ << " dbh: " << static_cast<int>(db_handle_)
-      << " log: " << reinterpret_cast<uint64_t>(log_);
+      << " log: " << (log_ != nullptr);
     return s.str();
   }
 
@@ -278,7 +279,7 @@ namespace db
    * For a detailed and up to date list of attributes and their semantic please refer to IBM
    * documentation.
    */
-  std::int32_t connection::set_attribute(const int an_attr, const int a_val) const
+  std::int16_t connection::set_attribute(const int an_attr, const int a_val) const
   {
     return SQLSetConnectAttr(db_handle_,
                              an_attr,
@@ -292,7 +293,7 @@ namespace db
    * @return result code of the db operation, whether the statement is released or
    *         just reset
    */
-  std::int16_t connection::dealloc_stmt_handle(std::int32_t h) const
+  std::int16_t connection::dealloc_stmt_handle(std::int32_t h)
   {
     auto rc = SQLFreeHandle(SQL_HANDLE_STMT, h);
     throw_on_error(
@@ -311,7 +312,7 @@ namespace db
    */
   h_pair connection::throw_on_error(std::int16_t       rc,
                                     std::int32_t       a_handle,
-                                    int                a_handle_type,
+                                    std::int16_t       a_handle_type,
                                     const std::string& a_msg)
   {
     if (rc != SQL_SUCCESS)
@@ -320,7 +321,7 @@ namespace db
       err.load(a_handle, a_handle_type); // one or more errors from the RDBMS
       throw error_exception(err.dump(a_msg));
     }
-    else return h_pair{a_handle, a_handle_type}; // no error; return handle, handle type pair
+    return h_pair{a_handle, a_handle_type}; // no error; return handle, handle type pair
   }
   /// fetch free statement handle
   std::int32_t connection::alloc_stmt_handle() const { return alloc_stmt_handle(db_handle_); }
