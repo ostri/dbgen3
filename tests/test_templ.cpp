@@ -43,13 +43,13 @@ TEST_SUITE("templates")
   }
   TEST_CASE("string")
   {
-    constexpr auto           dim     = 5;
+    constexpr std::size_t    dim     = 5UL;
     constexpr auto           v       = "0123456789";
     constexpr auto           v0      = "";
     auto                     v1      = std::string(v) + "A";
     constexpr auto           str_len = 10; // must be v.size()
     db::string<str_len, dim> f1;
-    REQUIRE_EQ(f1.size(), dim);
+    REQUIRE(f1.size() == dim);
     f1.set_value(v);
     REQUIRE_EQ(f1.value(), v);
     REQUIRE_EQ(f1.value(), f1.value(0));
@@ -67,16 +67,17 @@ TEST_SUITE("templates")
   }
   TEST_CASE("bstring")
   {
-    using Q = std::array<int, 5>;
+    using Q = std::array<uint8_t, 5>;
 
-    constexpr auto dim = 3;
+    constexpr auto dim = 3UL;
     constexpr auto v   = Q{1, 2, 3, 4, 5};
     constexpr auto v0  = Q{};
-    auto           v1  = std::array{1, 2, 3, 4, 5, 6};
+    auto           v1  = std::array<uint8_t,6>{1, 2, 3, 4, 5, 6};
+    std::span s{v};
 
-    db::bstring<5, dim, int> f1;
-    REQUIRE_EQ(f1.size(), dim);
-    f1.set_value(v);
+    db::bstring<5, dim, uint8_t> f1;
+    REQUIRE(f1.size() == dim);
+    f1.set_value(s);
     REQUIRE_EQ(std::equal(f1.value().begin(), f1.value().end(), v.begin()), true);
     REQUIRE_EQ(std::equal(f1.value().begin(), f1.value().end(), f1.value(0).begin()), true);
     f1.set_value(v, dim - 1);
@@ -85,7 +86,7 @@ TEST_SUITE("templates")
     CHECK_THROWS_AS(f1.value(dim), std::out_of_range);
     f1.set_value(v0);
     REQUIRE_EQ(std::equal(f1.value().begin(), f1.value().end(), v0.begin()), true);
-    f1.set_value(std::span(v1.data(), v1.size()));
+    f1.set_value(std::span<uint8_t>(v1.data(), v1.size()));
     REQUIRE_EQ(std::equal(f1.value().begin(), f1.value().end(), v.begin()),
                true); // yes v and not v1
 

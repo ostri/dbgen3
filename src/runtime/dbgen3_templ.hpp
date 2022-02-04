@@ -14,8 +14,10 @@
 #include "odbc_db.hpp"
 namespace db
 {
-  using cstr_t = std::string_view;
-  using str_t  = std::string;
+  using cstr_t  = std::string_view;
+  using str_t   = std::string;
+  using bstr_t  = std::span<uint8_t>;
+  using cbstr_t = std::span<const uint8_t>;
 
   /*....atomic...............................................................................*/
   template <typename T, int DB_TYPE, int DEC = 0, std::size_t arr_size = 1>
@@ -72,24 +74,30 @@ namespace db
    * @tparam T
    * @tparam arr_size
    */
-  template <std::size_t blk_size, std::size_t arr_size = 1, typename EL = std::byte>
+  template <std::size_t blk_size, std::size_t arr_size = 1, typename EL = uint8_t>
   class bstring
   {
   public:
-    using T     = std::array<EL, blk_size>;
-    using T_ref = std::span<const EL>;
-    using t_vec = std::array<T, arr_size>;
-    using l_vec = std::array<int32_t, arr_size>;
-    T_ref value() const;
-    T_ref value(std::size_t ndx) const;
+    using T       = std::array<EL, blk_size>;
+    using T_ref   = std::span<const EL>;
+    using bstr_t  = std::span<EL>;
+    using cbstr_t = std::span<const EL>;
+    using t_vec   = std::array<T, arr_size>;
+    using l_vec   = std::array<std::size_t, arr_size>;
+    auto value() -> std::span<EL>;
+    auto value() const -> std::span<const EL>;
+    auto value(std::size_t ndx) -> std::span<EL>;
+    auto value(std::size_t ndx) const -> std::span<const EL>;
 
-    void set_value(const T_ref data);
-    void set_value(const T_ref data, std::size_t ndx);
+    void set_value(std::span<const EL> data);
+    void set_value(std::span<const EL> data, std::size_t ndx);
+    // void set_value(const T_ref data);
+    // void set_value(const T_ref data, std::size_t ndx);
 
-    consteval std::size_t size() const;
-    consteval std::size_t el_max_size() const;
+    constexpr std::size_t size() const;
+    constexpr std::size_t el_max_size() const;
     std::string           dump(cstr_t a_msg, uint a_ndx, uint offs) const;
-    static std::string    serialize(T_ref blk);
+    static std::string    serialize(std::span<const EL> blk);
     std::string dump_all(cstr_t a_msg = "", std::size_t max_el = arr_size, uint offs = 0) const;
   private:
     t_vec data_{};
@@ -109,12 +117,12 @@ namespace db
   {
   public:
     using t_vec = std::array<std::array<T, item_size + 1>, arr_size>;
-    using l_vec = std::array<int32_t, arr_size>;
+    using l_vec = std::array<std::size_t, arr_size>;
     cstr_t                value() const;
     cstr_t                value(std::size_t ndx) const;
     void                  set_value(cstr_t data);
     void                  set_value(cstr_t data, std::size_t ndx);
-    consteval std::size_t size();
+    constexpr std::size_t size();
     std::string           dump(cstr_t a_msg, uint a_ndx, uint offs) const;
     std::string dump_all(cstr_t a_msg = "", std::size_t max_el = arr_size, uint offs = 0) const;
   private:
@@ -133,8 +141,8 @@ namespace db
   template <std::size_t item_size, std::size_t arr_size, typename T>
   inline cstr_t string<item_size, arr_size, T>::value(std::size_t ndx) const
   {
-    auto ref = this->data_.at(ndx).data();
-    return cstr_t(ref, std::strlen(ref));
+    auto ref = reinterpret_cast<const char*>(data_.at(ndx).data());
+    return cstr_t(ref, len_.at(ndx));
   }
 
   template <std::size_t item_size, std::size_t arr_size, typename T>
@@ -148,20 +156,21 @@ namespace db
   {
     //    const std::size_t max_len = data_.at(0).size() - 1; // trailing \0
     auto src = data.data();
-    auto dst = data_.at(ndx).data();
+    auto dst = reinterpret_cast<char*>(data_.at(ndx).data());
     if (src != dst)
     {
       // too long inputs are trimmed. This is on purpose.
       const std::size_t max_len = std::min(item_size, data.size());
       std::memcpy(dst, src, max_len * sizeof(T));
       dst[max_len] = 0;
+      len_.at(ndx) = max_len;
     }
   }
 
   template <std::size_t item_size, std::size_t arr_size, typename T>
-  consteval inline std::size_t string<item_size, arr_size, T>::size()
+  constexpr inline std::size_t string<item_size, arr_size, T>::size()
   {
-    return arr_size;
+    return static_cast<std::size_t>(arr_size);
   }
 
   template <std::size_t item_size, std::size_t arr_size, typename T>
@@ -219,29 +228,29 @@ namespace db
                                                              uint   a_ndx,
                                                              uint   offs) const
   {
-    std::stringstream s;
+    std::stringstream s("'");
     s << std::string(offs, ' ') << a_msg << value(a_ndx);
-    return s.str();
+    return "'" + s.str();
   }
 
   template <typename T>
   inline std::string serialize(const T& val)
   {
-    std::stringstream ss;
-    ss << val;
-    return ss.str();
+    std::string s;
+    s += "'" + std::to_string(val) + "'";
+    return s;
   }
   template <>
   inline std::string serialize<SQL_TIMESTAMP_STRUCT>(const SQL_TIMESTAMP_STRUCT& val)
   {
     std::string s;
     // clang-format off
-    s += 
+    s += "'" +
     std::to_string(val.year) + "-" + std::to_string(val.month) + "-" + std::to_string(val.day) + " " +
     std::to_string(val.hour) + ":" +
     std::to_string(val.minute) + ":" +
     std::to_string(val.second) + "." +
-    std::to_string(val.fraction) 
+    std::to_string(val.fraction) + "'"
     ;
     // clang-format on
     return s;
@@ -251,8 +260,8 @@ namespace db
   {
     std::string s;
     // clang-format off
-    s += 
-    std::to_string(val.year) + "-" + std::to_string(val.month) + "-" + std::to_string(val.day)
+    s += "'" +
+    std::to_string(val.year) + "-" + std::to_string(val.month) + "-" + std::to_string(val.day) + "'"
     ;
     // clang-format on
     return s;
@@ -262,10 +271,10 @@ namespace db
   {
     std::string s;
     // clang-format off
-    s += 
+    s += "'" +
     std::to_string(val.hour) + ":" +
     std::to_string(val.minute) + ":" +
-    std::to_string(val.second)
+    std::to_string(val.second) + "'"
     ;
     // clang-format on
     return s;
@@ -284,43 +293,62 @@ namespace db
     return s;
   }
   template <std::size_t blk_size, std::size_t arr_size, typename EL>
-  inline auto bstring<blk_size, arr_size, EL>::value() const -> T_ref
+  inline auto bstring<blk_size, arr_size, EL>::value() -> std::span<EL>
+  {
+    return value(0);
+  }
+  template <std::size_t blk_size, std::size_t arr_size, typename EL>
+  inline auto bstring<blk_size, arr_size, EL>::value() const -> std::span<const EL>
   {
     return value(0);
   }
 
   template <std::size_t blk_size, std::size_t arr_size, typename EL>
-  inline auto bstring<blk_size, arr_size, EL>::value(std::size_t ndx) const -> T_ref
+  inline auto bstring<blk_size, arr_size, EL>::value(std::size_t ndx) -> std::span<EL>
   {
-    return T_ref(data_.at(ndx).data(), len_.at(ndx));
+    const std::span r{data_.at(ndx).data(), len_.at(ndx)};
+    return r;
   }
+  template <std::size_t blk_size, std::size_t arr_size, typename EL>
+  inline auto bstring<blk_size, arr_size, EL>::value(std::size_t ndx) const -> std::span<const EL>
+  {
+    const std::span r{data_.at(ndx).data(), len_.at(ndx)};
+    return r;
+  }
+  // template <std::size_t blk_size, std::size_t arr_size, typename EL>
+  // inline auto bstring<blk_size, arr_size, EL>::value(std::size_t ndx) -> std::span<EL>
+  // {
+  //   std::span r{data_.at(ndx).data(), len_.size()};
+  //   return r;
+  // }
 
   template <std::size_t blk_size, std::size_t arr_size, typename EL>
-  inline void bstring<blk_size, arr_size, EL>::set_value(const T_ref data)
+  inline void bstring<blk_size, arr_size, EL>::set_value(std::span<const EL> data)
   {
     set_value(data, 0);
   }
 
   template <std::size_t blk_size, std::size_t arr_size, typename EL>
-  inline void bstring<blk_size, arr_size, EL>::set_value(const T_ref data, std::size_t ndx)
+  inline void bstring<blk_size, arr_size, EL>::set_value(std::span<const EL> data, std::size_t ndx)
   {
     auto src = data.data();
-    auto dst = data_.at(ndx).data();
+    auto dst = reinterpret_cast<uint8_t*>(&data_.at(ndx));
     if (src != dst)
     {
       auto len = std::min(data.size(), blk_size);
       std::memcpy(dst, src, len);
+      len_.at(ndx) = len;
     }
   }
 
   template <std::size_t blk_size, std::size_t arr_size, typename EL>
-  consteval std::size_t bstring<blk_size, arr_size, EL>::size() const
+  constexpr std::size_t bstring<blk_size, arr_size, EL>::size() const
   {
-    return arr_size;
+    return static_cast<std::size_t>(arr_size);
   }
 
   template <std::size_t blk_size, std::size_t arr_size, typename EL>
-  consteval std::size_t bstring<blk_size, arr_size, EL>::el_max_size() const
+  constexpr std::size_t bstring<blk_size, arr_size, EL>::el_max_size() const
   {
     return (blk_size);
   }
@@ -331,16 +359,18 @@ namespace db
                                                            uint   offs) const
   {
     std::stringstream s;
-    s << std::string(offs, ' ') << a_msg << value(a_ndx);
+    s << std::string(offs, ' ') << a_msg << "'" << value(a_ndx) << "'";
     return s.str();
   }
 
   template <std::size_t blk_size, std::size_t arr_size, typename EL>
-  inline std::string bstring<blk_size, arr_size, EL>::serialize(T_ref blk)
+  inline std::string bstring<blk_size, arr_size, EL>::serialize(std::span<const EL> blk)
   {
-    std::stringstream s;
-    for (const auto& byte : blk) s << std::hex << std::to_integer<uint8_t>(byte) << " ";
-    return s.str();
+    str_t s("'");
+    s.reserve(blk.size() * 3 * sizeof(EL));
+    for (const auto& byte : blk) s += std::to_string(byte) + " ";
+    s[s.size() - 1] = '\'';
+    return s;
   }
 
   template <std::size_t blk_size, std::size_t arr_size, typename EL>

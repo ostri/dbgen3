@@ -20,7 +20,7 @@ namespace dbgen3
     static str_t define_trivial_setters(const fld_vec& flds, uint max_name_len, uint offs);
     static str_t define_setters(const fld_vec& flds, uint max_name_len, uint offs);
     static str_t define_dump(const fld_vec& flds, uint max_name_len, uint offs);
-    static str_t define_attributes(const fld_vec& flds, uint offs);
+    static str_t define_attributes(const fld_vec& flds, uint max_name_len, uint offs);
   };
 }; // namespace dbgen3
 
