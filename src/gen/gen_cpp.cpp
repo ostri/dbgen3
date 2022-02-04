@@ -2,8 +2,8 @@
 #include <chrono>
 
 #include "gen_cpp.hpp"
-#include "odbc_db.hpp"
 #include "enums.hpp"
+#include "odbc_db.hpp"
 
 namespace dbgen3
 {
@@ -22,8 +22,8 @@ namespace dbgen3
         {
         case db::ATTR_TYPE::atomic:
         {
-          auto type_name = db::ct_name(db_type_int);
-          r += out::sl(fmt::format("auto {0:<{1}}() const -> {2} {{return {0}(0);}}", //
+          const auto* type_name = db::ct_name(db_type_int);
+          r += out::sl(fmt::format("{2} {0:<{1}}() const {{return {0}(0);}}", //
                                    el.name(),
                                    max_name_len,
                                    type_name),
@@ -32,7 +32,7 @@ namespace dbgen3
         }
         case db::ATTR_TYPE::string:
         {
-          r += out::sl(fmt::format("auto {0:<{1}}() const -> cstr_t {{return {0}(0);}}", //
+          r += out::sl(fmt::format("cstr_t {0:<{1}}() const {{return {0}(0);}}", //
                                    el.name(),
                                    max_name_len),
                        offs);
@@ -40,13 +40,16 @@ namespace dbgen3
         }
         case db::ATTR_TYPE::bstring:
         {
-          r += out::sl(fmt::format("auto {0:<{1}}() const -> std::span<const uint8_t> {{return {0}(0);}}", //
-                                   el.name(),
-                                   max_name_len),
-                       offs);
+          r +=
+            out::sl(fmt::format("std::span<const uint8_t> {0:<{1}}() const {{return {0}(0);}}", //
+                                el.name(),
+                                max_name_len),
+                    offs);
           break;
         }
-        case db::ATTR_TYPE::unknown: throw std::runtime_error(str_t("Unexpected type unknown")+__FILE__+std::to_string(__LINE__));
+        case db::ATTR_TYPE::unknown:
+          throw std::runtime_error(str_t("Unexpected type unknown") + __FILE__ +
+                                   std::to_string(__LINE__));
         }
       }
       r += out::sl(fmt::format("//@}}"), offs);
@@ -68,16 +71,17 @@ namespace dbgen3
         {
         case db::ATTR_TYPE::atomic:
         {
-          auto type_name = db::ct_name(db_type_int);
-          r += out::sl(fmt::format("auto {0:<{1}}(uint ndx) const -> {2} {{return {0}_.value(ndx);}}",
+          const auto* type_name = db::ct_name(db_type_int);
+          r += out::sl(fmt::format("{2} {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
                                    el.name(),
-                                   max_name_len, type_name),
+                                   max_name_len,
+                                   type_name),
                        offs);
           break;
         }
         case db::ATTR_TYPE::string:
         {
-          r += out::sl(fmt::format("auto {0:<{1}}(uint ndx) const -> cstr_t {{return {0}_.value(ndx);}}",
+          r += out::sl(fmt::format("cstr_t {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
                                    el.name(),
                                    max_name_len),
                        offs);
@@ -85,7 +89,8 @@ namespace dbgen3
         }
         case db::ATTR_TYPE::bstring:
         {
-          r += out::sl(fmt::format("auto {0:<{1}}(uint ndx) const -> std::span<const uint8_t> {{return {0}_.value(ndx);}}",
+          r += out::sl(fmt::format("std::span<const uint8_t> {0:<{1}}(uint ndx) const "
+                                   "{{return {0}_.value(ndx);}}",
                                    el.name(),
                                    max_name_len),
                        offs);
@@ -203,11 +208,54 @@ namespace dbgen3
       for (const auto& el : flds)
       {
         r += out::sl(
-          fmt::format("  r += \"{0:<{1}}:\" + {0}_.dump_all() + \"\\n\";", el.name(), max_name_len),
+          fmt::format(R"(  r += "{0:<{1}}:" + {0}_.dump_all() + "\n";)", el.name(), max_name_len),
           offs);
       }
       r += out::sl(fmt::format("  return r;"), offs);
       r += out::sl(fmt::format("}}"), offs);
+    }
+    return r;
+  }
+  str_t gen_cpp::define_attributes_const(const fld_vec& flds, uint max_name_len, uint offs)
+  {
+    str_t r;
+    for (const auto& el : flds)
+    {
+      auto        db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
+      auto        db_type     = db::attr_type(db_type_int);
+      // const auto* ct_name     = db::ct_name(db_type_int);
+      // const auto* db_name     = db::dbt_name(db_type_int);
+      // str_t ct_name_comma(ct_name);
+      // ct_name_comma += ',';
+      switch (db_type)
+      {
+      case db::ATTR_TYPE::atomic:
+      {
+        r += out::sl(fmt::format("constexpr static const uint {0:<1}_dec = {2}; // number of decimal places",
+                                 el.name(),
+                                 max_name_len,
+                                 el.dec()
+                                 ),
+                     offs);
+        break;
+      }
+      case db::ATTR_TYPE::string:
+      // {
+      //   r += out::sl(
+      //     fmt::format("constexpr static const uint {1}_len = {0}; ", el.width(), el.name()), offs);
+      //   break;
+      // }
+      case db::ATTR_TYPE::bstring:
+      {
+        r += out::sl(
+          fmt::format("constexpr static const uint {1}_len = {0}; ", el.width(), el.name()), offs);
+        break;
+      }
+      case db::ATTR_TYPE::unknown:
+      {
+        throw std::runtime_error("unknown attribute type " + el.dump());
+      }
+      }
     }
     return r;
   }
@@ -216,29 +264,33 @@ namespace dbgen3
     str_t r;
     for (const auto& el : flds)
     {
-      auto  db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-      auto  db_type     = db::attr_type(db_type_int);
-      auto  ct_name     = db::ct_name(db_type_int);
-      auto  db_name     = db::dbt_name(db_type_int);
-      //str_t ct_name_comma(ct_name);
-      //ct_name_comma += ',';
+      auto        db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
+      auto        db_type     = db::attr_type(db_type_int);
+      const auto* ct_name     = db::ct_name(db_type_int);
+      const auto* db_name     = db::dbt_name(db_type_int);
+      // str_t ct_name_comma(ct_name);
+      // ct_name_comma += ',';
       switch (db_type)
       {
       case db::ATTR_TYPE::atomic:
       {
-        r += out::sl(
-          fmt::format("db::atomic <{0:<1}, {2}, {3}, N> {4}_{{}}; ", ct_name, max_name_len, db_name, el.dec(), el.name()),
-          offs);
+        r += out::sl(fmt::format("db::atomic <{0:<1}, {2}, {4}_dec, N> {4}_{{}}; ",
+                                 ct_name,
+                                 max_name_len,
+                                 db_name,
+                                 el.dec(),
+                                 el.name()),
+                     offs);
         break;
       }
       case db::ATTR_TYPE::string:
       {
-        r += out::sl(fmt::format("db::string <{0}, N, uint8_t> {1}_{{}}; ", el.width(), el.name()), offs);
+        r += out::sl(fmt::format("db::string <{0}_len, N, uint8_t> {0}_{{}}; ", el.name()), offs);
         break;
       }
       case db::ATTR_TYPE::bstring:
       {
-        r += out::sl(fmt::format("db::bstring <{0}, N> {1}_{{}}; ", el.width(), el.name()), offs);
+        r += out::sl(fmt::format("db::bstring <{0}_len, N> {0}_{{}}; ", el.name()), offs);
         break;
       }
       case db::ATTR_TYPE::unknown:
@@ -251,14 +303,15 @@ namespace dbgen3
   }
   str_t gen_cpp::gen_buf(const gsql_q& q, const BUF_TYPE& a_type, uint offs)
   {
-    str_t r;
-    auto  bd = q.buf_dscr((a_type));
+    str_t       r;
+    const auto& bd = q.buf_dscr((a_type));
     if (! bd.should_skip())
     {
-      auto        c_name = snake_case(bd.id());
-      auto        ml     = bd.max_name_len();
-      const auto& flds   = bd.flds();
-      r += line(73, offs);
+      auto              c_name      = snake_case(bd.id());
+      auto              ml          = bd.max_name_len();
+      const auto&       flds        = bd.flds();
+      const static uint line_length = 73;
+      r += line(line_length, offs);
       r += out::sl(fmt::format("template <std::size_t N=1>", c_name), offs);
       r += out::sl(fmt::format("class {}", c_name), offs);
       r += out::sl(fmt::format("{{"), offs);
@@ -269,6 +322,7 @@ namespace dbgen3
       r += define_setters(flds, ml, offs + 2);
       r += define_dump(flds, ml, offs + 2);
       r += out::sl(fmt::format("private:/*...private methods & attributes...*/"), offs);
+      r += define_attributes_const(bd.flds(), ml, offs + 2);
       r += define_attributes(bd.flds(), ml, offs + 2);
       r += out::sl(fmt::format("}}; // class {}", c_name), offs);
     }
@@ -283,17 +337,20 @@ namespace dbgen3
   }
   str_t gen_cpp::gen_file(uint offs)
   {
-    str_t       r;
-    auto        now      = std::chrono::system_clock::now();
-    std::time_t time     = std::chrono::system_clock::to_time_t(now);
-    std::string time_str = std::ctime(&time);
+    str_t                           r;
+    auto                            now           = std::chrono::system_clock::now();
+    std::time_t                     time          = std::chrono::system_clock::to_time_t(now);
+    constexpr static const uint     ctime_buf_len = 26;
+    std::array<char, ctime_buf_len> buf{};
+    std::string                     time_str = ctime_r(&time, buf.data());
 
     r += out::sl(fmt::format("/* auto generated '{}' - do not alter */",
                              time_str.substr(0, time_str.size() - 1)),
                  offs);
+    r += out::sl("#include <span>", offs);
     r += out::sl("#include <string>", offs);
     r += out::sl("#include <string_view>", offs);
-    r += out::sl("#include <span>", offs);
+    r += out::sl("", offs);
     r += out::sl(fmt::format("#include \"{}\"", "dbgen3_templ.hpp"), offs);
     auto h_ml = set().header_multi_line().lines();
     for (const auto& line : h_ml) r += line + "\n";
@@ -305,10 +362,11 @@ namespace dbgen3
     r += out::sl("  using cstr_t  = std::string_view;", offs);
     r += out::sl("  using bstr_t  = std::span<uint8_t>;", offs);
     r += out::sl("  using cbstr_t = std::span<const uint8_t>;", offs);
-    for (auto q : set().q_dic())
+    for (const auto& q : set().q_dic())
     { //
-      auto ns = snake_case(q.second.id());
-      r += line(75, offs + 2, '.');
+      auto              ns          = snake_case(q.second.id());
+      const static uint line_length = 75;
+      r += line(line_length, offs + 2, '.');
       r += out::sl("/*", offs + 2);
       r += out::sl(q.second.sql(PHASE::main), offs + 2);
       r += out::sl(" */", offs + 2);
