@@ -103,11 +103,12 @@ namespace dbgen3
         case db::ATTR_TYPE::bstring:
         {
           const auto* type_name = "const uint8_t";
-          r += out::sl(fmt::format("std::span<{2}> {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
-                                   el.name(),
-                                   max_name_len,
-                                   type_name),
-                       offs);
+          r += out::sl(
+            fmt::format("std::span<{2}> {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
+                        el.name(),
+                        max_name_len,
+                        type_name),
+            offs);
           break;
         }
         case db::ATTR_TYPE::unknown: throw std::runtime_error("Unexpected type unknown");
@@ -295,15 +296,24 @@ namespace dbgen3
       }
       case db::ATTR_TYPE::string:
       {
-        r += out::sl(
-          fmt::format("db::string <std::array<{2}, {0}_len>, {1}, N, {2}> {0}_{{}}; ", el.name(), db_name, "char"), offs);
+        r +=
+          out::sl(fmt::format("db::string <std::array<{2}, {0}_len>, {1}, N, {2}, {3}> {0}_{{}}; ",
+                              el.name(),
+                              db_name,
+                              "char",
+                              el.dec()),
+                  offs);
         break;
       }
       case db::ATTR_TYPE::bstring:
       {
-        r += out::sl(
-          fmt::format("db::bstring<std::array<{2}, {0}_len>, {1}, N, {2}> {0}_{{}}; ", el.name(), db_name, "uint8_t"),
-          offs);
+        r +=
+          out::sl(fmt::format("db::bstring<std::array<{2}, {0}_len>, {1}, N, {2}, {3}> {0}_{{}}; ",
+                              el.name(),
+                              db_name,
+                              "uint8_t",
+                              el.dec()),
+                  offs);
         break;
       }
       case db::ATTR_TYPE::unknown:
