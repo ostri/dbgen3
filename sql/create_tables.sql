@@ -1,3 +1,4 @@
+connect to test;
 drop table tbl;
 create table tbl
 (

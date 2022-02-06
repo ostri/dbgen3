@@ -25,7 +25,7 @@ namespace db
     //! @name Constructor(s) and destructor
     //@{
     explicit statement(const connection& a_db);            //!< constructor
-    statement(const connection& a_db, const std::string& an_sql); //!< constructor with sql
+    statement(const connection& a_db, std::string an_sql); //!< constructor with sql
     statement(const statement& o) = default;               //!< copy constructor
     statement(statement&& o)      = default;               //! move constructor
     virtual ~statement();                                  /// destructor
@@ -76,7 +76,7 @@ namespace db
     std::int16_t set_attr(int attr, SQLCHAR* value) const;
     std::int16_t set_attr(int attr, void* value, uint len) const;
     std::int16_t set_attr(int attr, int value) const;
-    std::int16_t set_attr(const int attr, std::size_t* value) const;
+    std::int16_t set_attr(int attr, std::size_t* value) const;
     //@}
     //! @name database operations
     //@{
@@ -106,7 +106,7 @@ namespace db
     virtual std::int16_t set_pos(size_t a_rec_pos);
     /// set result set current position
     virtual std::int16_t set_page(size_t a_page_num, size_t a_page_size);
-    std::int16_t         set_attr_l(const int attr, uint64_t value);
+    std::int16_t         set_attr_l(int attr, uint64_t value);
     //@}
   protected:
     void log(const std::string& msg) const; //!< logs an event into log file

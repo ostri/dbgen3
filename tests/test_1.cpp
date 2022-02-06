@@ -119,12 +119,12 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   qr.set_c1_smallint(val16);
   qr.set_c2_int(val32);
   qr.set_c3_bigint(val64);
-  const char* val_dec = "123456789012345678901234.56789";
+  const char* val_dec = "-123456789012345678901234.56789";
   qr.set_c4_numeric(val_dec);
   qr.set_c5_decimal(val_dec);
   qr.set_c6_dec(val_dec);
-  const char* str1 = "fix string";
-  const char* str2 = "var str";
+  const auto *str1 = "fix string";
+  const auto *str2 = "var str";
   qr.set_c7_char(str1);
   qr.set_c7_char(str1, 1);
   qr.set_c8_varchar(str2);

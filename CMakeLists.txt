@@ -17,7 +17,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(PREBUILT_MODULE_PATH ${CMAKE_BINARY_DIR}/modules)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-  add_compile_options(-Wall -Wextra -pedantic -Werror)
+  add_compile_options(-Wall -Wextra -pedantic -Werror -Wnarrowing -pthread)
 
   # Let's nicely support folders in IDEs
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -68,7 +68,7 @@ FetchContent_MakeAvailable(magic_enum)
 add_subdirectory(src)
 
 if((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
-    set(OPTIONS -Wall -Wextra -pedantic-errors -Werror)
+    set(OPTIONS -Wall -Wextra -pedantic-errors -Werror -Wnarrowing -pthread)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     set(OPTIONS /W4 /WX)
     if(HAS_PERMISSIVE_FLAG)

@@ -88,6 +88,7 @@ set (rt_src_list
   runtime/statement
   runtime/dbgen3_templ
   runtime/odbc_db
+  runtime/serialize_templ
 )
 set (rt_cpp_list ${rt_src_list})
 set (rt_hpp_list ${rt_src_list} )

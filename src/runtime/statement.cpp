@@ -3,10 +3,10 @@
  * \brief Implementation of class db::statement
  *
  */
+#include <sqlcli1.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sqlcli1.h>
 
 #include "error_exception.hpp"
 #include "statement.hpp"
@@ -24,9 +24,9 @@ namespace db
   // // , is_prepared_(false)
   // { }
   /// constructor with sql
-  statement::statement(const connection& a_db, const std::string& an_sql)
+  statement::statement(const connection& a_db, std::string an_sql)
   : db_(a_db)
-  , sql_(an_sql)
+  , sql_(std::move(an_sql))
   , handle_(db_.alloc_stmt_handle())
   , is_prepared_(false)
   { }
@@ -38,7 +38,7 @@ namespace db
    */
   statement::~statement()
   {
-    db_.dealloc_stmt_handle(handle_);
+    db::connection::dealloc_stmt_handle(handle_);
     log(std::string("Statement disposed: " + std::to_string(handle_) + " sql='") + get_sql() +
         std::string("'."));
   }
@@ -243,7 +243,7 @@ namespace db
    * @param value attribute value
    * @return return code of the operation
    */
-  std::int16_t statement::set_attr_l(const int attr, uint64_t value)
+  std::int16_t statement::set_attr_l(int attr, uint64_t value)
   {
     std::int16_t ret = SQLSetStmtAttr(handle_,
                                       attr,
@@ -269,7 +269,7 @@ namespace db
         "' value:'" + std::to_string(*value) + "'.");
     return ret;
   }
-  std::int16_t statement::set_attr(const int attr, std::size_t* value) const
+  std::int16_t statement::set_attr( int attr, std::size_t* value) const
   {
     std::int16_t ret = SQLSetStmtAttr(handle_, attr, static_cast<SQLPOINTER>(value), 0);
     log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
