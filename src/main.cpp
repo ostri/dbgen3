@@ -5,10 +5,10 @@
 #include "cmdline_parameters.hpp"
 #include "common.hpp"
 #include "core_parser.hpp"
-#include "program_status.hpp"
-#include "string_format.hpp"
 #include "exceptions.hpp"
 #include "executor.hpp"
+#include "program_status.hpp"
+#include "string_format.hpp"
 #include "version.hpp"
 
 // clang-format off
@@ -59,5 +59,5 @@ int main(int argc, char** argv)
   {
     std::cerr << "unknown exception" << '\n';
   }
-  // TODO each exception should return distinct error code
+  // TODO(ostri): each exception should return distinct error code
 }

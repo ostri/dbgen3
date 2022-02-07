@@ -17,6 +17,7 @@
 #include "gsql_q_set.hpp"
 #include "gsql_sql_set.hpp"
 #include "log.hpp"
+#include "statement.hpp"
 #include "string_format.hpp"
 #include "xerces_strings.hpp"
 
@@ -58,6 +59,8 @@ namespace dbgen3
   private:
     /// @name query set structure
     ///@{
+    static fld_dscr load_fld_dscr(const BUF_TYPE& a_bt, SQLHANDLE h, uint ndx);
+    static fld_vec fetch_param_dscr(const BUF_TYPE& a_bt, db::statement& a_stmt);
     static gsql_q_set     load_q_set(const x::DOMElement* an_el,
                                      cstr_t               a_filename,
                                      const db2_reader&    a_dbr,
@@ -100,6 +103,8 @@ namespace dbgen3
     x::DOMImplementation*    impl_;   //!< implementation
     x::DOMLSParser*          parser_; //!< DOM parser
     std::unique_ptr<gsql_eh> eh_;     //!< error handler
+
+
   };
 
 }; // namespace dbgen3

@@ -28,7 +28,7 @@
                 select *
                 from tbl
                 where 
-                  c1_smallint="?"
+                  c1_smallint=? <!--todo fix the bug with apostophies-->
             </sql>
             <sql rdbms="sql" phase="prepare">
                                select * from tbl

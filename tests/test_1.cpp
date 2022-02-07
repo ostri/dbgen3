@@ -134,7 +134,6 @@ TEST_CASE("full_cycle") // NOLINT
     c.commit();
   }
   {
-    //db::connection c("test");
     // insert new record(s)
     auto        rc  = SQL_SUCCESS;
     const auto* sql = "insert into tbl (C1_smallint, C2_int, C3_bigint) values (?,?,?)";

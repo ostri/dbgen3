@@ -14,8 +14,8 @@ namespace dbgen3
   class fld_dscr
   {
   public:
-    fld_dscr(int              pos,     //!< position within the list
-             const str_t&     name,    //!< name of the result or parameter column
+    fld_dscr(uint             pos,     //!< position within the list
+             cstr_t           name,    //!< name of the result or parameter column
              const ODBC_TYPE& type,    //!< query column type
              uint32_t         width,   //!< colmn width
              int16_t          dec,     //!< column decimaks
@@ -30,7 +30,7 @@ namespace dbgen3
     { }
     // @name getters
     //@{
-    int       pos() const { return this->pos_; }
+    uint       pos() const { return this->pos_; }
     str_t     name() const { return this->name_; }
     ODBC_TYPE type() const { return this->type_; }
     uint32_t  width() const { return this->width_; }
@@ -40,7 +40,7 @@ namespace dbgen3
     /// @name getters
     //@{
     void set_pos(int pos) { this->pos_ = pos; }
-    void set_name(const str_t& name) { this->name_ = name; }
+    void set_name(const cstr_t& name) { this->name_ = name; }
     void set_type(const ODBC_TYPE& type) { this->type_ = type; }
     void set_width(const uint32_t& width) { this->width_ = width; }
     void set_dec(const int16_t& dec) { this->dec_ = dec; }
@@ -69,7 +69,7 @@ namespace dbgen3
     }
   protected:
   private:
-    int       pos_;      //!< positiion within the parameter/result list (starting from 1)
+    uint      pos_;      //!< positiion within the parameter/result list (starting from 1)
     str_t     name_;     //!< name of the column or parameter
     ODBC_TYPE type_;     //!< query column type
     uint32_t  width_;    //!< colmn width

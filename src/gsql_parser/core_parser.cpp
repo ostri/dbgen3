@@ -7,7 +7,6 @@
 #include "exceptions.hpp"
 #include "gsql_q.hpp"
 #include "gsql_q_set.hpp"
-#include "statement.hpp"
 #include "xerces_strings.hpp"
 
 namespace dbgen3
@@ -232,14 +231,65 @@ namespace dbgen3
     if (! attr_id.empty()) { return toNative(attr_id) == "true"; }
     return a_default;
   }
-  /**
-   * @brief it fetches the parameter description of throws exception
-   *
-   * @param a_stmt statement structure we are executing statements upon
-   * @param a_sql sql statement which parameters we are interested in
-   * @return int status of the operation
-   */
-  static fld_vec fetch_param_dscr(const BUF_TYPE& a_bt, db::statement& a_stmt)
+  fld_dscr core_parser::load_fld_dscr(const BUF_TYPE& a_bt, SQLHANDLE h, uint ndx)
+  {
+    int16_t    type;
+    uint32_t   width;
+    int16_t    dec;
+    int16_t    nullable;
+    int16_t    col_name_len=0;
+    const auto max_coloum_name_length = 50;
+    int16_t    rc;
+
+    std::array<char, max_coloum_name_length + 1> buf{}; /// buffer that
+                                                        /// returns the name of the column
+
+    rc =
+      (a_bt == BUF_TYPE::par)
+        ? SQLDescribeParam(h, ndx + 1, &type, &width, &dec, &nullable)
+        : SQLDescribeCol(h,
+                         ndx + 1,
+                         // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-pro-type-reinterpret-cast)
+                         reinterpret_cast<unsigned char*>(buf.data()),
+                         buf.size(),
+                         &col_name_len,
+                         &type,
+                         &width,
+                         &dec,
+                         &nullable);
+    if (SQL_SUCCESS == rc)
+    { /// FIXME convert to to_char
+      std::string name = (a_bt == BUF_TYPE::par) ? "par_" + std::to_string(ndx + 1)
+                                                 : std::string(buf.data(), col_name_len);
+      for (auto& ch : name)
+        ch = static_cast<char>(std::tolower(ch)); // FIXME dosn't work with utf-8
+
+      auto n  = ME::enum_cast<DBN>(nullable);
+      auto ot = ME::enum_cast<ODBC_TYPE>(type);
+      if (! ot.has_value())
+        throw std::runtime_error("Unsupported column type " + std::to_string(type));
+      info << fmt::format("[{:3}]: name: {:24} type:{:4} {:14} width:{:5} dec:{:3} null:{:16}",
+                          ndx + 1,
+                          name,
+                          ME::enum_integer(ot.value()),
+                          ME::enum_name(ot.value()),
+                          width,
+                          dec,
+                          ME::enum_name<DBN>(n.value()));
+      fld_dscr fld(ndx + 1, name, ot.value(), width, dec, n.value());
+      return fld;
+    };
+    throw db::error_exception(db::error(h, SQL_HANDLE_STMT));
+  }
+
+   /**
+    * @brief it fetches the parameter/column description or throws exception 
+    * 
+    * @param a_bt bufer_type
+    * @param a_stmt statement structure we are executing statements upon 
+    * @return fld_vec 
+    */
+  fld_vec core_parser::fetch_param_dscr(const BUF_TYPE& a_bt, db::statement& a_stmt)
   {
     assert(a_bt != BUF_TYPE::unk); // NOLINT clang-tidy(hicpp-no-array-decay)
     fld_vec r;
@@ -250,55 +300,7 @@ namespace dbgen3
     if (SQL_SUCCESS == rc)
     {
       info << "# of par:" << par_cnt << "\n";
-      const auto max_coloum_name_length = 50;
-      std::array<char, max_coloum_name_length + 1>
-        buf{}; /// buffer that returns the name of the column
-      for (auto cnt = 0; cnt < par_cnt; ++cnt)
-      {
-        int16_t  type;
-        uint32_t width;
-        int16_t  dec;
-        int16_t  nullable;
-        int16_t  col_name_len;
-
-        rc = (a_bt == BUF_TYPE::par)
-               ? SQLDescribeParam(h, cnt + 1, &type, &width, &dec, &nullable)
-               : SQLDescribeCol(
-                   h,
-                   cnt + 1,
-                   // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-pro-type-reinterpret-cast)
-                   reinterpret_cast<unsigned char*>(buf.data()),
-                   buf.size(),
-                   &col_name_len,
-                   &type,
-                   &width,
-                   &dec,
-                   &nullable);
-        if (SQL_SUCCESS == rc)
-        {
-          std::string name = (a_bt == BUF_TYPE::par) ? "par_" + std::to_string(cnt + 1)
-                                                     : std::string(buf.data(), col_name_len);
-          for (auto& ch : name)
-            ch = static_cast<char>(std::tolower(ch)); // FIXME dosn't work with utf-8
-
-          auto n  = ME::enum_cast<DBN>(nullable);
-          auto ot = ME::enum_cast<ODBC_TYPE>(type);
-          if (! ot.has_value())
-            throw std::runtime_error("Unsupported column type " + std::to_string(type));
-          info << fmt::format("[{:3}]: name: {:24} type:{:4} {:14} width:{:5} dec:{:3} null:{:16}",
-                              cnt + 1,
-                              name,
-                              ME::enum_integer(ot.value()),
-                              ME::enum_name(ot.value()),
-                              width,
-                              dec,
-                              ME::enum_name<DBN>(n.value()));
-          fld_dscr fld(cnt + 1, name, ot.value(), width, dec, n.value());
-
-          r.push_back(fld);
-        }
-        else throw db::error_exception(db::error(h, SQL_HANDLE_STMT));
-      };
+      for (auto cnt = 0; cnt < par_cnt; ++cnt) { r.push_back(load_fld_dscr(a_bt, h, cnt)); };
     }
     else throw db::error_exception(db::error(h, SQL_HANDLE_STMT));
     return r;

@@ -412,7 +412,7 @@ namespace dbgen3
     return r;
   }
   /**
-   * @brief generates code fraction to declare SQL statement
+   * @brief generates code fragment to declare the SQL statement
    *
    * @param q
    * @param offs
@@ -422,19 +422,10 @@ namespace dbgen3
   {
     str_t       r;
     const auto& ml_sql = q.sql_set().fetch(PHASE::main)->sql_ml().lines();
-//    if (ml_sql.size() > 1)
-    { /// query is expressed in more than one line
-      r += out::sl(fmt::format("constexpr static const auto* sql ="), offs);
-      r += out::sl(fmt::format("R\"k0a1f2k3a4("), offs);
-      for (auto l:ml_sql)
-      {
-        r += out::sl(fmt::format("{}", l), offs+2);
-      }
-      r += out::sl(fmt::format(")k0a1f2k3a4\";"), offs);
-      
-    }
-//    else r += out::sl(fmt::format("constexpr static const auto* sql=\"{}\";", q.sql()), offs);
-
+    r += out::sl(fmt::format("constexpr static const auto* sql ="), offs);
+    r += out::sl(fmt::format("R\"k0a1f2k3a4("), offs);
+    for (auto l : ml_sql) { r += out::sl(fmt::format("{}", l), offs + 2); }
+    r += out::sl(fmt::format(")k0a1f2k3a4\";"), offs);
     return r;
   }
   /**
