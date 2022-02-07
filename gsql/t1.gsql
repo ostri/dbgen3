@@ -27,7 +27,8 @@
             <sql rdbms="sql" phase="main">
                 select *
                 from tbl
-                where c1_smallint=?
+                where 
+                  c1_smallint="?"
             </sql>
             <sql rdbms="sql" phase="prepare">
                                select * from tbl
@@ -67,7 +68,7 @@
             <sql>
                 insert into tbl 
                 (
-                    C1_smallint, 
+                    C1_smallint, <!-- komentar -->
                     C2_int, 
                     C3_bigint
                 ) 

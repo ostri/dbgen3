@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "enums.hpp"
 #include "gsql_q_set.hpp"
 
 namespace dbgen3
@@ -13,19 +14,25 @@ namespace dbgen3
   class gen
   {
   public:
-    gen() = default;
-    virtual ~gen(){};
+    gen()                 = default;
+    virtual ~gen()        = default;
+    gen(const gen&)       = default;
+    gen(gen&&)            = default;
+    gen&          operator=(const gen&) = default;
+    gen&          operator=(gen&&)    = default;
     virtual str_t gen_file(uint offs) = 0;
     void          set_set(const gsql_q_set& a_set) { set_ = &a_set; }
     void          set_rdbm(const RDBMS& rdbm) { this->rdbm_ = rdbm; }
   protected:
     const gsql_q_set& set() const;
     RDBMS             rdbm() const { return this->rdbm_; }
-    static str_t      line(uint a_len, uint offs = 0, char ch = '.');
     static str_t      snake_case(cstr_t a_name);
+    static str_t      line(uint offs = 0, char ch = '.');
+    static str_t      line_text(cstr_t a_msg, uint offs = 0, char ch = '.');
   private:
-    const gsql_q_set* set_ = nullptr; //!< gsql set data
-    RDBMS             rdbm_;          //!< database type we are generating code for
+    static const int  generated_width = 100;     //!< width of the generated document (well mostly)
+    const gsql_q_set* set_            = nullptr; //!< gsql set data
+    RDBMS             rdbm_           = RDBMS::db2; //!< database type we are generating code for
   };
 }; // namespace dbgen3
 

@@ -10,15 +10,39 @@ namespace dbgen3
 
   const gsql_q_set& gen::set() const { return *set_; }
 
-  str_t gen::line(uint a_len, uint offs, char ch)
+ /**
+  * @brief the same as line_text only without the text
+  * 
+  * @param a_len 
+  * @param offs 
+  * @param ch 
+  * @return str_t 
+  */
+  str_t gen::line(uint offs, char ch)
   {
-    str_t r = "/* " + std::string(a_len, ch) + " */";
+    return line_text("", offs, ch='.');
+  }
+  /**
+   * @brief it writes / *....text.........* /
+   *
+   * @param a_msg message to be displayed
+   * @param a_len total length of the line
+   * @param offs offset from left
+   * @param ch  fill character
+   * @return str_t generated text
+   */
+  str_t gen::line_text(cstr_t a_msg, uint offs, char ch)
+  {
+    str_t prefix = str_t(4, ch);
+    str_t r("/*");
+    auto  act_len = generated_width - a_msg.size() - prefix.size()- offs;
+    r += prefix + str_t(a_msg) + std::string(act_len, ch) + "*/";
     return out::sl(r, offs);
   }
 
   str_t gen::snake_case(cstr_t a_name)
   {
-    //str_t r(std::to_string(c_type(SQL_BIGINT))); /// FIXME mora ven
+    // str_t r(std::to_string(c_type(SQL_BIGINT))); /// FIXME mora ven
     str_t r;
     for (auto ch : a_name)
       if (ch == '-') r += '_';

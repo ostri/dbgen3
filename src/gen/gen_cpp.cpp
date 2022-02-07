@@ -1,5 +1,6 @@
 
 #include <chrono>
+#include <magic_enum.hpp>
 
 #include "fld_dscr.hpp"
 #include "enums.hpp"
@@ -387,11 +388,11 @@ namespace dbgen3
     const auto& bd = q.buf_dscr((a_type));
     if (! bd.should_skip())
     {
-      auto              c_name      = snake_case(bd.id());
-      auto              ml          = bd.max_name_len();
-      const auto&       flds        = bd.flds();
-      const static uint line_length = 73;
-      r += line(line_length, offs);
+      auto        c_name = snake_case(bd.id());
+      auto        ml     = bd.max_name_len();
+      const auto& flds   = bd.flds();
+      auto        txt    = str_t(q.id()) + "::" + str_t(ME::enum_name<BUF_TYPE>(a_type));
+      r += line_text(txt, offs);
       r += out::sl(fmt::format("template <std::size_t N>"), offs);
       r += out::sl(fmt::format("class {} : public db::buffer_root<N>", c_name), offs);
       r += out::sl(fmt::format("{{"), offs);
@@ -410,11 +411,44 @@ namespace dbgen3
     }
     return r;
   }
+  /**
+   * @brief generates code fraction to declare SQL statement
+   *
+   * @param q
+   * @param offs
+   * @return str_t
+   */
+  str_t gen_cpp::gen_const_sql(const gsql_q& q, uint offs)
+  {
+    str_t       r;
+    const auto& ml_sql = q.sql_set().fetch(PHASE::main)->sql_ml().lines();
+//    if (ml_sql.size() > 1)
+    { /// query is expressed in more than one line
+      r += out::sl(fmt::format("constexpr static const auto* sql ="), offs);
+      r += out::sl(fmt::format("R\"k0a1f2k3a4("), offs);
+      for (auto l:ml_sql)
+      {
+        r += out::sl(fmt::format("{}", l), offs+2);
+      }
+      r += out::sl(fmt::format(")k0a1f2k3a4\";"), offs);
+      
+    }
+//    else r += out::sl(fmt::format("constexpr static const auto* sql=\"{}\";", q.sql()), offs);
+
+    return r;
+  }
+  /**
+   * @brief generate utility class
+   *
+   * @param q
+   * @param offs
+   * @return str_t
+   */
   str_t gen_cpp::gen_utl(const gsql_q& q, uint offs)
   {
-    str_t r; //FIXME multiline SQLs
+    str_t r; // FIXME multiline SQLs
     auto  q_name = snake_case(q.id());
-    auto sql = q.sql(PHASE::main);
+    auto  sql    = q.sql(PHASE::main);
     r += out::sl(fmt::format("class {}: public db::statement", "utl"), offs);
     r += out::sl(fmt::format("{{"), offs);
     r += out::sl(fmt::format("public:"), offs);
@@ -422,9 +456,9 @@ namespace dbgen3
     r += out::sl(fmt::format("  auto exec() {{ return exec_direct(sql, false); }}"), offs);
     // r += out::sl(fmt::format("  const db::statement& stmt() {{ return s_; }}"), offs);
     r += out::sl(fmt::format("private:"), offs);
-    r += out::sl(fmt::format("  constexpr static const char* sql=\"{}\";", sql), offs);
+    r += gen_const_sql(q, offs + 2);
     r += out::sl(fmt::format("}};"), offs);
-  
+
     return r;
   }
   str_t gen_cpp::gen_includes(uint offs)
@@ -438,25 +472,45 @@ namespace dbgen3
     r += out::sl(fmt::format("#include \"{}\"", "dbgen3_templ.hpp"), offs);
     return r;
   }
+  /**
+   * @brief generate code for one query
+   *
+   * @param q data structure of the query we want generate code for
+   * @param offs offset from left border
+   * @return str_t generated code
+   *
+   * Code is generated only if there there exist actual sql command within the
+   * query definition.
+   */
   str_t gen_cpp::gen_query(const gsql_q& q, uint offs)
   {
-    str_t             r;
-    const static uint line_length = 75;
-    auto              ns          = snake_case(q.id());
-    // auto              sql         = q.sql(PHASE::main);
-    r += line(line_length, offs, '.');
-    // r += out::sl("/*", offs);
-    // r += out::sl(sql, offs);
-    // r += out::sl(" */", offs);
-    r += out::sl(fmt::format("namespace {}", ns), offs);
-    r += out::sl("{", offs);
-    // r += out::sl(fmt::format("  constexpr static const char* sql=\"{}\";", sql), offs);
-    r += gen_buf(q, BUF_TYPE::par, offs + 2);
-    r += gen_buf(q, BUF_TYPE::res, offs + 2);
-    r += gen_utl(q, offs + 2);
-    r += out::sl(fmt::format("}}; //namespace {}", ns), offs);
+    str_t r;
+    auto  ns  = snake_case(q.id());
+    auto  sql = q.sql(PHASE::main);
+    if (! sql.empty())
+    {
+      r += line_text(ns, offs);
+      r += out::sl(fmt::format("namespace {}", ns), offs);
+      r += out::sl("{", offs);
+      r += gen_buf(q, BUF_TYPE::par, offs + 2);
+      r += gen_buf(q, BUF_TYPE::res, offs + 2);
+      r += gen_utl(q, offs + 2);
+      r += out::sl(fmt::format("}}; //namespace {}", ns), offs);
+    }
+    else {
+      auto msg =
+        fmt::format(" There is no valid SQL statement in query '{}'. No code is generated. ", ns);
+      r += line_text(msg, offs, '!');
+    }
     return r;
   };
+  /**
+   * @brief generate set of queries
+   *
+   * @param set structure with definition of queries
+   * @param offs  offset from left border
+   * @return str_t generated code
+   */
   str_t gen_cpp::gen_queries(const gsql_q_set& set, uint offs)
   {
     str_t r;
