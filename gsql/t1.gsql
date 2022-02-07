@@ -55,4 +55,11 @@
             <sql></sql>
         </sql-set>
     </q>
+    <q id="del-tbl-rec">
+        <sql-set>
+            <sql>
+                delete from tbl;
+            </sql>
+        </sql-set>
+    </q>
 </q-set>

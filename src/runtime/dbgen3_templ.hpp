@@ -14,9 +14,12 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <vector>
 
 #include "odbc_db.hpp"
+#include "connection.hpp"
 #include "serialize_templ.hpp"
+#include "statement.hpp"
 namespace db
 {
   using cstr_t  = std::string_view;
@@ -29,6 +32,13 @@ namespace db
   class attr_root_root
   {
   public:
+    attr_root_root()                          = default;
+    virtual ~attr_root_root()                 = default;
+    attr_root_root(const attr_root_root&)     = default;
+    attr_root_root(attr_root_root&&) noexcept = default;
+    attr_root_root& operator=(const attr_root_root&) = default;
+    attr_root_root& operator=(attr_root_root&&) noexcept = default;
+
     using l_vec        = std::array<int32_t, arr_size>;
     virtual str_t dump_all( //
       cstr_t      a_msg,
@@ -62,6 +72,7 @@ namespace db
     t_vec&                data() { return data_; }
     const t_vec&          data() const { return data_; }
     constexpr auto        width() const { return width_; }
+    constexpr auto        dec() const { return dec_; }
     constexpr auto        db_type() const { return db_type_; }
     /// size of specific element
     std::size_t el_size(std::size_t ndx) const { return static_cast<std::size_t>(len_.at(ndx)); }
@@ -178,6 +189,16 @@ namespace db
                                  static_cast<int*>(len_.data()));
       return rc;
     }
+    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx)
+    {
+      auto rc = SQLBindCol(a_stmt_handle,
+                           a_ndx,
+                           c_type(DB_TYPE),
+                           static_cast<void*>(data_.data()),
+                           width_,
+                           static_cast<int*>(len_.data()));
+      return rc;
+    }
   protected:
   private:
     l_vec                          len_{};               //!< value length
@@ -190,19 +211,51 @@ namespace db
   /**
    * @brief root class for all buffers
    *
+   * arr_size number of values stored in each attribute thaz is part of the buffer
    */
+  template <std::size_t arr_size>
   class buffer_root
   {
   public:
-    buffer_root()                   = default;
-    virtual ~buffer_root()          = default;
-    buffer_root(const buffer_root&) = default;
-    buffer_root(buffer_root&&)      = default;
-    buffer_root&  operator=(const buffer_root&) = default;
-    buffer_root&  operator=(buffer_root&&) = default;
-    virtual str_t dump()                   = 0;
+    using attr_vec_t                    = std::vector<attr_root_root<arr_size>*>;
+    buffer_root()                       = default;
+    virtual ~buffer_root()              = default;
+    buffer_root(const buffer_root&)     = default;
+    buffer_root(buffer_root&&) noexcept = default;
+    buffer_root& operator=(const buffer_root&) = default;
+    buffer_root& operator=(buffer_root&&) noexcept = default;
+    str_t        dump() const
+    {
+      str_t r;
+      for (const auto& el : attr_vec_)
+        r += el->dump_all(std::to_string((&el - &attr_vec_[0])), 0, 0) + "\n";
+      return r;
+    }
+    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx)
+    {
+      int16_t rc = SQL_SUCCESS;
+      for (const auto& el : attr_vec_)
+      {
+        rc = el->bind_par(a_stmt_handle, a_ndx);
+        if (rc != SQL_SUCCESS) return rc;
+      }
+      return rc;
+    }
+    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx)
+    {
+      int16_t rc = SQL_SUCCESS;
+      for (const auto& el : attr_vec_)
+      {
+        rc = el->bind_col(a_stmt_handle, a_ndx);
+        if (rc != SQL_SUCCESS) return rc;
+      }
+      return rc;
+    }
   protected:
+    virtual attr_vec_t& attr_vec() { return attr_vec_; }
   private:
+    static constexpr std::size_t arr_size_ = arr_size; //!< number of values in each attribute
+    attr_vec_t                   attr_vec_ = {};       //!< attributes of the buffer
   };
   /*....atomic...............................................................................*/
   template <typename T, int16_t DB_TYPE, int DEC, std::size_t arr_size>
@@ -219,35 +272,18 @@ namespace db
     void    set_value(const T& data, std::size_t ndx) { PP::data().at(ndx) = data; }
     int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx)
     {
-      auto rc = SQLBindParameter(a_stmt_handle,
-                                 a_ndx,
-                                 SQL_PARAM_INPUT,
-                                 (c_type(DB_TYPE)),
-                                 (DB_TYPE),
-                                 PP::width(),
-                                 dec_,
-                                 static_cast<void*>(PP::data().data()),
-                                 PP::width(),
-                                 static_cast<int*>(PP::len().data()));
-      return rc;
+      return PP::bind_par(a_stmt_handle, a_ndx);
     }
     int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx)
     {
-      auto rc = SQLBindCol(a_stmt_handle,
-                           a_ndx,
-                           //                           SQL_C_DEFAULT,
-                           c_type(DB_TYPE),
-                           static_cast<void*>(PP::data().data()),
-                           PP::width(),
-                           static_cast<int*>(PP::len().data()));
-      return rc;
+      return PP::bind_col(a_stmt_handle, a_ndx);
     }
     std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
     {
       return PP::dump_all(a_msg, max_el, offs);
     }
   private:
-    constinit static const int16_t dec_ = DEC; //!< decimal places
+    // constinit static const int16_t dec_ = DEC; //!< decimal places
   };
   /*....bstring.............................................................................*/
   /**
@@ -270,8 +306,16 @@ namespace db
       assert(typeid(EL).hash_code() == typeid(uint8_t).hash_code());
       return PP::v_bstr(ndx);
     }
-    void        set_value(cbstr_t data) { set_value(data, 0); }
-    void        set_value(cbstr_t data, std::size_t ndx) { PP::s_bstr(data, ndx); }
+    void    set_value(cbstr_t data) { set_value(data, 0); }
+    void    set_value(cbstr_t data, std::size_t ndx) { PP::s_bstr(data, ndx); }
+    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx)
+    {
+      return PP::bind_par(a_stmt_handle, a_ndx);
+    }
+    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx)
+    {
+      return PP::bind_col(a_stmt_handle, a_ndx);
+    }
     std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
     {
       return PP::dump_all(a_msg, max_el, offs);
@@ -296,16 +340,41 @@ namespace db
   public:
     using PP           = attr_root<T, DB_TYPE, arr_size, DEC>;
     constexpr string() = default;
-    cstr_t      value() const { return value(0); }
-    cstr_t      value(std::size_t ndx) const { return PP::v_cstr(ndx); }
-    void        set_value(cstr_t data) { set_value(data, 0); }
-    void        set_value(cstr_t data, std::size_t ndx) { PP::s_cstr(data, ndx); }
+    cstr_t  value() const { return value(0); }
+    cstr_t  value(std::size_t ndx) const { return PP::v_cstr(ndx); }
+    void    set_value(cstr_t data) { set_value(data, 0); }
+    void    set_value(cstr_t data, std::size_t ndx) { PP::s_cstr(data, ndx); }
+    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx)
+    {
+      return PP::bind_par(a_stmt_handle, a_ndx);
+    }
+    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx)
+    {
+      return PP::bind_col(a_stmt_handle, a_ndx);
+    }
     std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
     {
       return PP::dump_all(a_msg, max_el, offs);
     }
   private:
   public:
+  };
+  /**
+   * @brief execute simple SQL no parameters, no results
+   * 
+   * @param a_db db connection
+   * @param a_sql sql statement to be executed
+   * @return int16_t return code of the execution
+   */
+  inline int16_t exec(const db::connection* a_db, cstr_t a_sql)
+  {
+    db::statement s(a_db, a_sql);
+    return s.exec_direct(a_sql, false);
+  }
+
+  class utl
+  {
+    public:
   };
   /*....inline methods .......................................................................*/
 

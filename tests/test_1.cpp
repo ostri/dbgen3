@@ -2,6 +2,7 @@
  * \file
  * \brief program to test runtime library
  */
+#include <string_view>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <array>
 #include <cstdlib>
@@ -15,81 +16,8 @@
 #include "statement.hpp"
 #include "t1.hpp"
 
-// using argv_t = std::vector<const char*>;
-// /**
-//  * @brief basic connection test
-//  *
-//  * @param argc nuumber of command line parameters
-//  * @param argv value of the command line parameters
-//  * @return
-//  */
-// int do_main(argv_t argv)
-// {
-//   try
-//   {
-//     db::connection conn(argv[1]);
-//     return static_cast<int>(dbgen3::P_STS::success);
-//   }
-//   catch (db::error_exception& e)
-//   {
-//     db::_log_("cli error->");
-//     db::_log_(e.what());
-//     return static_cast<int>(dbgen3::P_STS::unk_db_name);
-//   }
-//   catch (...)
-//   {
-//     db::_log_("unhandled exception->");
-//     return static_cast<int>(dbgen3::P_STS::unk_exception);
-//   }
-// }
+using cstr_t = std::string_view;
 
-// TEST_CASE("Connection constructor")
-// {
-//   INFO("normal connect");
-//   REQUIRE(do_main(argv_t{"", "test"}) == static_cast<int>(dbgen3::P_STS::success));
-//   INFO("unknown database");
-//   REQUIRE(do_main(argv_t{"", "unknown"}) == static_cast<int>(dbgen3::P_STS::unk_db_name));
-//   INFO("empty database");
-//   REQUIRE(do_main(argv_t{"", ""}) == static_cast<int>(dbgen3::P_STS::unk_db_name));
-//   INFO("invalid database name");
-//   REQUIRE(do_main(argv_t{"", nullptr}) == static_cast<int>(dbgen3::P_STS::unk_exception));
-// }
-// TEST_CASE("statement - exec_direct")
-// { //
-//   auto sql_1 = "CREATE TABLE TBL(COL1 INT);";
-//   auto sql_2 = "CREATE TABLE -- TBL(COL1 INT);";
-//   auto sql_3 = "drop table tbl";
-
-//   db::connection c("test");
-//   db::statement  s1(c, sql_1); //!< ok
-//   db::statement  s2(c, sql_2); //!< invalid sql
-//   db::statement  s3(c, sql_1); //!< logically invalid sql
-//   db::statement  s4(c, sql_3); //!< table cleanup
-
-//   s4.exec_direct(sql_3, false); //!< initial cleanup we don't care if successful
-//                                 //!< there might be a remaining table from previous run
-
-//   { // OK
-//     auto rc = s1.exec_direct(sql_1, false);
-//     REQUIRE(rc == SQL_SUCCESS);
-//     s1.commit();
-//   }
-//   { // invalid SQL
-//     auto rc = s1.exec_direct(sql_2, false);
-//     REQUIRE(rc == SQL_ERROR);
-//     s2.commit();
-//   }
-//   { // logically invalid SQL (duplicate table tbl)
-//     auto rc = s1.exec_direct(sql_1, false);
-//     REQUIRE(rc == SQL_ERROR);
-//     s3.commit();
-//   }
-//   { // final cleanup
-//     auto rc = s4.exec_direct(sql_3, false);
-//     REQUIRE(rc == SQL_SUCCESS);
-//     s4.commit();
-//   }
-// }
 template <typename T>
 static bool cmp(const T& v1, const T& v2)
 {
@@ -123,8 +51,8 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   qr.set_c4_numeric(val_dec);
   qr.set_c5_decimal(val_dec);
   qr.set_c6_dec(val_dec);
-  const auto *str1 = "fix string";
-  const auto *str2 = "var str";
+  const auto* str1 = "fix string";
+  const auto* str2 = "var str";
   qr.set_c7_char(str1);
   qr.set_c7_char(str1, 1);
   qr.set_c8_varchar(str2);
@@ -170,4 +98,81 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   REQUIRE(cmp(qr.c17_varchar_for_bit_data(1), b));
   std::cerr << qp.dump();
   std::cerr << qr.dump();
+}
+/*...........................................................................*/
+static int diag(int rc, const db::statement& a_stmt, cstr_t a_msg = "")
+{
+  if (rc != SQL_SUCCESS)
+  {
+    std::cerr << db::error(a_stmt.get_stmt_handle(), SQL_HANDLE_STMT).dump(a_msg) << std::endl;
+    std::cerr << "rc code:" << rc << std::endl;
+  }
+  return rc;
+}
+/*...........................................................................*/
+static int diag_with_W(int rc, const db::statement& a_stmt, cstr_t a_msg = "")
+{
+  if ((rc != SQL_SUCCESS) && (rc != SQL_SUCCESS_WITH_INFO))
+  {
+    std::cerr << db::error(a_stmt.get_stmt_handle(), SQL_HANDLE_STMT).dump(a_msg) << std::endl;
+    std::cerr << "rc code:" << rc << std::endl;
+  }
+  return rc;
+}
+
+/*...........................................................................*/
+TEST_CASE("full_cycle") // NOLINT
+{
+  db::connection c("test");
+
+  { // cleanup
+    q_set_id::del_tbl_rec::utl q(&c);
+    auto                       rc = q.exec();
+    bool res = (rc == SQL_SUCCESS) || (rc == SQL_SUCCESS_WITH_INFO) || (rc == SQL_NO_DATA_FOUND);
+    if (! res) diag_with_W(rc, q, "empty table: ");
+    REQUIRE(res == true);
+    c.commit();
+  }
+  {
+    //db::connection c("test");
+    // insert new record(s)
+    auto        rc  = SQL_SUCCESS;
+    const auto* sql = "insert into tbl (C1_smallint, C2_int, C3_bigint) values (?,?,?)";
+    db::atomic<int16_t, 5, 0, 3> val1; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+    db::atomic<int32_t, 4, 0, 3> val2;
+    // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+    db::atomic<int64_t, -5, 0, 3> val3;
+    db::statement                 s(&c, sql); //!< final cleanup
+
+    for (auto cnt = 0UL; cnt < val1.size(); cnt++)
+    {
+      // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+      val1.set_value(static_cast<int16_t>((cnt + 1) * 10 + 1),
+                     cnt); //
+                           // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+      val2.set_value(static_cast<int32_t>((cnt + 1) * 10 + 2),
+                     cnt); //
+                           // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+      val3.set_value(static_cast<int64_t>((cnt + 1) * 10 + 3), cnt); //
+    }
+
+    rc = s.set_attr(SQL_ATTR_PARAMSET_SIZE, static_cast<int>(val1.size()));
+    diag(rc, s, "set attr n records");
+
+    rc = s.prepare();
+    diag(rc, s, "prepare");
+
+    auto h = s.get_stmt_handle();
+    rc     = val1.bind_par(h, 1);
+    diag(rc, s, "bind par smallint");
+    rc = val2.bind_par(h, 2);
+    diag(rc, s, "bind par int ");
+    rc = val3.bind_par(h, 3);
+    diag(rc, s, "bind par bigint");
+
+    rc = s.exec();
+    diag(rc, s, "exec");
+    REQUIRE(rc == SQL_SUCCESS);
+    s.commit();
+  }
 }

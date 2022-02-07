@@ -3,10 +3,10 @@
  * \brief program to test runtime library
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest/doctest.h>
-#include <cstdlib>
-#include <iostream>
 #include <array>
+#include <cstdlib>
+#include <doctest/doctest.h>
+#include <iostream>
 
 #include "connection.hpp"
 #include "error_exception.hpp"
@@ -41,7 +41,7 @@ int do_main(argv_t argv)
   }
 }
 
-TEST_CASE("Connection constructor")
+TEST_CASE("Connection constructor") // NOLINT
 {
   INFO("normal connect");
   REQUIRE(do_main(argv_t{"", "test"}) == static_cast<int>(dbgen3::P_STS::success));
@@ -52,17 +52,17 @@ TEST_CASE("Connection constructor")
   INFO("invalid database name");
   REQUIRE(do_main(argv_t{"", nullptr}) == static_cast<int>(dbgen3::P_STS::unk_exception));
 }
-TEST_CASE("statement - exec_direct")
+TEST_CASE("statement - exec_direct") // NOLINT
 { //
-  auto sql_1 = "CREATE TABLE TBL(COL1 INT);";
-  auto sql_2 = "CREATE TABLE -- TBL(COL1 INT);";
-  auto sql_3 = "drop table tbl";
+  const char* sql_1 = "CREATE TABLE TBL(COL1 INT);";
+  const char* sql_2 = "CREATE TABLE -- TBL(COL1 INT);";
+  const char* sql_3 = "drop table tbl";
 
   db::connection c("test");
-  db::statement  s1(c, sql_1); //!< ok
-  db::statement  s2(c, sql_2); //!< invalid sql
-  db::statement  s3(c, sql_1); //!< logically invalid sql
-  db::statement  s4(c, sql_3); //!< table cleanup
+  db::statement  s1(&c, sql_1); //!< ok
+  db::statement  s2(&c, sql_2); //!< invalid sql
+  db::statement  s3(&c, sql_1); //!< logically invalid sql
+  db::statement  s4(&c, sql_3); //!< table cleanup
 
   s4.exec_direct(sql_3, false); //!< initial cleanup we don't care if successful
                                 //!< there might be a remaining table from previous run

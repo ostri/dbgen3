@@ -2,10 +2,10 @@
 #define PROGRAM_STATUS_H
 #include <cassert>
 #include <cstdint>
+#include <map>
 #include <string>
 #include <sys/types.h>
 #include <vector>
-#include <map>
 
 #include "enums.hpp"
 

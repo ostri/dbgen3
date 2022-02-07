@@ -1,29 +1,28 @@
 #ifndef CORE_PARSER_HPP
 #define CORE_PARSER_HPP
 
-#include <filesystem>
 #include <array>
+#include <filesystem>
 #include <memory>
 
 #include <xercesc/dom/DOM.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMErrorHandler.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLString.hpp>
 
 #include "common.hpp"
+#include "db2_reader.hpp"
 #include "gsql_q_set.hpp"
+#include "gsql_sql_set.hpp"
 #include "log.hpp"
 #include "string_format.hpp"
 #include "xerces_strings.hpp"
-#include "gsql_sql_set.hpp"
-#include "db2_reader.hpp"
 
 namespace dbgen3
 {
-  namespace x  = xercesc;
-  namespace fs = std::filesystem;
+  namespace x = xercesc;
 
   class gsql_eh : public xercesc::DOMErrorHandler
   {
@@ -70,22 +69,28 @@ namespace dbgen3
                                  const RDBMS&         a_db_type);
     static gsql_q         load_q_children(const x::DOMElement* an_el,
                                           uint                 a_ndx,
-                                          str_vec              a_ctx,
+                                          const str_vec&       a_ctx,
                                           const db2_reader&    a_dbr,
                                           const RDBMS&         a_db_type,
                                           gsql_q&              r);
     static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
     static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
     static gsql_sql_set   load_sql_set(const x::DOMElement* an_el,
-                                       str_vec              a_ctx,
+                                       const str_vec&       a_ctx,
                                        const RDBMS&         a_db_type);
+    static gsql_sql_set   load_sql_set_sql(const x::DOMElement* el,
+                                           str_vec              a_ctx,
+                                           const RDBMS&         a_db_type,
+                                           uint                 ndx,
+                                           gsql_sql_set&        r
+                                           );
+    static gsql_q         load_q_sqlset_from_db(gsql_q& r, const db2_reader& a_dbr);
     ///@}
-    static std::string attr_value(const x::DOMElement* a_node,
+
+    static std::string attr_value(const x::DOMElement* an_el,
                                   cstr_t               an_attr_name,
                                   cstr_t               a_default);
-    static bool        attr_value(const x::DOMElement* a_node,
-                                  const std::string&   an_attr_name,
-                                  bool                 a_default);
+    static bool        attr_value(const x::DOMElement* an_el, cstr_t an_attr_name, bool a_default);
     bool               init();
     static std::string get_statement(const x::DOMElement* an_el, str_vec a_ctx);
     static std::string get_text_node(const x::DOMElement* an_el, str_vec a_ctx);

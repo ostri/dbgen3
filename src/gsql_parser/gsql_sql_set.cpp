@@ -35,11 +35,12 @@ namespace dbgen3
    *
    * @param a_sql_dscr sql descriptor
    * @return 0 - inserted
-   * @return 1 - ambiguos
-   * @return 2 - replace existing generic
-   * @return 4 - skipped - we have generic, but there is already specific
+   * @return 1 - ambiguos - two sqls for the same database
+   * @return 2 - replace existing generic with new specific
+   * @return 3 - sql for rdbms that is currently irrelevant
+   * @return 4 - skipped - new is generic, but there is already old specific
    */
-  int gsql_sql_set::insert(const gsql_sql_dscr& a_val)
+  INS_OP gsql_sql_set::insert(const gsql_sql_dscr& a_val)
   {
     if ((a_val.db_type() == db_type_) || (a_val.db_type() == RDBMS::sql))
     { // our database type or generic sql
@@ -49,21 +50,20 @@ namespace dbgen3
       { // we already have sql descriptor for this phase
         uint old_rdbms = ME::enum_integer<RDBMS>(found->second.db_type());
         uint new_rdbms = ME::enum_integer<RDBMS>(a_val.db_type());
-        if (old_rdbms == new_rdbms) return 1; // ambigious
-        else if (old_rdbms < new_rdbms)       //
-        {                                     // replace generic with specific
+        if (old_rdbms == new_rdbms) return INS_OP::ambigous; //  two definitions for 
+                                                             //  the same database
+        if (old_rdbms < new_rdbms) //
+        {                          // replace generic with specific
           sql_map_[new_phase] = a_val;
-          return 2;
+          return INS_OP::specific;
         }
-        else return 4; // new is generic, old is specific, skip the new one
+        return INS_OP::skip; // new is generic, old is specific, skip the new one
       }
-      else //
-      {    // no previous input for this phase - insert it
-        sql_map_[a_val.key()] = a_val;
-        return 0;
-      }
+      // no previous input for this phase - insert it
+      sql_map_[a_val.key()] = a_val;
+      return INS_OP::inserted;
     }
-    else /* for some other database - skip it */ return false;
+    return INS_OP::other; // sql for not selected (other) rdbms
   }
 
   const gsql_sql_dscr* gsql_sql_set::fetch(const PHASE& a_phase) const
@@ -71,12 +71,12 @@ namespace dbgen3
     uint16_t key = ME::enum_integer<PHASE>(a_phase);
     auto     it  = sql_map_.find(key);
     if (it != sql_map_.end()) { return &(it->second); }
-    else return nullptr;
+    return nullptr;
   }
 
-  const std::string gsql_sql_set::fetch_sql(const PHASE& a_phase) const
+  std::string gsql_sql_set::fetch_sql(const PHASE& a_phase) const
   {
-    auto el = fetch(a_phase);
+    const auto* el = fetch(a_phase);
     return el != nullptr ? trim(el->sql()) : "";
   }
 

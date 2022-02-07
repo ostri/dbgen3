@@ -16,7 +16,7 @@ namespace db
   /**
    * Constructor
    */
-  statement::statement(const connection& a_db)
+  statement::statement(const connection* a_db)
   : statement(a_db, "")
   { }
   // // : db_(a_db)
@@ -24,10 +24,10 @@ namespace db
   // // , is_prepared_(false)
   // { }
   /// constructor with sql
-  statement::statement(const connection& a_db, std::string an_sql)
+  statement::statement(const connection* a_db, std::string_view an_sql)
   : db_(a_db)
-  , sql_(std::move(an_sql))
-  , handle_(db_.alloc_stmt_handle())
+  , sql_(an_sql)
+  , handle_(db_->alloc_stmt_handle())
   , is_prepared_(false)
   { }
   /*!
@@ -39,23 +39,23 @@ namespace db
   statement::~statement()
   {
     db::connection::dealloc_stmt_handle(handle_);
-    log(std::string("Statement disposed: " + std::to_string(handle_) + " sql='") + get_sql() +
-        std::string("'."));
+    log(str_t("Statement disposed: " + std::to_string(handle_) + " sql='") + str_t(get_sql()) +
+        str_t("'."));
   }
   /*!
    * Execute direct sql statement
    * \param an_sql an sql statement to be executed
    * \returns return code of the operation 0 == ok
    */
-  std::int16_t statement::exec_direct(const std::string& an_sql, bool should_throw)
+  std::int16_t statement::exec_direct(cstr_t an_sql, bool should_throw)
   {
-    set_sql(an_sql);
+    if (! an_sql.empty()) set_sql(an_sql);
     std::int16_t sts =
       chk(SQLExecDirect(handle_,
-                        reinterpret_cast<SQLCHAR*>(const_cast<char*>(an_sql.data())), // NOLINT
+                        reinterpret_cast<SQLCHAR*>(const_cast<char*>(get_sql().data())), // NOLINT
                         SQL_NTS),
-          std::string("exec direct ok    :- sql='") + get_sql() + "'.",
-          std::string("exec direct failed:- sql='") + get_sql() + "'.",
+          str_t("exec direct ok    :- sql='") + str_t(get_sql()) + "'.",
+          str_t("exec direct failed:- sql='") + str_t(get_sql()) + "'.",
           should_throw);
     return sts;
   }
@@ -66,8 +66,8 @@ namespace db
   std::int16_t statement::exec() const
   {
     return chk(SQLExecute(handle_),
-               std::string("exec ok    :- sql='") + get_sql() + "'.",
-               std::string("exec failed:- sql='") + get_sql() + "'.",
+               str_t("exec ok    :- sql='") + str_t(get_sql()) + "'.",
+               str_t("exec failed:- sql='") + str_t(get_sql()) + "'.",
                false);
   }
   /*!
@@ -81,8 +81,8 @@ namespace db
     if (! an_sql.empty()) sql_ = an_sql;
     if (! is_prepared_)
     {
-      auto ok_ans  = std::string("prepare ok :- sql='") + sql_ + std::string("'.");
-      auto nak_ans = std::string("prepare failed:- sql='") + sql_ + std::string("'.");
+      auto ok_ans  = str_t("prepare ok :- sql='") + sql_ + str_t("'.");
+      auto nak_ans = str_t("prepare failed:- sql='") + sql_ + str_t("'.");
 
       rc = chk(
         SQLPrepare(handle_,
@@ -94,7 +94,7 @@ namespace db
         nak_ans);
       is_prepared_ = rc == SQL_SUCCESS;
     }
-    else log(std::string("Already prepared: '") + sql_ + std::string("'."));
+    else log(str_t("Already prepared: '") + sql_ + str_t("'."));
     return rc;
   }
   /**
@@ -114,9 +114,9 @@ namespace db
   /// fetch statement handle
   SQLHANDLE statement::get_stmt_handle() const { return this->handle_; }
   /// commit statements
-  std::int16_t statement::commit() const { return db_.commit(); }
+  std::int16_t statement::commit() const { return db_->commit(); }
   /// rollback statements
-  std::int16_t statement::rollback() const { return db_.rollback(); }
+  std::int16_t statement::rollback() const { return db_->rollback(); }
   /// fetch buffer set
   /*!
    * The method fetches a record set. Records are taken either relative or absolute.
@@ -132,8 +132,8 @@ namespace db
   std::int16_t statement::fetch_scroll(int16_t a_dir, uint a_len, bool should_throw) const
   {
     return chk(SQLFetchScroll(handle_, a_dir, static_cast<std::make_signed_t<uint>>(a_len)),
-               std::string("fetch scroll ok    :- sql='") + get_sql() + "'.",
-               std::string("fetch scroll failed:- sql='") + get_sql() + "'.",
+               str_t("fetch scroll ok    :- sql='") + str_t(get_sql()) + "'.",
+               str_t("fetch scroll failed:- sql='") + str_t(get_sql()) + "'.",
                should_throw);
   }
   /*!
@@ -145,38 +145,38 @@ namespace db
    * \param should_throw true - on error it throws an exception
    *                     false - on error just return error code (i.e. no exception)
    */
-  std::int16_t statement::chk(std::int16_t       err_code,
-                              const std::string& ok_msg,
-                              const std::string& err_msg,
-                              bool               should_throw) const
+  std::int16_t statement::chk(std::int16_t err_code,
+                              cstr_t       ok_msg,
+                              cstr_t       err_msg,
+                              bool         should_throw) const
   {
     if (err_code != SQL_SUCCESS)
     {
       error err;
       err.load(handle_, SQL_HANDLE_STMT);
-      std::string str = err_msg + std::string(" : '") + err.dump(sql_ + "' ##  err:");
+      std::string str = str_t(err_msg) + str_t(" : '") + err.dump(sql_ + "' ##  err:");
       log(str);
       if (should_throw) throw error_exception(str);
       //      log("Error code: " + std::to_string(err_code));
     }
-    else log(ok_msg);
+    else log(str_t(ok_msg));
     return err_code;
   }
   /// fetch an sql statement
-  const std::string& statement::get_sql() const { return sql_; }
+  inline cstr_t statement::get_sql() const { return sql_; }
   /// set sql statement
-  void statement::set_sql(const std::string& an_sql)
+  void statement::set_sql(cstr_t an_sql)
   {
     if (sql_ != an_sql)
     {
       sql_         = an_sql;
       is_prepared_ = false;
-      log(std::string("sql set:'") + sql_ + std::string("'"));
+      log(str_t("sql set:'") + sql_ + str_t("'"));
     }
     // we don't need else branch - removed on purpose
   }
   /// fetch the related connecton object
-  const connection& statement::get_db() const { return db_; }
+  const connection& statement::get_db() const { return *db_; }
   /// fetch cursor name
   std::string statement::get_cursor_name() const { return cursor_name_; }
   /*!
@@ -218,23 +218,23 @@ namespace db
    * @return SQL_SUCCESS or one of allowed codes
    * @throws it can throw an error_exception object for each unlisted return code
    */
-  int statement::handle_return_code(int rc, const std::string& allowed_codes)
-  {
+  int statement::handle_return_code(int rc, cstr_t allowed_codes)
+  { // FIXME should be binary vector
     std::string fnc(&__func__[0]);
     if (rc != SQL_SUCCESS)
     {
       error err;
       err.load(handle_, SQL_HANDLE_STMT);
 
-      int code = err.get_error_code();
-      if (allowed_codes.find(std::to_string(code)) == std::string::npos)
+      int code = err.get_error_code(0);
+      if (str_t(allowed_codes).find(std::to_string(code)) == std::string::npos)
       {
         std::string err_str = err.dump(sql_);
-        log(fnc + std::string(":") + err_str);
+        log(fnc + str_t(":") + err_str);
         throw error_exception(err_str);
       };
     }
-    log(fnc + std::string(": OK"));
+    log(fnc + str_t(": OK"));
     return rc;
   }
   /*!
@@ -249,30 +249,30 @@ namespace db
                                       attr,
                                       reinterpret_cast<void*>(value), // NOLINT
                                       0);
-    log(std::string("status:") + std::to_string(ret) + //
-        " attribute:'" + std::to_string(attr) +        //
-        "' value:'" + std::to_string(value) +          //
+    log(str_t("status:") + std::to_string(ret) + //
+        " attribute:'" + std::to_string(attr) +  //
+        "' value:'" + std::to_string(value) +    //
         "'.");
     return ret;
   }
   std::int16_t statement::set_attr(const int attr, int16_t* value) const
   {
     std::int16_t ret = SQLSetStmtAttr(handle_, attr, static_cast<SQLPOINTER>(value), 0);
-    log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
+    log(str_t("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" + std::to_string(*value) + "'.");
     return ret;
   }
   std::int16_t statement::set_attr(const int attr, int* value) const
   {
     std::int16_t ret = SQLSetStmtAttr(handle_, attr, static_cast<SQLPOINTER>(value), 0);
-    log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
+    log(str_t("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" + std::to_string(*value) + "'.");
     return ret;
   }
-  std::int16_t statement::set_attr( int attr, std::size_t* value) const
+  std::int16_t statement::set_attr(int attr, std::size_t* value) const
   {
     std::int16_t ret = SQLSetStmtAttr(handle_, attr, static_cast<SQLPOINTER>(value), 0);
-    log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
+    log(str_t("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" + std::to_string(*value) + "'.");
     return ret;
   }
@@ -282,7 +282,7 @@ namespace db
                                       attr,
                                       reinterpret_cast<void*>(value), // NOLINT
                                       SQL_NTS);
-    log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
+    log(str_t("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" + std::to_string(*value) + "'.");
     return ret;
   }
@@ -292,10 +292,10 @@ namespace db
                                       attr,
                                       reinterpret_cast<SQLPOINTER>(value), // NOLINT
                                       SQL_LEN_BINARY_ATTR(len));
-    log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
+    log(str_t("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" +
-        std::string(reinterpret_cast<const char*>(value), // NOLINT
-                    len) +
+        str_t(reinterpret_cast<const char*>(value), // NOLINT
+              len) +
         "'.");
     // log(std::format("status: {} attribute:'{}' value:'{}'.", ret, attr, value));
     return ret;
@@ -307,7 +307,7 @@ namespace db
       attr,
       reinterpret_cast<SQLPOINTER>(value), // NOLINT -cppcoreguidelines-pro-type-reinterpret-cast
       0);
-    log(std::string("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
+    log(str_t("status:") + std::to_string(ret) + " attribute:'" + std::to_string(attr) +
         "' value:'" + std::to_string(value) + "'.");
     return ret;
   }

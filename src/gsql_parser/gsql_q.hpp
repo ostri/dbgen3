@@ -26,7 +26,7 @@ namespace dbgen3
      * 0,2 needed for proper dbgen3 execution (e.g. work with the temporary tables)
      */
   public:
-    gsql_q(const RDBMS& a_db_type);
+    explicit gsql_q(const RDBMS& a_db_type);
     ~gsql_q()             = default;
     gsql_q(const gsql_q&) = default;
     gsql_q(gsql_q&&)      = default;
@@ -42,6 +42,14 @@ namespace dbgen3
     std::string           dump() const;
     std::string           dump(uint offs) const;
     std::string           dump(const std::string& a_msg, uint offs) const;
+    /**
+     * @brief does SQL demands a buffer (PAR/RES)
+     *
+     * @param a_type type of buffer (PAR/RES)
+     * @return true SQL requires the buffer
+     * @return false SQL does not mandate the buffer
+     */
+    bool must_have_buf(const BUF_TYPE& a_type) const { return ! buf_dscr(a_type).flds().empty(); }
 
     //@}
     /// @name setters

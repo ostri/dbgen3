@@ -27,6 +27,12 @@ namespace dbgen3
     static str_t define_attributes_const(const fld_vec& flds, uint max_name_len, uint offs);
     static str_t define_attributes(const fld_vec& flds, uint max_name_len, uint offs);
     static str_t define_attr_array(const fld_vec& flds, uint max_name_len, uint offs);
+
+    static str_t gen_includes(uint offs);
+    static str_t gen_queries(const gsql_q_set& set, uint offs);
+    static str_t gen_custom_header(const gsql_q_set& set, uint offs);
+    static str_t gen_query(const gsql_q& q, uint offs);
+    static str_t define_default_ctor(const fld_vec& flds, uint max_name_len, cstr_t c_name, std::size_t offs);
   };
 }; // namespace dbgen3
 

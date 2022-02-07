@@ -121,11 +121,8 @@ TEST_SUITE("templates")
 
     { // cleanup
       const auto*   sql_2 = "delete from tbl where C1_smallint > 0";
-      db::statement s(c, sql_2); //!< final cleanup
+      db::statement s(&c, sql_2); //!< final cleanup
       s.exec_direct(sql_2, false);
-      // auto          rc = s.exec_direct(sql_2, false);
-      // diag(rc, s, "cleanup");
-      // REQUIRE(rc == SQL_SUCCESS);
       s.commit();
     }
 
@@ -145,7 +142,7 @@ TEST_SUITE("templates")
       db::atomic<int32_t, 4, 0, 3> val2;
       // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
       db::atomic<int64_t, -5, 0, 3> val3;
-      db::statement                 s(c, sql); //!< final cleanup
+      db::statement                 s(&c, sql); //!< final cleanup
 
       for (auto cnt = 0UL; cnt < val1.size(); cnt++)
       {
@@ -186,7 +183,7 @@ TEST_SUITE("templates")
       db::atomic<int32_t, 4, 0, 2> val2;
       // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
       db::atomic<int64_t, -5, 0, 2> val3;
-      db::statement                 s(c, sql); //!< final cleanup
+      db::statement                 s(&c, sql); //!< final cleanup
 
       rc = s.prepare();
       diag(rc, s, "prepare");

@@ -30,7 +30,7 @@ namespace db
    */
   class error
   {
-//    friend std::ostream& operator<<(std::ostream& s, const error& o);
+    //    friend std::ostream& operator<<(std::ostream& s, const error& o);
   public:
     /// constructor
     error() = default;
@@ -40,7 +40,7 @@ namespace db
     error(const error& o) = default;
     /// move ctor
     error(error&& o) = default;
-    ///Assignment operator
+    /// Assignment operator
     error& operator=(const error& o) = default;
     /// move assignement operator
     error& operator=(error&& o) = default;
@@ -53,29 +53,34 @@ namespace db
      * @param a_handle_type type of the handle
      * @return number of the errors loaded
      */
-    int load(SQLHANDLE   a_handle,      // NOLINT bugprone-easily-swappable-parameters
-             SQLSMALLINT a_handle_type);
+    // NOLINTNEXTLINE bugprone-easily-swappable-parameters
+    std::size_t load(SQLHANDLE a_handle, SQLSMALLINT a_handle_type);
     /// getters
-    uint get_err_count() const;
     /// is there some error
     bool is_error() const;
-    /// fetch a corresponding error code
-    int get_error_code(uint ndx = 0) const;
-    /// fetch n-th error description from the list of descriptions
-    const error_dscr& get_error_dscr(uint ndx = 0) const;
-    /// fetch the number of error descriptions
-    uint get_number_of_messages() const;
     /// it writes all errors into a string
     std::string dump(cstr_t a_msg = "") const;
+    /// fetch a corresponding error code
+    int get_error_code(uint ndx) const; // FIXME handle_return_code
   private:
+    /// fetch the number of error descriptions
+    uint get_number_of_messages() const;
+    uint get_err_count() const;
+    /// fetch n-th error description from the list of descriptions
+    const error_dscr& get_error_dscr(uint ndx = 0) const;
     /// log - for statements only
     static void log(const std::string& msg);
+    int16_t     wrap_diag_rec(int32_t a_handle, int16_t a_handle_type);
     /*........................................................................*/
     /// vector of errors
     std::vector<error_dscr> errors_ = {};
   };
   /// fetch nth error description
   inline const error_dscr& error::get_error_dscr(uint ndx) const { return errors_.at(ndx); }
+  /*!
+   * \returns i-th erro code or 0 if no code exists
+   */
+  inline int error::get_error_code(uint ndx) const { return errors_.at(ndx).get_code(); }
   /// Fetch the number of error descriptions
   inline uint error::get_number_of_messages() const { return errors_.size(); }
 } // namespace db

@@ -5,6 +5,7 @@
 #ifndef STATEMENT_H
 #define STATEMENT_H
 
+#include <string_view>
 #include <vector>
 
 #include "connection.hpp"
@@ -22,31 +23,33 @@ namespace db
   class statement
   {
   public:
+    using str_t = std::string;
+    using cstr_t = std::string_view;
     //! @name Constructor(s) and destructor
     //@{
-    explicit statement(const connection& a_db);            //!< constructor
-    statement(const connection& a_db, std::string an_sql); //!< constructor with sql
-    statement(const statement& o) = default;               //!< copy constructor
-    statement(statement&& o)      = default;               //! move constructor
-    virtual ~statement();                                  /// destructor
+    explicit statement(const connection* a_db);       //!< constructor
+    statement(const connection* a_db, std::string_view an_sql); //!< constructor with sql
+    statement(const statement& o) = default;          //!< copy constructor
+    statement(statement&& o)      = default;          //! move constructor
+    virtual ~statement();                             /// destructor
     //@}
     //! @name Operator(s)
     //@{
     statement& operator=(const statement& o) = delete; //!< Assignment operator
     statement& operator=(statement&& o) = delete;      //!< move assignement operator
-    statement* assign(const statement& o);              //!< assign attributes
+    statement* assign(const statement& o);             //!< assign attributes
     //@}
     //! @name Getters
     //@{
     std::int32_t       get_stmt_handle() const;              //!< fetch statement handle
-    const std::string& get_sql() const;                      //!< fetch SQL statement
+    cstr_t get_sql() const;                      //!< fetch SQL statement
     std::string        get_cursor_name() const;              //!< fetch cursor name
     const connection&  get_db() const;                       //!< fetch db related connection
     std::string        dump(const std::string& a_msg) const; //!< serialize instance to string
     //@}
     //! @name Setters
     //@{
-    void set_sql(const std::string& an_sql); //!< set sql statement
+    void set_sql(cstr_t an_sql); //!< set sql statement
     //@}
     /*! @name Statement attribute setters
      * The setters set attributes of the statement. It is always
@@ -81,11 +84,11 @@ namespace db
     //! @name database operations
     //@{
     /// execute an a query
-    std::int16_t exec_direct(const std::string& an_sql, bool should_throw);
-    std::int16_t exec() const; //!< execute an a query with pre-loaded sql statement
+    std::int16_t exec_direct(cstr_t an_sql, bool should_throw);
+    std::int16_t exec() const;                //!< execute an a query with pre-loaded sql statement
     std::int16_t prepare(cstr_t an_sql = ""); //!< prepare the statement
-    std::int16_t commit() const;                          //!< commit statements
-    std::int16_t rollback() const;                        //!< rollback statements
+    std::int16_t commit() const;              //!< commit statements
+    std::int16_t rollback() const;            //!< rollback statements
     /// fetch buffer set
     std::int16_t fetch_scroll(int16_t a_dir, uint a_len, bool should_throw = true) const;
     /// fetch buffer set and throw only for unallowed return codes
@@ -97,11 +100,11 @@ namespace db
     /// It checks the return status of the cli call and raises exception upon error otherwise
     /// returns SQL_SUCCESS
     std::int16_t chk(std::int16_t       err_code,
-                     const std::string& ok_msg,
-                     const std::string& err_msg,
+                     cstr_t ok_msg,
+                     cstr_t err_msg,
                      bool               should_throw = true) const;
     /// check if code is on the list and throw accordingly if not
-    int handle_return_code(int rc, const std::string& allowed_codes);
+    int handle_return_code(int rc, cstr_t allowed_codes);
     /// set the result set current position
     virtual std::int16_t set_pos(size_t a_rec_pos);
     /// set result set current position
@@ -113,13 +116,13 @@ namespace db
     /// the method prepare error string and logs it into log file
     /// std::string build_log_error(const char* error_prefix);
   private:
-    const connection& db_;          //!< related database connection
+    const connection* db_;          //!< related database connection (no ownership)
     std::string       sql_;         //!< sql statement string
     std::int32_t      handle_ = 0;  //!< handle of the statement
     std::string       cursor_name_; //!< cursor name
     mutable bool      is_prepared_; //!< indicator whether the statement is already prepared
   };
   /// logs an event into log file
-  inline void statement::log(const std::string& msg) const { db_.log(msg); }
+  inline void statement::log(const std::string& msg) const { db_->log(msg); }
 } // namespace db
 #endif
