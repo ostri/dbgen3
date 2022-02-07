@@ -1,8 +1,8 @@
 #ifndef GSQL_SQL_DSCR_HPP
 #define GSQL_SQL_DSCR_HPP
 
-#include <vector>
 #include <fmt/core.h>
+#include <vector>
 
 #include "string_format.hpp"
 #include "cmdline_parameters.hpp"
@@ -27,6 +27,7 @@ namespace dbgen3
     std::string    dump(cstr_t a_msg, uint offs) const;
     uint8_t        key() const;
     std::string    sql() const;
+    const multi_line& sql_ml() const {return ml_sql_;}
     RDBMS          db_type() const;
     PHASE          phase() const;
   private:

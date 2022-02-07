@@ -13,7 +13,7 @@ namespace dbgen3
     s += out::sl("query", offs);
     s += out::sl("{", offs);
     s += out::sl("  id: '" + id_ + "'", offs);
-    for (auto b : buf_dscr_) s += b.dump("", offs + 2);
+    for (const auto& b : buf_dscr_) s += b.dump("", offs + 2);
     s += sql_set_.dump("", offs + 2);
     s += out::sl("}", offs);
     return s;
@@ -26,7 +26,7 @@ namespace dbgen3
     return this->buf_dscr_[ME::enum_integer(a_type)];
   }
 
-  const std::string gsql_q::sql(const PHASE& a_phase) const
+  std::string gsql_q::sql(const PHASE& a_phase) const
   {
     return sql_set_.fetch_sql(a_phase);
   }
@@ -34,7 +34,7 @@ namespace dbgen3
   RDBMS                 gsql_q::db_type() const {return sql_set_.db_type();}
 
   void gsql_q::set_buf_dscr(const gsql_qbuf_dscr& buf_dscr)
-  {
+  { // NOLINTNEXTLINE clang-tidy(hicpp-no-array-decay)
     assert((buf_dscr.type() == BUF_TYPE::par) ||
            (buf_dscr.type() == BUF_TYPE::res));
     this->buf_dscr_[static_cast<uint>(buf_dscr.type())] = buf_dscr;

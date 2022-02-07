@@ -37,7 +37,7 @@ namespace dbgen3
     ///@{
     cstr_t                id() const;
     const gsql_qbuf_dscr& buf_dscr(const BUF_TYPE& a_type) const;
-    const std::string     sql(const PHASE& a_phase) const;
+    std::string           sql(const PHASE& a_phase) const;
     RDBMS                 db_type() const;
     std::string           dump() const;
     std::string           dump(uint offs) const;

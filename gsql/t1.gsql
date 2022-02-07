@@ -62,4 +62,22 @@
             </sql>
         </sql-set>
     </q>
+    <q id="insert">
+        <sql-set>
+            <sql>
+                insert into tbl 
+                (
+                    C1_smallint, 
+                    C2_int, 
+                    C3_bigint
+                ) 
+                values 
+                (
+                    ?,
+                    ?,
+                    ?
+                )
+            </sql>
+        </sql-set>
+    </q>
 </q-set>

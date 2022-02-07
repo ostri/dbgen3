@@ -418,12 +418,13 @@ namespace dbgen3
     r += out::sl(fmt::format("class {}: public db::statement", "utl"), offs);
     r += out::sl(fmt::format("{{"), offs);
     r += out::sl(fmt::format("public:"), offs);
-    r += out::sl(fmt::format("  constexpr static const char* sql=\"{}\";", sql), offs);
     r += out::sl(fmt::format("  explicit utl(db::connection* c): db::statement(c,sql) {{}}"), offs);
     r += out::sl(fmt::format("  auto exec() {{ return exec_direct(sql, false); }}"), offs);
     // r += out::sl(fmt::format("  const db::statement& stmt() {{ return s_; }}"), offs);
     r += out::sl(fmt::format("private:"), offs);
+    r += out::sl(fmt::format("  constexpr static const char* sql=\"{}\";", sql), offs);
     r += out::sl(fmt::format("}};"), offs);
+  
     return r;
   }
   str_t gen_cpp::gen_includes(uint offs)

@@ -48,4 +48,4 @@ namespace dbgen3
 
   PHASE          gsql_sql_dscr::phase() const { return phase_; }
 
-}
+}; // namespace dbgen3

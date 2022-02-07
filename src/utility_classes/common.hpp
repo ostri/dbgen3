@@ -1,15 +1,15 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
+#include <fmt/color.h>
+#include <fmt/core.h>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <glog/logging.h>
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <vector>
-#include <fmt/core.h>
 #include <sys/stat.h>
-#include <fmt/ranges.h>
-#include <fmt/color.h>
-#include <fmt/format.h>
+#include <vector>
 
 #include "log.hpp"
 //#include "program_status.hpp"
@@ -27,15 +27,15 @@ namespace dbgen3
 
   const uint align_64 = 64; //!< align to 64 byte boundry
 
-  std::string ctx_to_str(const str_vec a_ctx);
-  std::string ctx_to_str(const str_vec a_ctx, cstr_t last);
+  std::string ctx_to_str(const str_vec& a_ctx);
+  std::string ctx_to_str(const str_vec& a_ctx, cstr_t last);
   bool        file_exists(cstr_t path);
 
   // rtrim
   inline std::string rtrim(cstr_t o)
   {
     std::string s(o);
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return ! std::isspace(ch); })
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return std::isspace(ch) == 0; })
               .base(),
             s.end());
     return s;
@@ -66,12 +66,12 @@ namespace dbgen3
    */
   inline bool file_exists(cstr_t path)
   {
-    struct stat buffer;
+    struct stat buffer{};
     return (stat(std::string(path).data(), &buffer) == 0);
   }
 
-  inline std::string ctx_to_str(const str_vec a_ctx) { return ctx_to_str(a_ctx, ""); }
-  inline std::string ctx_to_str(const str_vec a_ctx, cstr_t last)
+  inline std::string ctx_to_str(const str_vec& a_ctx) { return ctx_to_str(a_ctx, ""); }
+  inline std::string ctx_to_str(const str_vec& a_ctx, cstr_t last)
   {
     const str_vec prompts = {"q-set", "q"};
     std::string   r;

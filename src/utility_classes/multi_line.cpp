@@ -18,10 +18,10 @@ namespace dbgen3
   str_vec multi_line::trim_left(const str_vec& o)
   {
     const std::string WHITESPACE = " \n\r\t\f\v";
-    auto              min        = o.size() ? o.at(0).size() : 0;
+    auto              min        = !o.empty() ? o.at(0).size() : 0;
     if (min > 0)
     {
-      for (auto line : o)
+      for (const auto& line : o)
       {
         auto start = line.find_first_not_of(WHITESPACE);
         min        = start < min ? start : min;
@@ -29,13 +29,13 @@ namespace dbgen3
       }
       str_vec r;
       /// all lines have at least "min" leading whitespaces ltrim it
-      for (auto line : o) { r.push_back(line.substr(min)); };
+      for (const auto& line : o) { r.push_back(line.substr(min)); };
       return r;
     }
-    else return o;
+    return o;
   }
-  multi_line::multi_line(const str_vec& o)
-  : lines_(o)
+  multi_line::multi_line(str_vec o)
+  : lines_(std::move(o))
   { 
   }
   multi_line::multi_line(cstr_t a_str)
@@ -51,20 +51,20 @@ namespace dbgen3
     lines_ = str_to_vec(o);
     return *this;
   }
-  multi_line::operator const std::string () const 
+  multi_line::operator std::string () const 
   {
     std::string r;
-    for(auto l: lines_) r += l+' ';
+    for(const auto& l: lines_) r += trim(l)+' ';
     return r;
   }
   std::string multi_line::dump() const { return dump("", 0); }
-  std::string multi_line::dump(int offs) const { return dump("", offs); }
+  std::string multi_line::dump(uint offs) const { return dump("", offs); }
 
-  std::string multi_line::dump(cstr_t o, int offs) const
+  std::string multi_line::dump(cstr_t o, uint offs) const
   {
     std::string s(o);
     // s += std::to_string(lines_.size());
-    for (auto l : lines_) s += out::sl(l, offs);
+    for (const auto& l : lines_) s += out::sl(l, offs);
     return s;
   }
-} // namespace dbgen3
+}; // namespace dbgen3
