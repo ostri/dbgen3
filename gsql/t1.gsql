@@ -1,5 +1,5 @@
 <?xml-model href="t11.xsd"?>
-<q-set id="q-set-id">
+<q-set id="UT">
     <hdr><![CDATA[ 
         /*
         you can insert arbitrary c++ code here 
@@ -15,7 +15,7 @@
         -->
         <!-- header line 3 -->
     </hdr>
-    <q id="q-id1">
+    <q id="Q-1">
         <!-- query -->
         <qp id="qp-id" /> <!-- query parameters -->
         <qr id="qr-id" /> <!-- query result -->

@@ -34,13 +34,13 @@ static bool cmp(const db::cbstr_t& v1, const db::cbstr_t& v2)
 TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
 {
   db::connection            c("test");
-  q_set_id::q_id1::qp_id<2> qp;
+  UT::Q_1::qp_id<2> qp;
   qp.set_par_1(10);            // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   qp.set_par_1(11, 1);         // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   REQUIRE_EQ(qp.par_1(), 10);  // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   REQUIRE_EQ(qp.par_1(1), 11); // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
 
-  q_set_id::q_id1::qr_id<2> qr;
+  UT::Q_1::qr_id<2> qr;
   const int16_t             val16 = 10;
   const int32_t             val32 = 10;
   const int64_t             val64 = 10;
@@ -126,7 +126,7 @@ TEST_CASE("full_cycle") // NOLINT
   db::connection c("test");
 
   { // cleanup
-    q_set_id::del_tbl_rec::utl q(&c);
+    UT::del_tbl_rec::utl q(&c);
     auto                       rc = q.exec();
     bool res = (rc == SQL_SUCCESS) || (rc == SQL_SUCCESS_WITH_INFO) || (rc == SQL_NO_DATA_FOUND);
     if (! res) diag_with_W(rc, q, "empty table: ");
