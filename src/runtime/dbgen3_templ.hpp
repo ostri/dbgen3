@@ -270,7 +270,6 @@ namespace db
     }
     //    bool   is_bind() const override { return bind_; }
     //    size_t size() const override { return arr_size; }
-  protected:
     virtual attr_vec_t& attr_vec() { return attr_vec_; }
     size_t              occupied() const override { return occupied_; }
     void                set_occupied(size_t v) override { occupied_ = v; }

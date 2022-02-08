@@ -139,10 +139,11 @@ TEST_CASE("full_cycle") // NOLINT
     UT::insert::utl     q(&c, &par);
     for (auto cnt=0UL; cnt<par.size(); cnt++)
     {
-      par.set_par_1(static_cast<int16_t>(cnt*10+cnt), cnt); // NOLINT
-      par.set_par_2(static_cast<int32_t>(cnt*20+cnt), cnt); // NOLINT
-      par.set_par_3(static_cast<int64_t>(cnt*30+cnt), cnt); // NOLINT
+      par.set_par_1(static_cast<int16_t>(cnt+1), cnt); // NOLINT
+      par.set_par_2(static_cast<int32_t>(cnt+1), cnt); // NOLINT
+      par.set_par_3(static_cast<int64_t>(cnt+1), cnt); // NOLINT
     }
+    par.set_occupied(par.size());
     auto                rc = q.exec();
     diag(rc, q.handle(), "empty table: ");
     REQUIRE(rc == SQL_SUCCESS);
