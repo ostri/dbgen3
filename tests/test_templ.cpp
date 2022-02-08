@@ -111,7 +111,7 @@ TEST_SUITE("templates")
   static int diag(int rc, const db::statement& a_stmt, cstr_t a_msg = "")
   {
     if (rc != SQL_SUCCESS)
-      std::cerr << db::error(a_stmt.get_stmt_handle(), SQL_HANDLE_STMT).dump(a_msg) << std::endl;
+      std::cerr << db::error(a_stmt.handle(), SQL_HANDLE_STMT).dump(a_msg) << std::endl;
     return rc;
   }
   TEST_CASE("full_cycle") // NOLINT
@@ -162,7 +162,7 @@ TEST_SUITE("templates")
       rc = s.prepare();
       diag(rc, s, "prepare");
 
-      auto h = s.get_stmt_handle();
+      auto h = s.handle();
       rc     = val1.bind_par(h, 1);
       diag(rc, s, "bind par smallint");
       rc = val2.bind_par(h, 2);
@@ -198,13 +198,13 @@ TEST_SUITE("templates")
       diag(rc, s, "set results variable");
       REQUIRE(rc == SQL_SUCCESS);
 
-      rc = val1.bind_col(s.get_stmt_handle(), 1);
+      rc = val1.bind_col(s.handle(), 1);
       diag(rc, s, "bind col smallint");
       REQUIRE(rc == SQL_SUCCESS);
-      rc = val2.bind_col(s.get_stmt_handle(), 2);
+      rc = val2.bind_col(s.handle(), 2);
       diag(rc, s, "bind col int");
       REQUIRE(rc == SQL_SUCCESS);
-      rc = val3.bind_col(s.get_stmt_handle(), 3);
+      rc = val3.bind_col(s.handle(), 3);
       diag(rc, s, "bind col bigint");
       REQUIRE(rc == SQL_SUCCESS);
 

@@ -4,6 +4,13 @@
 #include <sqlcli1.h>
 namespace db
 {
+  enum class BUF_TYPE
+  {
+    par = 0, //!< parameter
+    res = 1, //!< result
+    // unk = 2, //!< unknown / uninitialized
+  };
+
   enum class ATTR_TYPE
   {
     unknown = 0,
@@ -89,7 +96,7 @@ namespace db
     return AT::unknown; // unknown type
   }
   inline constexpr bool is_something(int db_type, ATTR_TYPE attr_type)
-  { 
+  {
     // NOLINTNEXTLINE clang-tidy(readability-use-anyofallof)
     for (const auto& cnt : dscr_)
       if ((cnt.db_type_ == db_type) && (cnt.attr_type_ == attr_type)) return true;

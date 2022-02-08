@@ -11,7 +11,9 @@
 
 namespace dbgen3
 {
-  namespace ME = magic_enum;
+  // false positive it is used in dependant files (FIXME)
+  // NOLINTNEXTLINE clang-tidy(misc-unused-alias-decls) 
+  namespace ME = magic_enum; 
 
   enum class PHASE
   {
@@ -46,12 +48,6 @@ namespace dbgen3
     NOTATION_NODE               = 12
   };
 
-  enum class BUF_TYPE
-  {
-    par = 0, //!< parameter
-    res = 1, //!< result
-    unk = 2, //!< unknown / uninitialized
-  };
   /// list of supported language generators
   enum class PROG_LANG
   {

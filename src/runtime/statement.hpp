@@ -23,29 +23,29 @@ namespace db
   class statement
   {
   public:
-    using str_t = std::string;
+    using str_t  = std::string;
     using cstr_t = std::string_view;
     //! @name Constructor(s) and destructor
     //@{
-    explicit statement(const connection* a_db);       //!< constructor
+    explicit statement(const connection* a_db);                 //!< constructor
     statement(const connection* a_db, std::string_view an_sql); //!< constructor with sql
-    statement(const statement& o) = default;          //!< copy constructor
-    statement(statement&& o)      = default;          //! move constructor
-    virtual ~statement();                             /// destructor
+    statement(const statement& o) = default;                    //!< copy constructor
+    statement(statement&& o)      = default;                    //! move constructor
+    virtual ~statement();                                       /// destructor
     //@}
     //! @name Operator(s)
     //@{
     statement& operator=(const statement& o) = delete; //!< Assignment operator
     statement& operator=(statement&& o) = delete;      //!< move assignement operator
-    statement* assign(const statement& o);             //!< assign attributes
+    // statement* assign(const statement& o);             //!< assign attributes
     //@}
     //! @name Getters
     //@{
-    std::int32_t       get_stmt_handle() const;              //!< fetch statement handle
-    cstr_t get_sql() const;                      //!< fetch SQL statement
-    std::string        get_cursor_name() const;              //!< fetch cursor name
-    const connection&  get_db() const;                       //!< fetch db related connection
-    std::string        dump(const std::string& a_msg) const; //!< serialize instance to string
+    std::int32_t      handle() const;                       //!< fetch statement handle
+    cstr_t            sql() const;                          //!< fetch SQL statement
+    std::string       cursor_name() const;                  //!< fetch cursor name
+    const connection& db() const;                           //!< fetch db related connection
+    std::string       dump(const std::string& a_msg) const; //!< serialize instance to string
     //@}
     //! @name Setters
     //@{
@@ -73,6 +73,7 @@ namespace db
      * - SQL_ATTR_ROWS_FETCHED_PTR
      */
     //@{
+    std::int16_t SSA_ptr(int attr, void* value) const;
     std::int16_t set_attr_l(int attr, uint64_t value) const;
     std::int16_t set_attr(int attr, int16_t* value) const;
     std::int16_t set_attr(int attr, int* value) const;
@@ -99,17 +100,16 @@ namespace db
     //@{
     /// It checks the return status of the cli call and raises exception upon error otherwise
     /// returns SQL_SUCCESS
-    std::int16_t chk(std::int16_t       err_code,
-                     cstr_t ok_msg,
-                     cstr_t err_msg,
-                     bool               should_throw = true) const;
+    std::int16_t chk(std::int16_t err_code,
+                     cstr_t       ok_msg,
+                     cstr_t       err_msg,
+                     bool         should_throw = true) const;
     /// check if code is on the list and throw accordingly if not
     int handle_return_code(int rc, cstr_t allowed_codes);
     /// set the result set current position
     virtual std::int16_t set_pos(size_t a_rec_pos);
     /// set result set current position
     virtual std::int16_t set_page(size_t a_page_num, size_t a_page_size);
-    std::int16_t         set_attr_l(int attr, uint64_t value);
     //@}
   protected:
     void log(const std::string& msg) const; //!< logs an event into log file

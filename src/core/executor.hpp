@@ -6,11 +6,11 @@
 #include <memory>
 
 #include "cmdline_parameters.hpp"
-#include "gsql_q_set.hpp"
 #include "core_parser.hpp"
 #include "db2_reader.hpp"
 #include "gen.hpp"
 #include "gen_cpp.hpp"
+#include "gsql_q_set.hpp"
 
 namespace dbgen3
 {
@@ -18,24 +18,27 @@ namespace dbgen3
   class executor
   {
   public:
-    executor(const cmdline_parameters& cmd_p)
-    : cmd_p_(cmd_p)
-    , hpp_file_()
+    explicit executor(cmdline_parameters cmd_p)
+    : cmd_p_(std::move(cmd_p))
     { }
     ~executor()
     {
       if (hpp_file_.is_open()) hpp_file_.close();
     }
+    executor(const executor&) = delete;
+    executor(executor&&) = delete;
+    executor& operator=(const executor&) = delete;
+    executor& operator=(executor&&) = delete;
     int process_files()
     {
       auto        sts = 0;
       core_parser p;
       db2_reader  r;
-      r.connect(this->cmd_p_.g_db_name(), "", ""); // FIXME username and password also
+      r.connect(this->cmd_p_.db_name(), "", ""); // FIXME username and password also
       std::unique_ptr<gen> gen;
       if (cmd_p_.lang() == PROG_LANG::cpp) gen = std::make_unique<gen_cpp>();
-      assert(gen.get() != nullptr);
-      for (const auto& file : cmd_p_.g_qsql_list())
+      assert(gen.get() != nullptr); // NOLINT clang-tidy(hicpp-no-array-decay)
+      for (const auto& file : cmd_p_.qsql_list())
       {
         auto     gsql_struct = p.parse_file(file, r, cmd_p_.database_type());
         fs::path p(file);

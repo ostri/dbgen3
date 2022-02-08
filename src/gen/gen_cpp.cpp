@@ -336,16 +336,20 @@ namespace dbgen3
   str_t gen_cpp::define_attr_array(const fld_vec& flds, uint /*unused*/, uint offs)
   {
     str_t r;
-    r += out::sl(fmt::format("constexpr static const uint max_attr={};", flds.size()), offs);
-    r += out::sl(fmt::format("std::array<db::attr_root_root<N>*, max_attr> attr_"), offs);
-    r += out::sl(fmt::format("{{"), offs);
-    for (const auto& attr : flds)
-      //      r += out::sl(fmt::format("reinterpret_cast<db::attr_root*>(&{}_),", attr.name()), offs
-      //      + 2);
-      r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
-    r.resize(r.size() - 2); // eliminate comma and space
-    r += out::sl(fmt::format(""), offs);
-    r += out::sl(fmt::format("}};"), offs);
+    if (! flds.empty())
+    {
+      r += out::sl(fmt::format("constexpr static const uint max_attr={};", flds.size()), offs);
+      r += out::sl(fmt::format("std::array<db::attr_root_root<N>*, max_attr> attr_"), offs);
+      r += out::sl(fmt::format("{{"), offs);
+      for (const auto& attr : flds)
+        //      r += out::sl(fmt::format("reinterpret_cast<db::attr_root*>(&{}_),", attr.name()),
+        //      offs
+        //      + 2);
+        r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
+      r.resize(r.size() - 2); // eliminate comma and space
+      r += out::sl(fmt::format(""), offs);
+      r += out::sl(fmt::format("}};"), offs);
+    }
     return r;
   }
   /**
@@ -355,21 +359,27 @@ namespace dbgen3
    * @param offs   offset from the left border
    * @return str_t generated code
    */
-  str_t gen_cpp::define_default_ctor(const fld_vec& flds,
-                                     uint           max_name_len,
-                                     cstr_t         c_name,
-                                     std::size_t    offs)
+  str_t gen_cpp::define_default_ctor(const fld_vec&      flds,
+                                     uint                max_name_len,
+                                     cstr_t              c_name,
+                                     const db::BUF_TYPE& bt,
+                                     std::size_t         offs)
   {
     str_t r;
-    r += out::sl(fmt::format("constexpr {}() : db::buffer_root<N>()", c_name), offs);
+    auto BT_name = str_t("db::BUF_TYPE::") + str_t(ME::enum_name<db::BUF_TYPE>(bt));
+    r += out::sl(
+      fmt::format("constexpr {0}() : db::buffer_root<{1}, N>()", c_name, BT_name),
+      offs);
     r += out::sl(fmt::format("{{"), offs);
     for (const auto& fld : flds)
     {
       auto name = fld.name() + "_";
-      r += out::sl(fmt::format("db::buffer_root<N>::attr_vec().emplace_back(&{0:<{1}});",
-                               name,
-                               max_name_len + 1),
-                   offs + 2);
+      r += out::sl(
+        fmt::format("db::buffer_root<{2}, N>::attr_vec().emplace_back(&{0:<{1}});",
+                    name,
+                    max_name_len + 1,
+                    BT_name),
+        offs + 2);
     }
     r += out::sl(fmt::format("}}"), offs);
     return r;
@@ -382,33 +392,37 @@ namespace dbgen3
    * @param offs     offset from the left border
    * @return str_t   generated code
    */
-  str_t gen_cpp::gen_buf(const gsql_q& q, const BUF_TYPE& a_type, uint offs)
+  str_t gen_cpp::gen_buf(const gsql_q& q, const db::BUF_TYPE& bt, uint offs)
   {
+    const auto& bd     = q.buf_dscr((bt));
+    auto        c_name = snake_case(bd.id());
+    auto        bt_str = str_t(ME::enum_name(bt));
+    if (bd.should_skip()) return line_text(c_name + "  explicitly skipped", offs);
+    if (bd.flds().empty()) return line_text(c_name + str_t(" no ") + bt_str, offs);
+    // generating buffers that have one or more par/cols and are not declared as skip
     str_t       r;
-    const auto& bd = q.buf_dscr((a_type));
-    if (! bd.should_skip())
-    {
-      auto        c_name = snake_case(bd.id());
-      auto        ml     = bd.max_name_len();
-      const auto& flds   = bd.flds();
-      auto        txt    = str_t(q.id()) + "::" + str_t(ME::enum_name<BUF_TYPE>(a_type));
-      r += line_text(txt, offs);
-      r += out::sl(fmt::format("template <std::size_t N>"), offs);
-      r += out::sl(fmt::format("class {} : public db::buffer_root<N>", c_name), offs);
-      r += out::sl(fmt::format("{{"), offs);
-      r += out::sl(fmt::format("public: /*...public methods...*/"), offs);
-      r += define_default_ctor(flds, ml, c_name, offs + 2);
-      r += define_trivial_getters(flds, ml, offs + 2);
-      r += define_getters(flds, ml, offs + 2);
-      r += define_trivial_setters(flds, ml, offs + 2);
-      r += define_setters(flds, ml, offs + 2);
-      //      r += define_dump(flds, ml, offs + 2);
-      r += out::sl(fmt::format("private:/*...private methods & attributes...*/"), offs);
-      r += define_attributes_const(bd.flds(), ml, offs + 2);
-      r += define_attributes(bd.flds(), ml, offs + 2);
-      r += define_attr_array(bd.flds(), ml, offs + 2);
-      r += out::sl(fmt::format("}}; // class {}", c_name), offs);
-    }
+    auto        ml   = bd.max_name_len();
+    const auto& flds = bd.flds();
+    auto        txt  = str_t(q.id()) + "::" + str_t(ME::enum_name<db::BUF_TYPE>(bt));
+    r += line_text(txt, offs);
+    r += out::sl(fmt::format("template <std::size_t N>"), offs);
+    auto BT_name = str_t("db::BUF_TYPE::") + str_t(ME::enum_name<db::BUF_TYPE>(bt));
+    r += out::sl(
+      fmt::format("class {0} : public db::buffer_root<{1}, N>", c_name, BT_name),
+      offs);
+    r += out::sl(fmt::format("{{"), offs);
+    r += out::sl(fmt::format("public: /*...public methods...*/"), offs);
+    r += define_default_ctor(flds, ml, c_name, bt, offs + 2);
+    r += define_trivial_getters(flds, ml, offs + 2);
+    r += define_getters(flds, ml, offs + 2);
+    r += define_trivial_setters(flds, ml, offs + 2);
+    r += define_setters(flds, ml, offs + 2);
+    //      r += define_dump(flds, ml, offs + 2);
+    r += out::sl(fmt::format("private:/*...private methods & attributes...*/"), offs);
+    r += define_attributes_const(bd.flds(), ml, offs + 2);
+    r += define_attributes(bd.flds(), ml, offs + 2);
+    r += define_attr_array(bd.flds(), ml, offs + 2);
+    r += out::sl(fmt::format("}}; // class {}", c_name), offs);
     return r;
   }
   /**
@@ -422,7 +436,7 @@ namespace dbgen3
   {
     str_t       r;
     const auto& ml_sql = q.sql_set().fetch(PHASE::main)->sql_ml().lines();
-    r += out::sl(fmt::format("constexpr static const auto* sql ="), offs);
+    r += out::sl(fmt::format("constexpr static const cstr_t sql_ ="), offs);
     r += out::sl(fmt::format("R\"k0a1f2k3a4("), offs);
     for (auto l : ml_sql) { r += out::sl(fmt::format("{}", l), offs + 2); }
     r += out::sl(fmt::format(")k0a1f2k3a4\";"), offs);
@@ -440,11 +454,13 @@ namespace dbgen3
     str_t r; // FIXME multiline SQLs
     auto  q_name = snake_case(q.id());
     auto  sql    = q.sql(PHASE::main);
-    r += out::sl(fmt::format("class {}: public db::statement", "utl"), offs);
+    r += out::sl(fmt::format("class {}: public db::utl", "utl"), offs);
     r += out::sl(fmt::format("{{"), offs);
     r += out::sl(fmt::format("public:"), offs);
-    r += out::sl(fmt::format("  explicit utl(db::connection* c): db::statement(c,sql) {{}}"), offs);
-    r += out::sl(fmt::format("  auto exec() {{ return exec_direct(sql, false); }}"), offs);
+    r += out::sl(fmt::format("  using brr = db::buffer_root_root;"), offs);
+    r += out::sl(fmt::format("  explicit utl(db::connection* c, brr_t* p_buf = nullptr, brr_t* r_buf = nullptr)"), offs);
+    r += out::sl(fmt::format("  : db::utl(c, sql_, p_buf, r_buf) {{}}"), offs);
+    // r += out::sl(fmt::format("  auto exec() {{ return exec_direct(sql, false); }}"), offs);
     // r += out::sl(fmt::format("  const db::statement& stmt() {{ return s_; }}"), offs);
     r += out::sl(fmt::format("private:"), offs);
     r += gen_const_sql(q, offs + 2);
@@ -482,13 +498,14 @@ namespace dbgen3
     {
       r += line_text(ns, offs);
       r += out::sl(fmt::format("namespace {}", ns), offs);
-      r += out::sl("{", offs);
-      r += gen_buf(q, BUF_TYPE::par, offs + 2);
-      r += gen_buf(q, BUF_TYPE::res, offs + 2);
+      r += out::sl(fmt::format("{{"), offs);
+      r += gen_buf(q, db::BUF_TYPE::par, offs + 2);
+      r += gen_buf(q, db::BUF_TYPE::res, offs + 2);
       r += gen_utl(q, offs + 2);
       r += out::sl(fmt::format("}}; //namespace {}", ns), offs);
     }
-    else {
+    else //
+    {
       auto msg =
         fmt::format(" There is no valid SQL statement in query '{}'. No code is generated. ", ns);
       r += line_text(msg, offs, '!');

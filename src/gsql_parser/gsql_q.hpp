@@ -37,7 +37,7 @@ namespace dbgen3
     /// @name getters
     ///@{
     cstr_t                id() const;
-    const gsql_qbuf_dscr& buf_dscr(const BUF_TYPE& a_type) const;
+    const gsql_qbuf_dscr& buf_dscr(const db::BUF_TYPE& a_type) const;
     std::string           sql(const PHASE& a_phase) const;
     std::string           sql() const{return sql(PHASE::main);};
     RDBMS                 db_type() const;
@@ -51,7 +51,7 @@ namespace dbgen3
      * @return true SQL requires the buffer
      * @return false SQL does not mandate the buffer
      */
-    bool must_have_buf(const BUF_TYPE& a_type) const { return ! buf_dscr(a_type).flds().empty(); }
+    bool must_have_buf(const db::BUF_TYPE& a_type) const { return ! buf_dscr(a_type).flds().empty(); }
 
     //@}
     /// @name setters
@@ -59,7 +59,7 @@ namespace dbgen3
     void set_id(const str_t& o);
     void set_buf_dscr(const gsql_qbuf_dscr& buf_dscr);
     void set_sql_set(const gsql_sql_set& o);
-    void set_buf_dscr_flds(const BUF_TYPE& a_bt, const fld_vec& a_fld_vec);
+    void set_buf_dscr_flds(const db::BUF_TYPE& a_bt, const fld_vec& a_fld_vec);
     //@}
     const gsql_sql_set& sql_set() const; //<! fetches vector of sql descriptions
   private:

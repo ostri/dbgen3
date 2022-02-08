@@ -2,6 +2,7 @@
  * \file
  * \brief program to test runtime library
  */
+#include "dbgen3_templ.hpp"
 #include <string_view>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <array>
@@ -33,7 +34,7 @@ static bool cmp(const db::cbstr_t& v1, const db::cbstr_t& v2)
 
 TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
 {
-  db::connection            c("test");
+  db::connection    c("test");
   UT::Q_1::qp_id<2> qp;
   qp.set_par_1(10);            // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   qp.set_par_1(11, 1);         // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
@@ -41,9 +42,9 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   REQUIRE_EQ(qp.par_1(1), 11); // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
 
   UT::Q_1::qr_id<2> qr;
-  const int16_t             val16 = 10;
-  const int32_t             val32 = 10;
-  const int64_t             val64 = 10;
+  const int16_t     val16 = 10;
+  const int32_t     val32 = 10;
+  const int64_t     val64 = 10;
   qr.set_c1_smallint(val16);
   qr.set_c2_int(val32);
   qr.set_c3_bigint(val64);
@@ -100,21 +101,21 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   std::cerr << qr.dump();
 }
 /*...........................................................................*/
-static int diag(int rc, const db::statement& a_stmt, cstr_t a_msg = "")
+static int diag(int rc, int handle, cstr_t a_msg = "")
 {
   if (rc != SQL_SUCCESS)
   {
-    std::cerr << db::error(a_stmt.get_stmt_handle(), SQL_HANDLE_STMT).dump(a_msg) << std::endl;
+    std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
     std::cerr << "rc code:" << rc << std::endl;
   }
   return rc;
 }
 /*...........................................................................*/
-static int diag_with_W(int rc, const db::statement& a_stmt, cstr_t a_msg = "")
+static int diag_with_W(int rc, int handle, cstr_t a_msg = "")
 {
   if ((rc != SQL_SUCCESS) && (rc != SQL_SUCCESS_WITH_INFO))
   {
-    std::cerr << db::error(a_stmt.get_stmt_handle(), SQL_HANDLE_STMT).dump(a_msg) << std::endl;
+    std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
     std::cerr << "rc code:" << rc << std::endl;
   }
   return rc;
@@ -127,51 +128,24 @@ TEST_CASE("full_cycle") // NOLINT
 
   { // cleanup
     UT::del_tbl_rec::utl q(&c);
-    auto                       rc = q.exec();
+    auto                 rc = q.exec("");
     bool res = (rc == SQL_SUCCESS) || (rc == SQL_SUCCESS_WITH_INFO) || (rc == SQL_NO_DATA_FOUND);
-    if (! res) diag_with_W(rc, q, "empty table: ");
+    if (! res) diag_with_W(rc, q.handle(), "empty table: ");
     REQUIRE(res == true);
     c.commit();
   }
   {
-    // insert new record(s)
-    auto        rc  = SQL_SUCCESS;
-    const auto* sql = "insert into tbl (C1_smallint, C2_int, C3_bigint) values (?,?,?)";
-    db::atomic<int16_t, 5, 0, 3> val1; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-    db::atomic<int32_t, 4, 0, 3> val2;
-    // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-    db::atomic<int64_t, -5, 0, 3> val3;
-    db::statement                 s(&c, sql); //!< final cleanup
-
-    for (auto cnt = 0UL; cnt < val1.size(); cnt++)
+    UT::insert::qp_5<3> par;
+    UT::insert::utl     q(&c, &par);
+    for (auto cnt=0UL; cnt<par.size(); cnt++)
     {
-      // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-      val1.set_value(static_cast<int16_t>((cnt + 1) * 10 + 1),
-                     cnt); //
-                           // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-      val2.set_value(static_cast<int32_t>((cnt + 1) * 10 + 2),
-                     cnt); //
-                           // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-      val3.set_value(static_cast<int64_t>((cnt + 1) * 10 + 3), cnt); //
+      par.set_par_1(static_cast<int16_t>(cnt*10+cnt), cnt); // NOLINT
+      par.set_par_2(static_cast<int32_t>(cnt*20+cnt), cnt); // NOLINT
+      par.set_par_3(static_cast<int64_t>(cnt*30+cnt), cnt); // NOLINT
     }
-
-    rc = s.set_attr(SQL_ATTR_PARAMSET_SIZE, static_cast<int>(val1.size()));
-    diag(rc, s, "set attr n records");
-
-    rc = s.prepare();
-    diag(rc, s, "prepare");
-
-    auto h = s.get_stmt_handle();
-    rc     = val1.bind_par(h, 1);
-    diag(rc, s, "bind par smallint");
-    rc = val2.bind_par(h, 2);
-    diag(rc, s, "bind par int ");
-    rc = val3.bind_par(h, 3);
-    diag(rc, s, "bind par bigint");
-
-    rc = s.exec();
-    diag(rc, s, "exec");
+    auto                rc = q.exec();
+    diag(rc, q.handle(), "empty table: ");
     REQUIRE(rc == SQL_SUCCESS);
-    s.commit();
+    c.commit();
   }
 }

@@ -68,7 +68,7 @@ namespace dbgen3
 
   gsql_qbuf_dscr core_parser::load_qp(const x::DOMElement* an_el, uint a_ndx)
   {
-    gsql_qbuf_dscr r(BUF_TYPE::par);
+    gsql_qbuf_dscr r(db::BUF_TYPE::par);
     /// load attributes
     r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
     r.set_skip(attr_value(an_el, "skip", false));
@@ -76,7 +76,7 @@ namespace dbgen3
   }
   gsql_qbuf_dscr core_parser::load_qr(const x::DOMElement* an_el, uint a_ndx)
   {
-    gsql_qbuf_dscr r(BUF_TYPE::res);
+    gsql_qbuf_dscr r(db::BUF_TYPE::res);
     /// load attributes
     r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
     r.set_skip(attr_value(an_el, "skip", false));
@@ -231,13 +231,13 @@ namespace dbgen3
     if (! attr_id.empty()) { return toNative(attr_id) == "true"; }
     return a_default;
   }
-  fld_dscr core_parser::load_fld_dscr(const BUF_TYPE& a_bt, SQLHANDLE h, uint ndx)
+  fld_dscr core_parser::load_fld_dscr(const db::BUF_TYPE& a_bt, SQLHANDLE h, uint ndx)
   {
     int16_t    type;
     uint32_t   width;
     int16_t    dec;
     int16_t    nullable;
-    int16_t    col_name_len=0;
+    int16_t    col_name_len           = 0;
     const auto max_coloum_name_length = 50;
     int16_t    rc;
 
@@ -245,7 +245,7 @@ namespace dbgen3
                                                         /// returns the name of the column
 
     rc =
-      (a_bt == BUF_TYPE::par)
+      (a_bt == db::BUF_TYPE::par)
         ? SQLDescribeParam(h, ndx + 1, &type, &width, &dec, &nullable)
         : SQLDescribeCol(h,
                          ndx + 1,
@@ -259,8 +259,8 @@ namespace dbgen3
                          &nullable);
     if (SQL_SUCCESS == rc)
     { /// FIXME convert to to_char
-      std::string name = (a_bt == BUF_TYPE::par) ? "par_" + std::to_string(ndx + 1)
-                                                 : std::string(buf.data(), col_name_len);
+      std::string name = (a_bt == db::BUF_TYPE::par) ? "par_" + std::to_string(ndx + 1)
+                                                     : std::string(buf.data(), col_name_len);
       for (auto& ch : name)
         ch = static_cast<char>(std::tolower(ch)); // FIXME dosn't work with utf-8
 
@@ -282,21 +282,20 @@ namespace dbgen3
     throw db::error_exception(db::error(h, SQL_HANDLE_STMT));
   }
 
-   /**
-    * @brief it fetches the parameter/column description or throws exception 
-    * 
-    * @param a_bt bufer_type
-    * @param a_stmt statement structure we are executing statements upon 
-    * @return fld_vec 
-    */
-  fld_vec core_parser::fetch_param_dscr(const BUF_TYPE& a_bt, db::statement& a_stmt)
+  /**
+   * @brief it fetches the parameter/column description or throws exception
+   *
+   * @param a_bt bufer_type
+   * @param a_stmt statement structure we are executing statements upon
+   * @return fld_vec
+   */
+  fld_vec core_parser::fetch_param_dscr(const db::BUF_TYPE& a_bt, db::statement& a_stmt)
   {
-    assert(a_bt != BUF_TYPE::unk); // NOLINT clang-tidy(hicpp-no-array-decay)
     fld_vec r;
-    auto    h       = a_stmt.get_stmt_handle();
+    auto    h       = a_stmt.handle();
     auto    rc      = SQL_SUCCESS;
     int16_t par_cnt = 0;
-    rc = (a_bt == BUF_TYPE::par) ? SQLNumParams(h, &par_cnt) : SQLNumResultCols(h, &par_cnt);
+    rc = (a_bt == db::BUF_TYPE::par) ? SQLNumParams(h, &par_cnt) : SQLNumResultCols(h, &par_cnt);
     if (SQL_SUCCESS == rc)
     {
       info << "# of par:" << par_cnt << "\n";
@@ -319,8 +318,8 @@ namespace dbgen3
       db::statement stmt_c((a_dbr.connection()));
       if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt_p.exec_direct(sql_p, true);
       rc = stmt_m.prepare(sql_m);
-      r.set_buf_dscr_flds(BUF_TYPE::par, fetch_param_dscr(BUF_TYPE::par, stmt_m));
-      r.set_buf_dscr_flds(BUF_TYPE::res, fetch_param_dscr(BUF_TYPE::res, stmt_m));
+      r.set_buf_dscr_flds(db::BUF_TYPE::par, fetch_param_dscr(db::BUF_TYPE::par, stmt_m));
+      r.set_buf_dscr_flds(db::BUF_TYPE::res, fetch_param_dscr(db::BUF_TYPE::res, stmt_m));
       if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
       //            err << sts;
       stmt_p.rollback();
@@ -386,8 +385,8 @@ namespace dbgen3
     a_ctx.emplace_back(std::string(r.id()));
     auto ndx_str = std::to_string(a_ndx);
     // implicit values unless explicit are provided
-    r.set_buf_dscr(gsql_qbuf_dscr(BUF_TYPE::par, "qp_" + ndx_str, true));
-    r.set_buf_dscr(gsql_qbuf_dscr(BUF_TYPE::res, "qr_" + ndx_str, true));
+    r.set_buf_dscr(gsql_qbuf_dscr(db::BUF_TYPE::par, "qp_" + ndx_str, false));
+    r.set_buf_dscr(gsql_qbuf_dscr(db::BUF_TYPE::res, "qr_" + ndx_str, false));
     r = load_q_children(an_el, a_ndx, a_ctx, a_dbr, a_db_type, r);
     return r;
   }

@@ -21,10 +21,10 @@ namespace dbgen3
   cmdline_parameters::cmdline_parameters(int an_argc, char** an_argv)
   : db_name_(FLAGS_db_name)
   , out_folder_(FLAGS_out_folder)
-  , gsql_list_(g_filenames_from_argv(an_argc, an_argv))
-  , lang_(g_lang_code(FLAGS_lang))
+  , gsql_list_(filenames_from_argv(an_argc, an_argv))
+  , lang_(lang_code(FLAGS_lang))
   , database_type_(db_type_code(FLAGS_db_type))
-  , verbose_(g_verbose(std::string(FLAGS_verbose)))
+  , verbose_(verbose(std::string(FLAGS_verbose)))
   { }
   P_STS cmdline_parameters::check_parameters() const
   {
@@ -58,19 +58,15 @@ namespace dbgen3
     // clang-format on
   }
 
-  cstr_t         cmdline_parameters::g_db_name() const { return cstr_t(db_name_); }
+  cstr_t         cmdline_parameters::db_name() const { return cstr_t(db_name_); }
   cstr_t         cmdline_parameters::out_folder() const { return cstr_t(out_folder_); }
-  const str_vec& cmdline_parameters::g_qsql_list() const { return gsql_list_; }
-
-  PROG_LANG      cmdline_parameters::lang() const {return lang_;};
-
-  RDBMS cmdline_parameters::database_type() const { return database_type_; }
-
-  // TODO remove g_token_ndx
-  RDBMS cmdline_parameters::db_type_code(const std::string& token) const
+  const str_vec& cmdline_parameters::qsql_list() const { return gsql_list_; }
+  PROG_LANG      cmdline_parameters::lang() const { return lang_; };
+  RDBMS          cmdline_parameters::database_type() const { return database_type_; }
+  RDBMS          cmdline_parameters::db_type_code(const std::string& token)
   {
     if (ME::enum_contains<RDBMS>(token)) return ME::enum_cast<RDBMS>(token).value();
-    else return RDBMS::sql;
+    return RDBMS::sql;
   }
 
   /**
@@ -83,7 +79,7 @@ namespace dbgen3
    * @param argv list of parameters in the command line (first is the program name)
    * @return list of gsql files to be processed
    */
-  str_vec cmdline_parameters::g_filenames_from_argv(int argc, char** argv)
+  str_vec cmdline_parameters::filenames_from_argv(int argc, char** argv)
   {
     if (argc > 1) return str_vec(argv + 1, argv + argc); // NOLINT
     return {};

@@ -59,8 +59,8 @@ namespace dbgen3
   private:
     /// @name query set structure
     ///@{
-    static fld_dscr load_fld_dscr(const BUF_TYPE& a_bt, SQLHANDLE h, uint ndx);
-    static fld_vec fetch_param_dscr(const BUF_TYPE& a_bt, db::statement& a_stmt);
+    static fld_dscr load_fld_dscr(const db::BUF_TYPE& a_bt, SQLHANDLE h, uint ndx);
+    static fld_vec fetch_param_dscr(const db::BUF_TYPE& a_bt, db::statement& a_stmt);
     static gsql_q_set     load_q_set(const x::DOMElement* an_el,
                                      cstr_t               a_filename,
                                      const db2_reader&    a_dbr,
