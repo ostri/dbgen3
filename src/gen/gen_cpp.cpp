@@ -496,8 +496,6 @@ namespace dbgen3
     r += out::sl(fmt::format("  using brr = db::buffer_root_root;"), offs);
     r += out::sl(fmt::format("  explicit utl(db::connection* c)"), offs);
     r += out::sl(fmt::format("  : db::utl(c, sql_) {{}}"), offs);
-    // r += out::sl(fmt::format("  auto exec() {{ return exec_direct(sql, false); }}"), offs);
-    // r += out::sl(fmt::format("  const db::statement& stmt() {{ return s_; }}"), offs);
     r += out::sl(fmt::format("private:"), offs);
     r += gen_const_sql(q, offs + 2);
     r += out::sl(fmt::format("}};"), offs);
@@ -594,7 +592,6 @@ namespace dbgen3
     r += out::sl("  using cbstr_t = std::span<const uint8_t>;", offs);
     r += gen_queries(set(), offs);
     r += out::sl(fmt::format("}}; //namespace {}", ns), offs);
-
     return r;
   }
 
