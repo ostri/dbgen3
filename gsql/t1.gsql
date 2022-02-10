@@ -70,14 +70,52 @@
                 (
                     C1_smallint, <!-- komentar -->
                     C2_int, 
-                    C3_bigint
+                    C3_bigint,
+                    C4_numeric,
+                    C5_decimal,
+                    C6_dec,
+                    C7_char,
+                    C8_varchar,
+                    C9_date,
+                    C10_time,
+                    C11_timestamp,
+                    C13_blob,
+                    C14_clob,
+                    C15_char_for_bit_data,
+                    C16_double,
+                    C17_float,
+                    C18_varchar_for_bit_data
                 ) 
                 values 
                 (
-                    ?,
-                    ?,
-                    ?
+                    ?,?,?, ?,?,?, ?,?,?, ?,?,?, ?,?,?, ?,?
                 )
+            </sql>
+        </sql-set>
+    </q>
+    <q id="select">
+        <sql-set>
+            <sql>
+                select 
+                    C1_smallint, <!-- komentar -->
+                    C2_int, 
+                    C3_bigint,
+                    C4_numeric,
+                    C5_decimal,
+                    C6_dec,
+                    C7_char,
+                    C8_varchar,
+                    C9_date,
+                    C10_time,
+                    C11_timestamp,
+                    C13_blob,
+                    C14_clob,
+                    C15_char_for_bit_data,
+                    C16_double,
+                    C17_float,
+                    C18_varchar_for_bit_data
+                from 
+                  tbl
             </sql>
         </sql-set>
     </q>

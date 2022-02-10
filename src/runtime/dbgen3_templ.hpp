@@ -78,7 +78,7 @@ namespace db
     constexpr int16_t     dec() const { return dec_; }
     constexpr int16_t     db_type() const { return db_type_; }
     /// size of specific element
-    std::size_t el_size(std::size_t ndx) const { return static_cast<std::size_t>(len_.at(ndx)); }
+    size_t el_size(std::size_t ndx) const { return static_cast<size_t>(len_.at(ndx)); }
     /// value getters
     bstr_t v_bstr(size_t ndx)
     { // be careful this can be altered from the outside
@@ -107,12 +107,12 @@ namespace db
     };
     T v_T(size_t ndx)
     {
-      if constexpr (! std::is_class<T>::value) { return data_.at(ndx); }
+      if constexpr (is_atomic(db_type_)) { return data_.at(ndx); }
       else return {};
     };
     T v_T(size_t ndx) const
     {
-      if constexpr (! std::is_class<T>::value) { return data_.at(ndx); }
+      if constexpr (is_atomic(db_type_)) { return data_.at(ndx); }
       else return {};
     };
     void s_T(const T& v, std::size_t ndx)
@@ -180,12 +180,13 @@ namespace db
     }
     int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
     {
+      std::cerr << ct_name(db_type_) << "--" << dbt_name(db_type_) << "-- " << width() << "--" << dec_ << std::endl;
       auto rc = SQLBindParameter(a_stmt_handle,
                                  a_ndx,
                                  SQL_PARAM_INPUT,
                                  c_type(db_type_),
                                  db_type_,
-                                 width(),
+                                 width()-1,
                                  dec_,
                                  static_cast<void*>(data_.data()),
                                  width(),
@@ -218,19 +219,19 @@ namespace db
   {
   public:
     using s_vec_a                                      = std::span<SQLUSMALLINT>;
-    virtual str_t   dump() const                       = 0;
+    virtual str_t   dump(cstr_t a_msg) const           = 0;
     virtual int16_t bind(std::int32_t a_stmt_handle)   = 0;
     virtual int16_t rebind(std::int32_t a_stmt_handle) = 0;
-    //    virtual bool    is_bind() const                    = 0;
-    virtual size_t  size() const           = 0;
-    virtual size_t  occupied() const       = 0;
-    virtual void    set_occupied(size_t v) = 0;
-    virtual size_t& occupied_addr()        = 0; // so that cli can write how many records are read
+    virtual size_t  size() const                       = 0;
+    virtual size_t  occupied() const                   = 0;
+    virtual void    set_occupied(size_t v)             = 0;
+    virtual size_t* occupied_addr() = 0; // so that cli can write how many records are read
+    virtual constexpr BUF_TYPE bt() = 0;
     // // parameter only
-    // virtual s_vec_a&       s_vec()           = 0;
-    // virtual const s_vec_a& s_vec() const     = 0;
-    // virtual size_t&        procesed()        = 0;
-    // virtual size_t&        processed() const = 0;
+    virtual void*       s_vec()           = 0;
+    virtual const void* s_vec() const     = 0;
+    virtual size_t&     procesed()        = 0;
+    virtual size_t      processed() const = 0;
   private:
   };
   /*....root class for all buffers  ........................................................*/
@@ -244,6 +245,8 @@ namespace db
   {
   public:
     using attr_vec_t                    = std::vector<attr_root_root<arr_size>*>;
+    using s_vec_t                       = std::array<SQLUSMALLINT, arr_size>;
+    using s_vec_a                       = std::span<SQLUSMALLINT>;
     buffer_root()                       = default;
     virtual ~buffer_root()              = default;
     buffer_root(const buffer_root&)     = default;
@@ -251,9 +254,28 @@ namespace db
     buffer_root& operator=(const buffer_root&) = default;
     buffer_root& operator=(buffer_root&&) noexcept = default;
     size_t       size() const override { return arr_size; }
-    str_t        dump() const override
+    void*        s_vec() override { return s_vec_.data(); }
+    const void*  s_vec() const override { return s_vec_.data(); }
+    size_t&      procesed() override { return processed_; }
+    size_t       processed() const override { return processed_; }
+
+    str_t dump(cstr_t a_msg) const override
     {
       str_t r;
+      r += str_t(a_msg) + "\n";
+      r += "# attr:   " + std::to_string(attr_vec_.size()) + "\n";
+      ;
+      r += "# lines:  " + std::to_string(size()) + "\n";
+      r += "#occupied:" + std::to_string(occupied_) + "\n";
+      if (bt_ == BUF_TYPE::par)
+      {
+        r += "#processed:" + std::to_string(processed_) + "\n";
+        std::span tmp(s_vec_.data(), processed_);
+        r += "status vec: ";
+        for (const auto& el : tmp) r += std::to_string(el) + " ";
+      }
+      r += "\n";
+      r += "buffer values:\n";
       for (const auto& el : attr_vec_)
         r += el->dump_all(std::to_string((&el - &attr_vec_[0])), occupied(), 0) + "\n";
       return r;
@@ -273,7 +295,8 @@ namespace db
     virtual attr_vec_t& attr_vec() { return attr_vec_; }
     size_t              occupied() const override { return occupied_; }
     void                set_occupied(size_t v) override { occupied_ = v; }
-    size_t&             occupied_addr() override { return occupied_; };
+    size_t*             occupied_addr() override { return &occupied_; }
+    constexpr BUF_TYPE  bt() override { return buffer_root::bt_; }
   private:
     int16_t bind_par(std::int32_t a_stmt_handle)
     {
@@ -312,40 +335,9 @@ namespace db
     size_t                    occupied_{};    //!< how many records is occupied [0..size())
     attr_vec_t                attr_vec_ = {}; //!< attributes of the buffer
     bool                      bind_{};        //!< are the parameters bound to the statement?
+    s_vec_t                   s_vec_{};       //!< vector of statuses
+    size_t                    processed_{};   //!< number of parameters processed
   };
-  // /*....buffer_root_par........................................................................*/
-  // /**
-  //  * buffer for parameters
-  //  */
-  // template <std::size_t arr_size>
-  // class buffer_root_par : public buffer_root<BUF_TYPE::par, arr_size>
-  // {
-  // public:
-  //   using s_vec_t = std::array<SQLUSMALLINT, arr_size>;
-  //   using s_vec_a = std::span<SQLUSMALLINT>;
-  //   s_vec_a&       s_vec() override { return s_vec_; }
-  //   const s_vec_a& s_vec() const override { return s_vec_; }
-  //   size_t&        procesed() override { return processed_; }
-  //   size_t&        processed() const override{ return s_vec_; }
-  // private:
-  //   s_vec_t s_vec_{};     //!< vector of statuses
-  //   size_t  processed_{}; //!< number of parameters processed
-  // };
-  // /*....buffer_root_par........................................................................*/
-  // /**
-  //  * buffer for results / columns
-  //  */
-  // template <std::size_t arr_size>
-  // class buffer_root_res : public buffer_root<BUF_TYPE::res, arr_size>
-  // {
-  // public:
-  //   using s_vec_t = std::array<SQLUSMALLINT, arr_size>;
-  //   using s_vec_a = std::span<SQLUSMALLINT>;
-  //   s_vec_a&       s_vec() { return s_vec_; }
-  //   const s_vec_a& s_vec() const { return s_vec_; }
-  // private:
-  //   s_vec_t s_vec_{}; //!< vector of statuses
-  // };
   /*....atomic...............................................................................*/
   template <typename T, int16_t DB_TYPE, int DEC, std::size_t arr_size>
   class atomic : public attr_root<T, DB_TYPE, arr_size, DEC>
@@ -452,55 +444,100 @@ namespace db
   public:
     using brr_t = buffer_root_root;
     utl()       = delete;
-    utl(db::connection* c, cstr_t sql, brr_t* p_buf, brr_t* r_buf)
-    : s_(c, sql)
-    , p_buf_(p_buf)
-    , r_buf_(r_buf)
+    utl(db::connection* c, cstr_t sql)
+    : utl(c, sql, nullptr, nullptr) // no parameters or results
     { }
+    utl(db::connection* c, cstr_t sql, brr_t* ptr) // parameter or result
+    : utl(c,
+          sql,
+          chk2(ptr, BUF_TYPE::par),
+          chk(ptr, "You must provide proper buffer object generated by dbgen3."))
+    { }
+    utl(db::connection* c, cstr_t sql, brr_t* p_buf, brr_t* r_buf) // all provided
+    : s_(c, sql)
+    , par_buf_(utl::chk(p_buf, "Wrong buf type. First is PARAMETER."))
+    , res_buf_(utl::chk(r_buf, "Wrong buf type. Second is RESULT."))
+    { }
+    static brr_t* chk(brr_t* ptr, cstr_t a_msg)
+    {
+      if (ptr != nullptr)
+      {
+        if (ptr->bt() == BUF_TYPE::par) return ptr;
+        throw std::runtime_error(str_t(a_msg));
+      }
+      return nullptr;
+    }
+    static brr_t* chk2(brr_t* ptr, BUF_TYPE bt)
+    {
+      if ((ptr != nullptr) && (ptr->bt() == bt)) return ptr;
+      return nullptr;
+    }
+    utl& set_param_buf(brr_t* ptr)
+    {
+      this->par_buf_ = ptr;
+      return *this;
+    }
+    utl& set_result_buf(brr_t* ptr)
+    {
+      this->res_buf_ = ptr;
+      return *this;
+    }
     int16_t exec() { return exec(""); }
     int16_t exec(cstr_t sql)
     {
       int16_t rc = SQL_SUCCESS;
       /* set parameter buffer size */
-      rc = prepare_parameter_buffer();
+      if (rc == SQL_SUCCESS) rc = prepare_parameter_buffer();
+      if (rc == SQL_SUCCESS) rc = prepare_result_buffer();
       if (rc == SQL_SUCCESS) rc = s_.prepare(sql);
-      if (rc == SQL_SUCCESS && p_buf_ != nullptr) rc = p_buf_->bind(s_.handle());
-      if (rc == SQL_SUCCESS && r_buf_ != nullptr) rc = r_buf_->bind(s_.handle());
+      if (rc == SQL_SUCCESS && par_buf_ != nullptr) rc = par_buf_->bind(s_.handle());
+      if (rc == SQL_SUCCESS && res_buf_ != nullptr) rc = res_buf_->bind(s_.handle());
       if (rc == SQL_SUCCESS) rc = s_.exec();
       return rc;
     }
-    auto handle() const { return s_.handle(); }
+    auto  handle() const { return s_.handle(); }
+    str_t dump(cstr_t a_msg) const
+    {
+      str_t r;
+      r += str_t(a_msg) + "\n";
+      r += par_buf_ != nullptr ? par_buf_->dump("***par:***\n") : "";
+      r += res_buf_ != nullptr ? res_buf_->dump("***res:***\n") : "";
+      return r;
+    }
+    int16_t fetch_scroll(int16_t a_dir, uint a_len) { return s_.fetch_scroll(a_dir, a_len, false); }
+    size_t  rows_read() const { return res_buf_ != nullptr ? res_buf_->occupied() : 0; }
   protected:
     int16_t prepare_parameter_buffer()
     {
       int16_t rc = SQL_SUCCESS;
-      if (p_buf_ != nullptr)
+      if (par_buf_ != nullptr)
       {
-        auto dim = p_buf_->occupied();
+        auto dim = par_buf_->occupied();
         if (dim > 1) rc = s_.set_attr(SQL_ATTR_PARAMSET_SIZE, static_cast<int>(dim));
-        // if (rc == SQL_SUCCESS) rc = s_.SSA_ptr(SQL_ATTR_PARAMS_PROCESSED_PTR,
-        // &p_buf_->procesed()); if (rc == SQL_SUCCESS) rc = s_.SSA_ptr(SQL_ATTR_PARAM_STATUS_PTR,
-        // p_buf_->s_vec().data());
+        if (rc == SQL_SUCCESS)
+          rc = s_.SSA_ptr(SQL_ATTR_PARAMS_PROCESSED_PTR, &par_buf_->procesed());
+        if (rc == SQL_SUCCESS) rc = s_.SSA_ptr(SQL_ATTR_PARAM_STATUS_PTR, par_buf_->s_vec());
       }
       return rc;
     }
     int16_t prepare_result_buffer()
     {
       int16_t rc = SQL_SUCCESS;
-      if (r_buf_ != nullptr)
+      if (res_buf_ != nullptr)
       {
-        auto dim = p_buf_->size();
+        auto dim = res_buf_->size();
         if (dim > 1) { rc = s_.set_attr_l(SQL_ATTR_ROW_ARRAY_SIZE, dim); }
-        rc = s_.set_attr_l(SQL_ATTR_ROWS_FETCHED_PTR, r_buf_->occupied_addr());
+        if (rc == SQL_SUCCESS)
+          rc = s_.SSA_ptr(SQL_ATTR_ROWS_FETCHED_PTR, res_buf_->occupied_addr());
       }
       return rc;
     }
   private:
-    db::statement s_;               //!< SQL statement associated with th esql operation
-    brr_t*        p_buf_ = nullptr; //!< parameter buffer (can be null)
-    brr_t*        r_buf_ = nullptr; //!< result buffer
+    db::statement s_;                 //!< SQL statement associated with th esql operation
+    brr_t*        par_buf_ = nullptr; //!< parameter buffer (can be null)
+    brr_t*        res_buf_ = nullptr; //!< result buffer
+    // int proc{};
   };
   /*....inline methods .......................................................................*/
-
 };     // namespace db
 #endif // DBGEN3_TEMPL_HPP

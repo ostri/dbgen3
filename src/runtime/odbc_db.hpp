@@ -36,37 +36,39 @@ namespace db
     using AT = ATTR_TYPE;
     // clang-format off
     // NOLINTNEXTLINE clang-tidy(misc-definitions-in-headers)
-    static constexpr const std::array<type_dscr, 21> dscr_
+    static constexpr const std::array<type_dscr, 24> dscr_
     //constinit static const type_dscr dscr_[] //NOLINT
     {{ // DB type          c/c++ type            attr type   ct name                  db type name
-      {SQL_UNKNOWN_TYPE,   SQL_UNKNOWN_TYPE,     AT::unknown, "unknown",              "unknown"},
-      {SQL_BOOLEAN,        SQL_C_TINYINT,        AT::atomic,  "int",                  "SQL_BOOLEAN"}, //  8
-      {SQL_TINYINT,        SQL_C_TINYINT,        AT::atomic,  "int8_t",               "SQL_TINYINT"}, //  8
-      {SQL_SMALLINT,       SQL_C_SHORT,          AT::atomic,  "int16_t",              "SQL_SMALLINT"}, // 16
-      {SQL_INTEGER,        SQL_C_LONG,           AT::atomic,  "int32_t",              "SQL_INTEGER"}, // 32
-      {SQL_BIGINT,         SQL_C_SBIGINT,        AT::atomic,  "int64_t",              "SQL_BIGINT"}, // 64
+      {SQL_UNKNOWN_TYPE,   SQL_UNKNOWN_TYPE,     AT::unknown, "unknown",          "unknown"},
+      {SQL_BOOLEAN,        SQL_C_TINYINT,        AT::atomic,  "int",              "SQL_BOOLEAN"}, //  8
+      {SQL_TINYINT,        SQL_C_TINYINT,        AT::atomic,  "int8_t",           "SQL_TINYINT"}, //  8
+      {SQL_SMALLINT,       SQL_C_SHORT,          AT::atomic,  "int16_t",          "SQL_SMALLINT"}, // 16
+      {SQL_INTEGER,        SQL_C_LONG,           AT::atomic,  "int32_t",          "SQL_INTEGER"}, // 32
+      {SQL_BIGINT,         SQL_C_SBIGINT,        AT::atomic,  "int64_t",          "SQL_BIGINT"}, // 64
       // floating point
-      {SQL_REAL,           SQL_C_FLOAT,          AT::atomic,  "float",                "SQL_REAL"}, // real
-      {SQL_FLOAT,          SQL_C_FLOAT,          AT::atomic,  "float",                "SQL_FLOAT"}, // float
-      {SQL_DOUBLE,         SQL_C_DOUBLE,         AT::atomic,  "double",               "SQL_DOUBLE"}, // double
+      {SQL_REAL,           SQL_C_FLOAT,          AT::atomic,  "float",            "SQL_REAL"}, // real
+      {SQL_FLOAT,          SQL_C_FLOAT,          AT::atomic,  "float",            "SQL_FLOAT"}, // float
+      {SQL_DOUBLE,         SQL_C_DOUBLE,         AT::atomic,  "double",           "SQL_DOUBLE"}, // double
       // strings
-      {SQL_CHAR,           SQL_C_CHAR,           AT::string,  "char",                 "SQL_CHAR"}, 
-      {SQL_VARCHAR,        SQL_C_CHAR,           AT::string,  "char",                 "SQL_VARCHAR"}, 
-      {SQL_LONGVARCHAR,    SQL_C_CHAR,           AT::string,  "char",                 "SQL_LONGVARCHAR"}, 
+      {SQL_CHAR,           SQL_C_CHAR,           AT::string,  "cstr_t",           "SQL_CHAR"}, 
+      {SQL_VARCHAR,        SQL_C_CHAR,           AT::string,  "cstr_t",           "SQL_VARCHAR"}, 
+      {SQL_LONGVARCHAR,    SQL_C_CHAR,           AT::string,  "cstr_t",           "SQL_LONGVARCHAR"}, 
       // binary strings
-      {SQL_BINARY,         SQL_C_CHAR,           AT::bstring,  "std::uint8_t",        "SQL_BINARY"}, 
-      {SQL_VARBINARY,      SQL_C_CHAR,           AT::bstring,  "std::uint8_t",        "SQL_VARBINARY"}, 
-      {SQL_LONGVARBINARY,  SQL_C_CHAR,           AT::bstring,  "std::uint8_t",        "SQL_LONGVARBINARY"}, 
+      {SQL_BINARY,         SQL_C_BINARY,         AT::bstring, "cbstr_t",          "SQL_BINARY"}, 
+      {SQL_VARBINARY,      SQL_C_BINARY,         AT::bstring, "cbstr_t",          "SQL_VARBINARY"}, 
+      {SQL_LONGVARBINARY,  SQL_C_BINARY,         AT::bstring, "cbstr_t",          "SQL_LONGVARBINARY"}, 
       // decimal strings
-      {SQL_DECIMAL,        SQL_C_CHAR,           AT::string,  "char",                 "SQL_DECIMAL"}, 
-      {SQL_NUMERIC,        SQL_C_CHAR,           AT::string,  "char",                 "SQL_NUMERIC"}, 
-      {SQL_DECFLOAT,       SQL_C_CHAR,           AT::string,  "char",                 "SQL_DECFLOAT"}, 
+      {SQL_DECIMAL,        SQL_C_CHAR,           AT::string,  "cstr_t",           "SQL_DECIMAL"}, 
+      {SQL_NUMERIC,        SQL_C_CHAR,           AT::string,  "cstr_t",           "SQL_NUMERIC"}, 
+      {SQL_DECFLOAT,       SQL_C_CHAR,           AT::string,  "cstr_t",           "SQL_DECFLOAT"}, 
       // date & time
-      {SQL_TYPE_DATE,      SQL_C_TYPE_DATE,      AT::atomic,  "SQL_DATE_STRUCT",      "SQL_TYPE_DATE"}, // binary date
-      {SQL_TYPE_TIME,      SQL_C_TYPE_TIME,      AT::atomic,  "SQL_TIME_STRUCT",      "SQL_TYPE_TIME"}, // binary time
-      {SQL_TYPE_TIMESTAMP, SQL_C_TYPE_TIMESTAMP, AT::atomic,  "SQL_TIMESTAMP_STRUCT", "SQL_TYPE_TIMESTAMP"}, // binary timestamp
+      {SQL_TYPE_DATE,      SQL_C_TYPE_DATE,      AT::atomic,  "DATE_STRUCT",      "SQL_TYPE_DATE"}, // binary date
+      {SQL_TYPE_TIME,      SQL_C_TYPE_TIME,      AT::atomic,  "TIME_STRUCT",      "SQL_TYPE_TIME"}, // binary time
+      {SQL_TYPE_TIMESTAMP, SQL_C_TYPE_TIMESTAMP, AT::atomic,  "TIMESTAMP_STRUCT", "SQL_TYPE_TIMESTAMP"}, // binary timestamp
       // TODO(ostri): timestamp with time zone
-      // TODO(ostri): xLOB and XML
+      {SQL_BLOB,           SQL_C_BINARY,         AT::bstring, "cbstr_t",          "SQL_BLOB"}, // long binary string
+      {SQL_CLOB,           SQL_C_CHAR,           AT::string,  "cstr_t",           "SQL_CLOB"}, // long string
+      // TODO(ostri): DBLOB and XML
     }};
     // clang-format on
   }; // namespace

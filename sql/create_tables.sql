@@ -14,11 +14,10 @@ create table tbl
     c10_time TIME,
     c11_timestamp timestamp,
 --    c12 timestamp with time zone--,
---    c13_blob blob(2000),
---    c14_clob clob(2000),
-    c14_char_for_bit_data char (15) for bit data,
-    c15_double double,
-    c16_float  float,
-    c17_varchar_for_bit_data varchar(15) for bit data
-
+    c13_blob blob(20),
+    c14_clob clob(20),
+    c15_char_for_bit_data char (15) for bit data,
+    c16_double double,
+    c17_float  float,
+    c18_varchar_for_bit_data varchar(15) for bit data
 );

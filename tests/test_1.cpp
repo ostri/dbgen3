@@ -70,13 +70,13 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   using a_v = std::vector<uint8_t>;
   a_t a{1, 2, 3};
   a_v b{1, 2, 3, 4, 5, 6, 7}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-  qr.set_c14_char_for_bit_data(a);
-  qr.set_c14_char_for_bit_data(a, 1);
+  qr.set_c15_char_for_bit_data(a);
+  qr.set_c15_char_for_bit_data(a, 1);
   const double val_double = 12345.67;
-  qr.set_c15_double(val_double);
-  qr.set_c16_float(val_double);
-  qr.set_c17_varchar_for_bit_data(b);
-  qr.set_c17_varchar_for_bit_data(b, 1);
+  qr.set_c16_double(val_double);
+  qr.set_c17_float(val_double);
+  qr.set_c18_varchar_for_bit_data(b);
+  qr.set_c18_varchar_for_bit_data(b, 1);
   REQUIRE_EQ(qr.c1_smallint(), val16);
   REQUIRE_EQ(qr.c2_int(), val32);
   REQUIRE_EQ(qr.c3_bigint(), val64);
@@ -91,14 +91,14 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   REQUIRE(cmp<TIME_STRUCT>(qr.c10_time(), time));
   REQUIRE(cmp<TIMESTAMP_STRUCT>(qr.c11_timestamp(), ts));
   REQUIRE(cmp<TIMESTAMP_STRUCT>(qr.c11_timestamp(1), ts));
-  REQUIRE(cmp(qr.c14_char_for_bit_data(), a));
-  REQUIRE(cmp(qr.c14_char_for_bit_data(1), a));
-  REQUIRE_EQ(qr.c15_double(), val_double);
-  REQUIRE_EQ(qr.c16_float(), val_double);
-  REQUIRE(cmp(qr.c17_varchar_for_bit_data(), b));
-  REQUIRE(cmp(qr.c17_varchar_for_bit_data(1), b));
-  std::cerr << qp.dump();
-  std::cerr << qr.dump();
+  REQUIRE(cmp(qr.c15_char_for_bit_data(), a));
+  REQUIRE(cmp(qr.c15_char_for_bit_data(1), a));
+  REQUIRE_EQ(qr.c16_double(), val_double);
+  REQUIRE_EQ(qr.c17_float(), val_double);
+  REQUIRE(cmp(qr.c18_varchar_for_bit_data(), b));
+  REQUIRE(cmp(qr.c18_varchar_for_bit_data(1), b));
+  std::cerr << qp.dump("buffer: parameter");
+  std::cerr << qr.dump("buffer: result");
 }
 /*...........................................................................*/
 static int diag(int rc, int handle, cstr_t a_msg = "")
@@ -134,19 +134,64 @@ TEST_CASE("full_cycle") // NOLINT
     REQUIRE(res == true);
     c.commit();
   }
-  {
-    UT::insert::qp_5<3> par;
-    UT::insert::utl     q(&c, &par);
-    for (auto cnt=0UL; cnt<par.size(); cnt++)
+  {                           // insert
+    UT::insert::qp_5<10> par; // NOLINT
+    UT::insert::utl      q(&c);
+    q.set_param_buf(&par);
+    cstr_t dec_const = "-234567890123456789012345.67890";
+    auto   bin_char =
+      std::array<uint8_t, 15>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}; // NOLINT
+    auto bin_varchar = std::array<uint8_t, 5>{0, 1, 2, 3, 4};                    // NOLINT
+
+    auto date =
+      DATE_STRUCT{2022, 1, 22};          // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+    auto time = TIME_STRUCT{23, 59, 59}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+    auto ts   = TIMESTAMP_STRUCT{
+      2022, 1, 22, 23, 59, 59, 99999}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+    for (auto cnt = 0UL; cnt < par.size(); cnt++)
     {
-      par.set_par_1(static_cast<int16_t>(cnt+1), cnt); // NOLINT
-      par.set_par_2(static_cast<int32_t>(cnt+1), cnt); // NOLINT
-      par.set_par_3(static_cast<int64_t>(cnt+1), cnt); // NOLINT
+      par.set_par_1(static_cast<int16_t>(cnt + 1), cnt); // NOLINT
+      par.set_par_2(static_cast<int32_t>(cnt + 1), cnt); // NOLINT
+      par.set_par_3(static_cast<int64_t>(cnt + 1), cnt); // NOLINT
+      par.set_par_4(dec_const, cnt);
+      par.set_par_5("123.45", cnt);
+      par.set_par_6("123.456", cnt);
+      par.set_par_7("abcdefghij", cnt);
+      par.set_par_8("ABC", cnt);
+      par.set_par_9(date, cnt);
+      par.set_par_10(time, cnt);
+      par.set_par_11(ts, cnt);
+      par.set_par_12(std::array<uint8_t, 10>{0,1,2,3,4,5,6,7,8,9}, cnt); // NOLINT
+      par.set_par_13("clob", cnt);
+      par.set_par_14(bin_char, cnt);    // NOLINT
+      par.set_par_15(123.45, cnt);      // NOLINT
+      par.set_par_16(123.456, cnt);     // NOLINT
+      par.set_par_17(bin_varchar, cnt); // NOLINT
     }
     par.set_occupied(par.size());
-    auto                rc = q.exec();
-    diag(rc, q.handle(), "empty table: ");
+    auto rc = q.exec();
+    diag(rc, q.handle(), "insert records: ");
     REQUIRE(rc == SQL_SUCCESS);
+    c.commit();
+    std::cerr << q.dump("***after insert***") << std::endl;
+  }
+  { // select
+    UT::select::qr_6<3> res;
+    UT::select::utl     q(&c);
+    q.set_result_buf(&res);
+
+    auto rc = q.exec();
+    diag(rc, q.handle(), "exec select: ");
+    REQUIRE(rc == SQL_SUCCESS);
+
+    while (rc == SQL_SUCCESS)
+    {
+      rc = q.fetch_scroll(SQL_FETCH_NEXT, res.size());
+      if ((rc != SQL_SUCCESS) && (rc != SQL_NO_DATA)) diag(rc, q.handle(), "fetch");
+      REQUIRE(((rc == SQL_SUCCESS) || (rc == SQL_NO_DATA)));
+      std::cerr << res.dump("***select fetch***") << std::endl;
+      if (q.rows_read() < res.size()) break;
+    }
     c.commit();
   }
 }

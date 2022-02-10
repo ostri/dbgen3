@@ -28,7 +28,7 @@ namespace db
   inline std::string serialize<cbstr_t>(const cbstr_t& val)
   {
     std::string       s("'");
-    static const auto tbl       = std::to_array("01234567890abcdef");
+    static const auto tbl       = std::to_array("0123456789abcdef");
     const uint8_t     high_mask = 0xf0;
     const uint8_t     low_mask  = 0x0f;
     for (auto el : val)
