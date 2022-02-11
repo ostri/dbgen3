@@ -345,7 +345,7 @@ namespace dbgen3
       case db::ATTR_TYPE::string:
       {
         r +=
-          out::sl(fmt::format("db::string <std::array<{2}, {0}_len+1>, {1}, N, {2}, {3}> {0}_{{}}; ",
+          out::sl(fmt::format("db::string <std::array<{2}, {0}_len+1>, {1}, N, {2}, {3}> {0}_{{}}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)",
                               el.name(),
                               db_name,
                               "char",

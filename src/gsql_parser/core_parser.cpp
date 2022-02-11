@@ -61,8 +61,11 @@ namespace dbgen3
   bool core_parser::isValid() const { return valid_; }
   bool core_parser::init()
   {
-    if (! init_) xercesc::XMLPlatformUtils::Initialize();
-    init_ = true;
+    if (! init_)
+    {
+      xercesc::XMLPlatformUtils::Initialize();
+      init_ = true;
+    }
     return init_;
   }
 

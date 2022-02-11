@@ -40,24 +40,18 @@ namespace dbgen3
     static VERBOSE   verbose(const std::string& val);
     static str_vec   filenames_from_argv(int argc, char** argv);
     const str_vec&   qsql_list() const; //!< fetch list of gsql filenames
-    // const str_t&   g_lang_str(const PROG_LANG& token) const;
-    // const str_t&   g_db_type_str(db_type token) const;
-    // const str_t&   g_verbose_str(bool token) const;
+
+    bool is_grammar() const { return this->grammar_; }
 
     ///@}
   private:
-    //    const str_vec lang_str;    //!< programming languages names
-    // const str_vec db_type_str; //!< database type names
-    // const str_vec verbose_str; //!< verbosity names
-
-    std::string db_name_;    //!< name of the database
-    std::string out_folder_; //!< output folder
-    str_vec     gsql_list_;  //!< vector of query file names
-    PROG_LANG   lang_        //!< programming language that we generate the code for
-      = PROG_LANG::cpp;
-    RDBMS database_type_ //!< database type that we are generate code for
-      = RDBMS::db2;
-    VERBOSE verbose_ = VERBOSE::FALSE; //!< verbose program operation
+    std::string db_name_;                        //!< name of the database
+    std::string out_folder_;                     //!< output folder
+    str_vec     gsql_list_;                      //!< vector of query file names
+    PROG_LANG   lang_          = PROG_LANG::cpp; //!< code is generated in this prog language
+    RDBMS       database_type_ = RDBMS::db2;     //!< code it generated for this rdbms type
+    VERBOSE     verbose_       = VERBOSE::FALSE; //!< verbose program operation
+    bool        grammar_{};                      //!< shoudl we display grammar
   };
 
   inline VERBOSE cmdline_parameters::verbose(const std::string& val)

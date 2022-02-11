@@ -17,8 +17,28 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(PREBUILT_MODULE_PATH ${CMAKE_BINARY_DIR}/modules)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-  add_compile_options(-Wall -Wextra -pedantic -Werror -Wnarrowing -pthread)
-
+  add_compile_options(
+    -Wall 
+    -Wextra 
+    -pedantic 
+    -Werror 
+    -Wnarrowing 
+    -pthread
+    # -fsanitize=address
+    # -fno-omit-frame-pointer
+    # -fsanitize=undefined 
+    # -fno-sanitize-recover=all 
+    # -fsanitize=float-divide-by-zero 
+    # -fsanitize=float-cast-overflow 
+    # -fno-sanitize=null 
+    # -fno-sanitize=alignment
+    )
+    add_link_options(
+      # -fno-omit-frame-pointer 
+      # -fsanitize=address
+    )
+    # set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    # set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   # Let's nicely support folders in IDEs
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -67,14 +87,22 @@ FetchContent_MakeAvailable(magic_enum)
 # The compiled library code is here
 add_subdirectory(src)
 
-if((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
-    set(OPTIONS -Wall -Wextra -pedantic-errors -Werror -Wnarrowing -pthread)
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    set(OPTIONS /W4 /WX)
-    if(HAS_PERMISSIVE_FLAG)
-        set(OPTIONS ${OPTIONS} /permissive-)
-    endif()
-endif()
+# if((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+#     set(OPTIONS 
+#     -Wall 
+#     -Wextra 
+#     -pedantic-errors 
+#     -Werror 
+#     -Wnarrowing 
+#     -pthread 
+#     -fsanitize=address
+#     )
+# elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+#     set(OPTIONS /W4 /WX)
+#     if(HAS_PERMISSIVE_FLAG)
+#         set(OPTIONS ${OPTIONS} /permissive-)
+#     endif()
+# endif()
 
 # Testing only available if this is the main app
 # Emergency override MODERN_CMAKE_BUILD_TESTING provided as well

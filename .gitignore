@@ -147,3 +147,4 @@ ipch/
 # Visual Studio Trace Files
 *.e2e
 build
+t1.hpp

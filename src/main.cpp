@@ -1,5 +1,6 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+#include <iostream>
 #include <magic_enum.hpp>
 
 #include "cmdline_parameters.hpp"
@@ -10,13 +11,15 @@
 #include "program_status.hpp"
 #include "string_format.hpp"
 #include "version.hpp"
+#include "xsd_grammar.hpp"
 
 // clang-format off
-DEFINE_string(db_name,        "", "database name");                          // NOLINT
-DEFINE_string(out_folder,     "./", "folder for generated files");           // NOLINT
-DEFINE_string(lang,           "cpp", "language we generate source code in"); // NOLINT
-DEFINE_string(db_type,        "db2", "database type");                       // NOLINT
-DEFINE_string(verbose,        "FALSE", "verbosity");                         // NOLINT
+DEFINE_string(db_name,        "",      "database name");                       // NOLINT
+DEFINE_string(out_folder,     "./",    "folder for generated files");          // NOLINT
+DEFINE_string(lang,           "cpp",   "language we generate source code in"); // NOLINT
+DEFINE_string(db_type,        "db2",   "database type");                       // NOLINT
+DEFINE_string(verbose,        "FALSE", "verbosity");                           // NOLINT
+DEFINE_bool  (grammar,        false,   "display xsd grammar");                 // NOLINT
 // clang-format on
 
 using out = dbgen3::string_format;
@@ -35,9 +38,13 @@ int main(int argc, char** argv)
     if (sts == dbgen3::P_STS::success)
     { /* parameters are OK */
       info << out::sl("parameters are ok.", 0);
-      xercesc::XMLPlatformUtils::Initialize(); /// FIXME why we need it here?
-      dbgen3::executor e(cmd_par);
-      e.process_files();
+      if (! cmd_par.is_grammar())
+      {
+        xercesc::XMLPlatformUtils::Initialize(); /// FIXME why we need it here?
+        dbgen3::executor e(cmd_par);
+        e.process_files();
+      }
+      else std::cerr << dbgen3::grammar_ << std::endl;
     }
     else { /* invalid or missing parameters */
       auto tmp = dbgen3::PS::dscr(sts);

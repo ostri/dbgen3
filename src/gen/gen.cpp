@@ -8,7 +8,13 @@
 namespace dbgen3
 {
 
+  void          gen::set_set(const gsql_q_set& a_set) { set_ = &a_set; }
+
+  void          gen::set_rdbm(const RDBMS& rdbm) { this->rdbm_ = rdbm; }
+
   const gsql_q_set& gen::set() const { return *set_; }
+
+  RDBMS             gen::rdbm() const { return this->rdbm_; }
 
  /**
   * @brief the same as line_text only without the text

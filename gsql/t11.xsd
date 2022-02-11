@@ -9,12 +9,12 @@
                         <xs:sequence minOccurs="1" maxOccurs="1">
                             <xs:element name="qp" minOccurs="0" maxOccurs="1">
                                 <xs:complexType>
-                                    <xs:attribute name="id" use="required" />
+                                    <xs:attribute name="id" use="optional" />
                                 </xs:complexType>
                             </xs:element>
                             <xs:element name="qr" minOccurs="0" maxOccurs="1">
                                 <xs:complexType>
-                                    <xs:attribute name="id" use="required" />
+                                    <xs:attribute name="id" use="optional" />
                                 </xs:complexType>
                             </xs:element>
                             <xs:element name="sql-set" minOccurs="1" maxOccurs="1">

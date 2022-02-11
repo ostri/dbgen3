@@ -32,6 +32,7 @@ set (src_list
   gsql_parser/gsql_sql_set
   gsql_parser/gsql_sql_dscr
   gsql_parser/xerces_strings
+  gsql_parser/xsd_grammar
 
   core/executor
 

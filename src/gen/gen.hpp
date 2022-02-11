@@ -21,11 +21,11 @@ namespace dbgen3
     gen&          operator=(const gen&) = default;
     gen&          operator=(gen&&)    = default;
     virtual str_t gen_file(uint offs) = 0;
-    void          set_set(const gsql_q_set& a_set) { set_ = &a_set; }
-    void          set_rdbm(const RDBMS& rdbm) { this->rdbm_ = rdbm; }
+    void          set_set(const gsql_q_set& a_set);
+    void          set_rdbm(const RDBMS& rdbm);
   protected:
     const gsql_q_set& set() const;
-    RDBMS             rdbm() const { return this->rdbm_; }
+    RDBMS             rdbm() const;
     static str_t      snake_case(cstr_t a_name);
     static str_t      line(uint offs = 0, char ch = '.');
     static str_t      line_text(cstr_t a_msg, uint offs = 0, char ch = '.');
