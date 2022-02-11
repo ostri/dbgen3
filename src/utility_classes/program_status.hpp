@@ -30,11 +30,13 @@ namespace dbgen3
     duplicate_sql_dscr_def = 10,
     sql_stat_too_long      = 11,
     cant_open_for_writing  = 12,
+    inv_gsql_syntax        = 13,
   };
-  namespace
+  namespace // NOLINT clang-tidy(cert-dcl59-cpp)
   {
     // clang-format off
-    const std::map<P_STS, const char*> dic
+    // NOLINTNEXTLINE clang-tidy(fuchsia-statically-constructed-objects)
+    const std::map<P_STS, cstr_t> dic
     {
 			{P_STS::success,                "Program successfuly finished"	}, //
 			{P_STS::no_db_name,             "Database name was not provided"}, //
@@ -49,6 +51,7 @@ namespace dbgen3
       {P_STS::duplicate_sql_dscr_def, "Duplicate SQL description definition. query id: {}"},
       {P_STS::sql_stat_too_long,      "SQL statement length exceeds hard limit {}. Shorten it. query id: {} sql#: {}"},
       {P_STS::cant_open_for_writing,  "Can't open file '{}' for  writing."},
+      {P_STS::inv_gsql_syntax,        "Invalid file syntax:'{}' line:{} col:{} type:{} dscr:'{}'"},
     };
     // clang-format on
 

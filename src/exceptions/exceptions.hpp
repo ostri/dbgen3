@@ -10,13 +10,15 @@ namespace dbgen3
   {
   public:
     dbgen3_exc(P_STS a_status, const std::string& a_msg)
-    : std::runtime_error(a_msg), status_(a_status){}
-    virtual ~dbgen3_exc()           = default;
+    : std::runtime_error(a_msg)
+    , status_(a_status)
+    { }
+    ~dbgen3_exc() override          = default;
     dbgen3_exc(const dbgen3_exc& o) = default;
     dbgen3_exc(dbgen3_exc&& o)      = default;
     dbgen3_exc& operator=(const dbgen3_exc&) = default;
     dbgen3_exc& operator=(dbgen3_exc&&) = default;
-    P_STS g_status()const {return status_;}
+    P_STS       status() const { return status_; }
   private:
     P_STS status_ = P_STS::unk_exception; //<! error code
   };
@@ -24,7 +26,7 @@ namespace dbgen3
   class gsql_file_not_exsts : public dbgen3_exc
   {
   public:
-    gsql_file_not_exsts(const std::string& a_msg)
+    explicit gsql_file_not_exsts(const std::string& a_msg)
     : dbgen3_exc(P_STS::gsql_file_not_exists, a_msg){};
   };
 };     // namespace dbgen3

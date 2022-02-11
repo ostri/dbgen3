@@ -25,11 +25,15 @@ namespace dbgen3
     executor& operator=(const executor&) = delete;
     executor& operator=(executor&&) = delete;
     int process_files();
+    static x::DOMLSParser* create_parser(x::XMLGrammarPool* pool);
   protected:
   private:
+    static int load_grammar(x::XMLGrammarPool* gp);
+    /*................................................................*/
     const cmdline_parameters cmd_p_;    //!< command line parameters
     gsql_q_set               gsql_p_;   //!< contents of the GSQL file
     std::ofstream            hpp_file_; //!< generated hpp file (output)
+
   };
 }; // namespace dbgen3
 

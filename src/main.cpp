@@ -40,7 +40,6 @@ int main(int argc, char** argv)
       info << out::sl("parameters are ok.", 0);
       if (! cmd_par.is_grammar())
       {
-        xercesc::XMLPlatformUtils::Initialize(); /// FIXME why we need it here?
         dbgen3::executor e(cmd_par);
         e.process_files();
       }
@@ -54,8 +53,13 @@ int main(int argc, char** argv)
   }
   catch (const dbgen3::gsql_file_not_exsts& e)
   {
-    err << out::sl(dbgen3::PS::dscr(e.g_status()));
-    return dbgen3::ME::enum_integer<dbgen3::P_STS>(e.g_status());
+    err << out::sl(dbgen3::PS::dscr(e.status()));
+    return dbgen3::ME::enum_integer<dbgen3::P_STS>(e.status());
+  }
+  catch (const dbgen3::dbgen3_exc& e)
+  {
+    err << out::sl(e.what()) << std::endl;
+    return dbgen3::ME::enum_integer<dbgen3::P_STS>(e.status());
   }
   catch (const std::runtime_error& e)
   {

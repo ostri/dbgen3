@@ -1,42 +1,36 @@
 #include <filesystem>
+#include <stdexcept>
 #include <xercesc/dom/DOMText.hpp>
+#include <xercesc/framework/XMLGrammarPool.hpp>
 
 #include "core_parser.hpp"
 #include "db2_reader.hpp"
 #include "enums.hpp"
 #include "exceptions.hpp"
+#include "executor.hpp"
 #include "gsql_q.hpp"
 #include "gsql_q_set.hpp"
+#include "program_status.hpp"
 #include "xerces_strings.hpp"
 
 namespace dbgen3
 {
   namespace fs = std::filesystem;
-  //  using std::array<char, 50>;
-
-  //  const XS tag_id{u"id"};
-  namespace x = xercesc;
-  core_parser::core_parser()
-  : valid_(false)
-  , init_(init())
-  , impl_(xercesc::DOMImplementationRegistry::getDOMImplementation(u"LS"))
-  , parser_(static_cast<xercesc::DOMImplementationLS*>(impl_) //
-              ->createLSParser(xercesc::DOMImplementationLS::MODE_SYNCHRONOUS, nullptr))
-  , eh_(new gsql_eh())
+  namespace x  = xercesc;
+  core_parser::core_parser(x::XMLGrammarPool* gp)
+  //  : valid_(false)
+  //  , impl_(xercesc::DOMImplementationRegistry::getDOMImplementation(u"LS"))
+  // , parser_(static_cast<xercesc::DOMImplementationLS*>(impl_) //
+  //             ->createLSParser(xercesc::DOMImplementationLS::MODE_SYNCHRONOUS, nullptr))
+  : parser_(executor::create_parser(gp))
+  //  , eh_(new gsql_eh())
+  //  , gp_(gp)
   {
     try
     {
-      valid_  = true;
-      auto* c = parser_->getDomConfig();
-      // c->setParameter(x::XMLUni::fgDOMValidate,
-      //                                       true);
-      // NOLINTNEXTLINE clang-tidy(hicpp-no-array-decay)
-      c->setParameter(x::XMLUni::fgDOMNamespaces, true);
-      // NOLINTNEXTLINE clang-tidy(hicpp-no-array-decay)
-      c->setParameter(x::XMLUni::fgDOMDatatypeNormalization, true);
-      /// error handler
-      // NOLINTNEXTLINE clang-tidy(hicpp-no-array-decay)
-      c->setParameter(xercesc::XMLUni::fgDOMErrorHandler, eh_.get());
+      //      valid_  = true;
+      //    error_handler eh;
+      parser_->getDomConfig()->setParameter(x::XMLUni::fgDOMErrorHandler, &eh_); // NOLINT
     }
     catch (const x::XMLException& e)
     {
@@ -50,24 +44,11 @@ namespace dbgen3
     if (parser_ != nullptr)
     {
       parser_->release();
-      parser_ = nullptr;
-    }
-    if (init_)
-    {
-      x::XMLPlatformUtils::Terminate();
-      init_ = false;
+      //      parser_ = nullptr;
     }
   }
-  bool core_parser::isValid() const { return valid_; }
-  bool core_parser::init()
-  {
-    if (! init_)
-    {
-      xercesc::XMLPlatformUtils::Initialize();
-      init_ = true;
-    }
-    return init_;
-  }
+  //  bool core_parser::isValid() const { return valid_; }
+
 
   gsql_qbuf_dscr core_parser::load_qp(const x::DOMElement* an_el, uint a_ndx)
   {
@@ -183,25 +164,6 @@ namespace dbgen3
           ++sql_cnt;
           const auto* el = dynamic_cast<const x::DOMElement*>(n);
           r              = load_sql_set_sql(el, a_ctx, a_db_type, sql_cnt, r);
-          // // no enum value testing; XSD handles that
-          // auto rdbms = ME::enum_cast<RDBMS>(attr_value(el, "rdbms", ME::enum_name(RDBMS::sql)));
-          // if ((rdbms == RDBMS::sql) || (rdbms == a_db_type))
-          // { /// only generic SQLs or for a specific database type
-          //   auto phase = ME::enum_cast<PHASE>(attr_value(el, "phase",
-          //   ME::enum_name(PHASE::main))); const std::string stmt = get_text_node(el, a_ctx);
-          //   gsql_sql_dscr     sql_dscr(rdbms.value(), phase.value(), stmt);
-          //   if (r.insert(sql_dscr) == 1)
-          //   {
-          //     // auto ctx = ctx_to_str(a_ctx, std::to_string(sql_cnt));
-          //     auto msg = fmt::format(fg(fmt::color::crimson),
-          //                            dbgen3::program_status::dscr(P_STS::duplicate_sql_buf_def),
-          //                            a_ctx[1],
-          //                            sql_cnt,
-          //                            ME::enum_name<RDBMS>(rdbms.value()),
-          //                            ME::enum_name<PHASE>(phase.value()));
-          //     throw dbgen3_exc(P_STS::duplicate_sql_buf_def, msg);
-          //   }
-          // }
         }
         else err << out::sl(fmt::format("unknown tag within sql: query id:'{}'", l_name));
         break;
@@ -418,8 +380,15 @@ namespace dbgen3
       if (file_exists(fn))
       {
         auto* doc = parser_->parseURI(fn.data());
-        if (doc != nullptr) return load_q_set(doc->getDocumentElement(), fn, a_dbr, a_db_type);
-        throw std::runtime_error(fmt::format("Internal error: xerces document is NULL"));
+        if (! eh_.failed()) return load_q_set(doc->getDocumentElement(), fn, a_dbr, a_db_type);
+        auto msg = fmt::format(fg(fmt::color::crimson),
+                                dbgen3::program_status::dscr(P_STS::inv_gsql_syntax).data(),
+                                eh_.uri(),
+                                eh_.line(),
+                                eh_.col(),
+                                eh_.e_type(),
+                                eh_.e_msg());
+        throw dbgen3_exc(P_STS::inv_gsql_syntax, msg);
       }
       auto msg = fmt::format(fg(fmt::color::crimson), //
                              dbgen3::program_status::dscr(P_STS::gsql_file_not_exists),
@@ -433,6 +402,11 @@ namespace dbgen3
     catch (const x::DOMException& e)
     {
       err << out::sl("Exception message is: ", toNative(e.getMessage()), 0);
+    }
+    catch (const dbgen3_exc& e)
+    {
+//      err << __FILE__ << __LINE__ << e.what() << "\n";
+      throw;
     }
     catch (const std::runtime_error& e)
     {
@@ -485,5 +459,8 @@ namespace dbgen3
     };
     return q_set;
   }
-  bool gsql_eh::handleError(const xercesc::DOMError& /*de*/) { return false; };
+  // bool gsql_eh::handleError(const xercesc::DOMError& /*de*/)
+  // {
+  //   return false;
+  // };
 } // namespace dbgen3
