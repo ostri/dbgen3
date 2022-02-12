@@ -2,11 +2,14 @@
  * \file
  * \brief program to test runtime library
  */
+#include <stdexcept>
+#include <string_view>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <array>
 #include <cstdlib>
 #include <doctest/doctest.h>
 #include <iostream>
+#include <string_view>
 
 #include "connection.hpp"
 #include "error_exception.hpp"
@@ -14,6 +17,7 @@
 #include "statement.hpp"
 
 using argv_t = std::vector<const char*>;
+using cstr_t = std::string_view;
 /**
  * @brief basic connection test
  *
@@ -23,9 +27,11 @@ using argv_t = std::vector<const char*>;
  */
 int do_main(argv_t argv)
 {
+  if (argv.size() < 2) throw std::runtime_error("do_main invalid call, missing parameters.");
+  cstr_t db_name = argv[1];
   try
   {
-    db::connection conn(argv[1]);
+    db::connection conn(db_name);
     return static_cast<int>(dbgen3::P_STS::success);
   }
   catch (db::error_exception& e)

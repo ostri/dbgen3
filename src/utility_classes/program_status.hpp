@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdint>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <sys/types.h>
 #include <vector>
@@ -31,14 +32,21 @@ namespace dbgen3
     sql_stat_too_long      = 11,
     cant_open_for_writing  = 12,
     inv_gsql_syntax        = 13,
+    inv_grammar_syntax     = 14,
+    unknown_error          = 255,
   };
   namespace // NOLINT clang-tidy(cert-dcl59-cpp)
   {
+    struct sts_dscr
+    {
+      P_STS  sts_{};                //!< status code
+      cstr_t dscr_{};               //!< description of the status or/ error
+    } __attribute__((aligned(32))); // NOLINT
     // clang-format off
     // NOLINTNEXTLINE clang-tidy(fuchsia-statically-constructed-objects)
-    const std::map<P_STS, cstr_t> dic
-    {
-			{P_STS::success,                "Program successfuly finished"	}, //
+    constexpr const std::array<sts_dscr, 16> dic_
+    {{
+			{P_STS::success,                "Program successfuly finished"}, //
 			{P_STS::no_db_name,             "Database name was not provided"}, //
 			{P_STS::unknown_db_type,        "Datatbase type was not provided or unknown. '{}'"}, //FIXME
 			{P_STS::unknown_lang,           "Target programming language was not provided or unknown. '{}'" }, //FIXME
@@ -52,7 +60,9 @@ namespace dbgen3
       {P_STS::sql_stat_too_long,      "SQL statement length exceeds hard limit {}. Shorten it. query id: {} sql#: {}"},
       {P_STS::cant_open_for_writing,  "Can't open file '{}' for  writing."},
       {P_STS::inv_gsql_syntax,        "Invalid file syntax:'{}' line:{} col:{} type:{} dscr:'{}'"},
-    };
+      {P_STS::inv_grammar_syntax,     "Invalid grammar syntax: line:{} col:{} dscr:'{}'"},
+      {P_STS::unknown_error,          "Unknown error (no description)"},
+    }};
     // clang-format on
 
   } // namespace
@@ -63,7 +73,12 @@ namespace dbgen3
   class program_status
   {
   public:
-    static cstr_t dscr(const P_STS& code) { return dic.at(code); }
+    constexpr static cstr_t dscr(const P_STS& code) // NOLINT clang-tidy(misc-no-recursion)
+    {
+      for (const auto& el : dic_)
+        if (el.sts_ == code) return el.dscr_;
+      throw std::runtime_error ("Impossible: enum type and index out of enum type");
+    };
   private:
   };
   using PS = program_status;

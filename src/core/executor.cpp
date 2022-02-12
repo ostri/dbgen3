@@ -8,7 +8,9 @@
 #include <xercesc/framework/XMLGrammarPoolImpl.hpp>
 
 #include "dom_error_handler.hpp"
+#include "fmt/core.h"
 #include "multi_line.hpp"
+#include "program_status.hpp"
 #include "xsd_grammar.hpp"
 namespace dbgen3
 {
@@ -26,11 +28,11 @@ namespace dbgen3
   x::DOMLSParser* executor::create_parser(x::XMLGrammarPool* pool)
   {
     x::DOMImplementation* impl(x::DOMImplementationRegistry::getDOMImplementation(u"LS"));
-    x::DOMLSParser* parser(impl->createLSParser(x::DOMImplementationLS::MODE_SYNCHRONOUS,
+    x::DOMLSParser*       parser(impl->createLSParser(x::DOMImplementationLS::MODE_SYNCHRONOUS,
                                                 nullptr,
                                                 x::XMLPlatformUtils::fgMemoryManager,
                                                 pool));
-    x::DOMConfiguration* c(parser->getDomConfig());
+    x::DOMConfiguration*  c(parser->getDomConfig());
     // Commonly useful configuration.
     c->setParameter(x::XMLUni::fgDOMComments, false);                 // NOLINT
     c->setParameter(x::XMLUni::fgDOMDatatypeNormalization, true);     // NOLINT
@@ -63,10 +65,19 @@ namespace dbgen3
       str_t      g(trim(grammar_)); // to remove leading spaces; there must be nothing before
                                     // first tag in the xml file
       // NOLINTNEXTLINE
-      x::MemBufInputSource mis(reinterpret_cast<const XMLByte*>(g.data()), g.size(), "xsd");
+      x::MemBufInputSource         mis(reinterpret_cast<const XMLByte*>(g.data()), g.size(), "xsd");
       xercesc::Wrapper4InputSource wmis(&mis, false);
       /* no result */ parser->loadGrammar(&wmis, xercesc::Grammar::SchemaGrammarType, true);
-      if (eh.failed()) { throw std::runtime_error("embeded grammar has syntactic errors"); }
+      if (eh.failed())
+      {
+        // constexpr cstr_t x_fmt = PS::dscr(P_STS::inv_gsql_syntax);
+        auto msg = fmt::format(fg(fmt::color::crimson),
+                               PS::dscr(P_STS::inv_gsql_syntax),
+                               eh.line(),
+                               eh.col(),
+                               eh.e_msg());
+        throw dbgen3_exc(P_STS::inv_gsql_syntax, msg);
+      }
     }
     parser->release();
     gp->lockPool();

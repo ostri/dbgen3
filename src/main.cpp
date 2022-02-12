@@ -63,7 +63,7 @@ int main(int argc, char** argv)
   }
   catch (const std::runtime_error& e)
   {
-    err << "internal error " << out::sl(e.what());
+    err << "internal error:'" << e.what() << "'.\n";
     return dbgen3::ME::enum_integer<dbgen3::P_STS>(dbgen3::P_STS::unk_exception);
   }
   catch (...)

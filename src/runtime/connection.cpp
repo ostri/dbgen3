@@ -79,9 +79,9 @@ namespace db
    *
    */
   connection::connection(
-    const std::string& a_database, // NOLINT bugprone-easily-swappable-parameters
-    const std::string& a_user,     // NOLINT bugprone-easily-swappable-parameters
-    const std::string& a_password, // NOLINT bugprone-easily-swappable-parameters
+    cstr_t a_database, // NOLINT bugprone-easily-swappable-parameters
+    cstr_t a_user,     // NOLINT bugprone-easily-swappable-parameters
+    cstr_t a_password, // NOLINT bugprone-easily-swappable-parameters
     err_log            a_log)
   : log_(a_log != nullptr ? a_log : &_log_)
   , db_name_(a_database)

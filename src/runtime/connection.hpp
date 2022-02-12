@@ -20,8 +20,8 @@ namespace db
 
   struct h_pair
   {
-    std::int32_t handle; //!< handle
-    std::int32_t h_type; //!< handle type
+    std::int32_t handle;         //!< handle
+    std::int32_t h_type;         //!< handle type
   } __attribute__((aligned(8))); // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   using h_stack = std::stack<h_pair>;
   void _log_(const std::string& msg); //!< default log (std::cerr)
@@ -54,10 +54,10 @@ namespace db
      * @param a_log      logging calback method (see errlog; if none provided it logs to the
      * std::cerr)
      */
-    explicit connection(const std::string& a_database,
-                        const std::string& a_user     = "",
-                        const std::string& a_password = "",
-                        err_log            a_log      = nullptr);
+    explicit connection(cstr_t  a_database,
+                        cstr_t  a_user     = "",
+                        cstr_t  a_password = "",
+                        err_log a_log      = nullptr);
     virtual ~connection();                                //!< destructor
     connection(const connection& o) = default;            //!< copy constructor
     connection(connection&& o)      = default;            //!< move constructor
