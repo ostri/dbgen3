@@ -9,33 +9,33 @@ namespace dbgen3
     R"k0a1f2k3a4(
       <?xml version="1.0" encoding="UTF-8"?>
       <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-        <!-- id-name -->
-        <xs:annotation>
-          <xs:documentation>
-              id-name type which denotes also c++ identifier with the following requirements
-              - it starts with small or capital letter or _
-              - remaining part can have arbitrary letter, decimal digit or _
-              - minimum length is 1
-              - maximum length is 32 characters
-          </xs:documentation>
-        </xs:annotation>
+        <!-- id-name .........................................................................-->
         <xs:simpleType name="id-name">
+          <xs:annotation>
+            <xs:documentation>
+                id-name type which denotes also c++ identifier with the following requirements
+                - it starts with small or capital letter or _
+                - remaining part can have arbitrary letter, decimal digit or _
+                - minimum length is 1
+                - maximum length is 32 characters
+            </xs:documentation>
+          </xs:annotation>
           <xs:restriction base="xs:string">
             <xs:pattern value="[A-Za-z_][A-Za-z_0-9-]*"></xs:pattern>
             <xs:maxLength value="32"/>
             <xs:minLength value="1"/> 
           </xs:restriction>
         </xs:simpleType>
-        <!-- list of id names -->
-        <xs:annotation>
-          <xs:documentation>
-              list of id_names separatd by whitespace
+        <!-- list of id names ...............................................................-->
+        <xs:simpleType name="id-name-list">
+          <xs:annotation>
+            <xs:documentation>
+                list of id_names separatd by whitespace
             </xs:documentation>
-        </xs:annotation>
-        <xs:simpleType name="id_name_list">
+          </xs:annotation>
           <xs:list itemType="id-name"></xs:list>
         </xs:simpleType> 
-        <!-- definition of a buffer -->
+        <!-- definition of a buffer .........................................................-->
         <xs:annotation>
           <xs:documentation>
               definition of the buffer with the following attributes
@@ -45,9 +45,9 @@ namespace dbgen3
         </xs:annotation>
         <xs:complexType name="buffer_type">
           <xs:attribute name="id" type="id-name" use="optional" />
-          <xs:attribute name="columns" type="id_name_list" use="optional" />
+          <xs:attribute name="columns" type="id-name-list" use="optional" />
         </xs:complexType>
-        <!-- enum RDBMS -->
+        <!-- enum RDBMS ....................................................................-->
         <xs:simpleType name="rdbms_type">
           <xs:annotation>
             <xs:documentation>
@@ -67,7 +67,7 @@ namespace dbgen3
             <xs:enumeration value="mariadb"/>
           </xs:restriction>
         </xs:simpleType>
-        <!-- enum PHASE -->
+        <!-- enum PHASE ..................................................................-->
         <xs:simpleType name="phase_type">
           <xs:annotation>
             <xs:documentation>
@@ -83,16 +83,16 @@ namespace dbgen3
             <xs:enumeration value="cleanup"/>
           </xs:restriction>
         </xs:simpleType>
-        <!-- sql-dscr -->
-        <xs:annotation>
-          <xs:documentation>
-            SQL description
-            - sql command
-            - sql rdbms
-            - sql phase
-          </xs:documentation>
-        </xs:annotation>
+        <!-- sql-dscr...................................................................-->
         <xs:complexType name="sql-dscr">
+          <xs:annotation>
+            <xs:documentation>
+              SQL description
+              - sql command
+              - sql rdbms
+              - sql phase
+            </xs:documentation>
+          </xs:annotation>
           <xs:simpleContent>
             <xs:extension base="xs:string">
               <xs:attribute name="rdbms" type="rdbms_type" use="optional" />

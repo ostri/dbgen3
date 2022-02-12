@@ -1,4 +1,6 @@
 #include "dom_error_handler.hpp"
+#include "exceptions.hpp"
+#include "program_status.hpp"
 namespace dbgen3
 {
   bool  dom_error_handler::failed() const { return failed_; }
@@ -15,8 +17,8 @@ namespace dbgen3
     line_   = loc->getLineNumber();
     col_    = loc->getColumnNumber();
     e_type_ = x_warn ? "warning" : "error";
-
-    return false;
+    throw dbgen3_exc(P_STS::inv_grammar_syntax, "kr neki");
+    return true;
   }
   str_t dom_error_handler::uri() const { return this->uri_; }
   str_t dom_error_handler::e_msg() const { return this->e_msg_; }

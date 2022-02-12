@@ -1,75 +1,78 @@
 <?xml-model href="t11.xsd"?>
 <q-set id="UT">
-    <hdr><![CDATA[ 
+  <hdr>
+    <![CDATA[
         /*
-        you can insert arbitrary c++ code here 
+        you can insert arbitrary c++ code here
         #include <string>
         #include <array>
         */
         ]]>
-        <!-- header line 1
+    <!-- header line 1
           header 1.1
         header line 2 -->
-        <!-- header part to be included into generated file immediatelly after the guard
+    <!-- header part to be included into generated file immediatelly after the guard
             <?xml-model href="gsql_file.xsd"?>
         -->
-        <!-- header line 3 -->
-    </hdr>
-    <q id="Q-1">
-        <!-- query -->
-        <qp id="qp-id" /> <!-- query parameters -->
-        <qr id="qr-id" /> <!-- query result -->
-        <sql-set>
-            <!-- sql set 
+    <!-- header line 3 -->
+  </hdr>
+  <q id="Q-1">
+    <!-- query -->
+    <qp id="qp-id" /> <!-- query parameters -->
+    <qr id="qr-id" /> <!-- query result -->
+    <sql-set>
+      <!-- sql set
                 rdbms ::= sql | db2 | mariadb | oracle
                 phase ::= prepare | main | cleanup
             -->
-            <sql rdbms="sql" phase="main">
-                select *
+      <sql rdbms="sql" phase="main">
+        select *
                 from tbl
-                where 
-                  c1_smallint=? <!--todo fix the bug with apostophies-->
-            </sql>
-            <sql rdbms="sql" phase="prepare">
+                where
+                  c1_smallint=?
+        <!--todo fix the bug with apostophies-->
+      </sql>
+      <sql rdbms="sql" phase="prepare">
                                select * from tbl
-            </sql>
-            <sql rdbms="sql" phase="cleanup">
+</sql>
+      <sql rdbms="sql" phase="cleanup">
                 select * from tbl
-            </sql>
-            <sql rdbms="db2" phase="cleanup">
-                
+</sql>
+      <sql rdbms="db2" phase="cleanup">
+
                 select * from tbl
-            </sql>
-            <!-- <sql rdbms="db2">
-             
+</sql>
+      <!-- <sql rdbms="db2">
+
                 select * from tbl
             </sql> -->
-        </sql-set>
-    </q>
-    <q>
-        <sql-set>
-            <sql></sql>
-        </sql-set>
-    </q>
-    <q>
-        <sql-set>
-            <sql></sql>
-        </sql-set>
-    </q>
-    <q id="del-tbl-rec">
-        <sql-set>
-            <sql>
+    </sql-set>
+  </q>
+  <q>
+    <sql-set>
+      <sql></sql>
+    </sql-set>
+  </q>
+  <q>
+    <sql-set>
+      <sql></sql>
+    </sql-set>
+  </q>
+  <q id="del-tbl-rec">
+    <sql-set>
+      <sql>
                 delete from tbl;
-            </sql>
-        </sql-set>
-    </q>
-    <q id="insert">
-        <sql-set>
-            <sql>
-                insert into tbl 
+</sql>
+    </sql-set>
+  </q>
+  <q id="insert">
+    <sql-set>
+      <sql>
+        insert into tbl
                 (
-                    C1_smallint, <!-- komentar -->
-                    C2_int, 
+                    C1_smallint,
+        <!-- komentar -->
+        C2_int,
                     C3_bigint,
                     C4_numeric,
                     C5_decimal,
@@ -85,20 +88,21 @@
                     C16_double,
                     C17_float,
                     C18_varchar_for_bit_data
-                ) 
-                values 
+                )
+                values
                 (
                     ?,?,?, ?,?,?, ?,?,?, ?,?,?, ?,?,?, ?,?
                 )
-            </sql>
-        </sql-set>
-    </q>
-    <q id="select">
-        <sql-set>
-            <sql>
-                select 
-                    C1_smallint, <!-- komentar -->
-                    C2_int, 
+      </sql>
+    </sql-set>
+  </q>
+  <q id="select">
+    <sql-set>
+      <sql>
+        select
+                    C1_smallint,
+        <!-- komentar -->
+        C2_int,
                     C3_bigint,
                     C4_numeric,
                     C5_decimal,
@@ -114,9 +118,21 @@
                     C16_double,
                     C17_float,
                     C18_varchar_for_bit_data
-                from 
+                from
                   tbl
-            </sql>
-        </sql-set>
-    </q>
+      </sql>
+    </sql-set>
+  </q>
+  <q id="named_columns">
+    <qp columns="cond"/>
+    <qr columns="int16 int32 int64 numeric decimal dec char"/>
+    <sql-set>
+      <sql>
+        select *
+            from tbl
+            where
+              c1_smallint=?
+      </sql>
+    </sql-set>
+  </q>
 </q-set>

@@ -149,3 +149,4 @@ ipch/
 build
 t1.hpp
 src/gsql_parser/t1.hpp
+gsql/t11.xsd

@@ -161,7 +161,7 @@ TEST_CASE("full_cycle") // NOLINT
       par.set_par_9(date, cnt);
       par.set_par_10(time, cnt);
       par.set_par_11(ts, cnt);
-      par.set_par_12(std::array<uint8_t, 10>{0,1,2,3,4,5,6,7,8,9}, cnt); // NOLINT
+      par.set_par_12(std::array<uint8_t, 10>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, cnt); // NOLINT
       par.set_par_13("clob", cnt);
       par.set_par_14(bin_char, cnt);    // NOLINT
       par.set_par_15(123.45, cnt);      // NOLINT
@@ -194,4 +194,13 @@ TEST_CASE("full_cycle") // NOLINT
     }
     c.commit();
   }
+}
+TEST_CASE("colums_custom_names") // NOLINT
+{
+  const static constexpr std::array<db::attr_data, 17> arr_  
+  {{
+    {"name-1", 20, 10},
+    {"name-2", 21, 10},
+  }};
+  static_assert(db::a_width(1, arr_) == 21, "zgleda da ne dela"); // NOLINT
 }

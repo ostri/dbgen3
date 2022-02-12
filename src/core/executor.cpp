@@ -1,13 +1,16 @@
 #include "executor.hpp"
 #include <stdexcept>
+#include <xercesc/dom/DOMException.hpp>
 #include <xercesc/dom/DOMImplementationLS.hpp>
 #include <xercesc/dom/DOMLSParser.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/framework/Wrapper4InputSource.hpp>
 #include <xercesc/framework/XMLGrammarPool.hpp>
 #include <xercesc/framework/XMLGrammarPoolImpl.hpp>
+#include <xercesc/validators/common/Grammar.hpp>
 
 #include "dom_error_handler.hpp"
+#include "exceptions.hpp"
 #include "fmt/core.h"
 #include "multi_line.hpp"
 #include "program_status.hpp"
@@ -55,33 +58,39 @@ namespace dbgen3
 #endif
     return parser;
   }
-  int executor::load_grammar(x::XMLGrammarPool* gp)
+  x::Grammar* executor::load_grammar(x::XMLGrammarPool* gp)
   {
+    // auto              sts = 0;
+    x::Grammar*       gram = nullptr;
     x::DOMLSParser*   parser(create_parser(gp));
     dom_error_handler eh;
     parser->getDomConfig()->setParameter(x::XMLUni::fgDOMErrorHandler, &eh); // NOLINT
+
+    multi_line ml(grammar_);
+    str_t      g(trim(grammar_)); // to remove leading spaces; there must be nothing before
+                                  // first tag in the xml file
+    // NOLINTNEXTLINE
+    x::MemBufInputSource         mis(reinterpret_cast<const XMLByte*>(g.data()), g.size(), "xsd");
+    xercesc::Wrapper4InputSource wmis(&mis, false);
+    try
     {
-      multi_line ml(grammar_);
-      str_t      g(trim(grammar_)); // to remove leading spaces; there must be nothing before
-                                    // first tag in the xml file
-      // NOLINTNEXTLINE
-      x::MemBufInputSource         mis(reinterpret_cast<const XMLByte*>(g.data()), g.size(), "xsd");
-      xercesc::Wrapper4InputSource wmis(&mis, false);
-      /* no result */ parser->loadGrammar(&wmis, xercesc::Grammar::SchemaGrammarType, true);
-      if (eh.failed())
-      {
-        // constexpr cstr_t x_fmt = PS::dscr(P_STS::inv_gsql_syntax);
-        auto msg = fmt::format(fg(fmt::color::crimson),
-                               PS::dscr(P_STS::inv_gsql_syntax),
-                               eh.line(),
-                               eh.col(),
-                               eh.e_msg());
-        throw dbgen3_exc(P_STS::inv_gsql_syntax, msg);
-      }
+      gram = parser->loadGrammar(&wmis, xercesc::Grammar::SchemaGrammarType, true);
     }
+    // catch (const x::DOMException& e)
+    // catch (const x::XMLException& e)
+    catch (...)
+    { };
+    if (eh.failed() /*|| gram == nullptr*/)
+    {
+      auto msg = fmt::format(
+        fg(fmt::color::crimson), PS::dscr(P_STS::inv_gsql_syntax), eh.line(), eh.col(), eh.e_msg());
+      err << msg << std::endl;
+      throw dbgen3_exc(P_STS::inv_grammar_syntax, msg);
+    }
+
     parser->release();
     gp->lockPool();
-    return 0;
+    return gram;
   }
   /**
    * @brief process all input files
@@ -90,10 +99,10 @@ namespace dbgen3
    */
   int executor::process_files()
   {
-    auto                               sts = 0;
+    // auto                               sts = 0;
     x::MemoryManager*                  mm(x::XMLPlatformUtils::fgMemoryManager);
     std::unique_ptr<x::XMLGrammarPool> gp(new x::XMLGrammarPoolImpl(mm));
-    sts = load_grammar(gp.get());
+    if (load_grammar(gp.get()) == nullptr) throw std::runtime_error("errors in grammar");
     core_parser p(gp.get());
     db2_reader  r;
     r.connect(this->cmd_p_.db_name(), "", ""); // FIXME username and password also
@@ -113,6 +122,6 @@ namespace dbgen3
       //        err << gsql_struct.dump("finale");
       hpp_file_.close();
     }
-    return sts;
+    return 0;
   }
 }; // namespace dbgen3

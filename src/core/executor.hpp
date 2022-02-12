@@ -28,7 +28,7 @@ namespace dbgen3
     static x::DOMLSParser* create_parser(x::XMLGrammarPool* pool);
   protected:
   private:
-    static int load_grammar(x::XMLGrammarPool* gp);
+    static x::Grammar* load_grammar(x::XMLGrammarPool* gp);
     /*................................................................*/
     const cmdline_parameters cmd_p_;    //!< command line parameters
     gsql_q_set               gsql_p_;   //!< contents of the GSQL file

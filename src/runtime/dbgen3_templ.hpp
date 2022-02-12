@@ -28,6 +28,14 @@ namespace db
   using bstr_t  = std::span<uint8_t>;
   using cbstr_t = std::span<const uint8_t>;
 
+  struct attr_data
+  {
+    cstr_t      name{};           //!< name of the attribute
+    std::size_t width{};          //!< width of the attribute in bytes (string => +1)
+    uint8_t     dec{};            //!< number of decimal places or fraction in timestamp
+    uint        db_type{};        //!< attribute type id e.g. SQL_BIGINT -> -5
+  } __attribute__((aligned(32))); // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+
   /*....root class for all attributes ........................................................*/
   template <std::size_t arr_size>
   class attr_root_root
@@ -59,11 +67,12 @@ namespace db
   class attr_root : public attr_root_root<arr_size>
   {
   public:
-    using t_vec = std::array<T, arr_size>;
-    using l_vec = std::array<int32_t, arr_size>;
-    // using bstr_t                    = std::span<uint8_t>;
-    using cstr_t                    = std::string_view;
-    attr_root()                     = default;
+    using t_vec  = std::array<T, arr_size>;
+    using l_vec  = std::array<int32_t, arr_size>;
+    using cstr_t = std::string_view;
+    attr_root()  = default;
+    // constexpr explicit attr_root(cstr_t name="")
+    // : name_(name){};
     virtual ~attr_root()            = default;
     attr_root(const attr_root&)     = default;
     attr_root(attr_root&&) noexcept = default;
@@ -180,13 +189,14 @@ namespace db
     }
     int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
     {
-      std::cerr << ct_name(db_type_) << "--" << dbt_name(db_type_) << "-- " << width() << "--" << dec_ << std::endl;
+      std::cerr << ct_name(db_type_) << "--" << dbt_name(db_type_) << "-- " << width() << "--"
+                << dec_ << std::endl;
       auto rc = SQLBindParameter(a_stmt_handle,
                                  a_ndx,
                                  SQL_PARAM_INPUT,
                                  c_type(db_type_),
                                  db_type_,
-                                 width()-1,
+                                 width() - 1,
                                  dec_,
                                  static_cast<void*>(data_.data()),
                                  width(),
@@ -210,6 +220,7 @@ namespace db
     constinit static const int32_t width_   = sizeof(T); //!< parameter width
     constinit static const int16_t db_type_ = DB_TYPE;   //!< parameter type
     constinit static const int16_t dec_     = DEC;       //!< decimal places
+    //    const cstr_t                   name_{};              //!< name of the attribute
   };
   /**
    * @brief buffer root class as seen from programmer (no dimennsion only pure methods)
@@ -247,7 +258,7 @@ namespace db
     using attr_vec_t                    = std::vector<attr_root_root<arr_size>*>;
     using s_vec_t                       = std::array<SQLUSMALLINT, arr_size>;
     using s_vec_a                       = std::span<SQLUSMALLINT>;
-    buffer_root()                       = default;
+    constexpr buffer_root()             = default;
     virtual ~buffer_root()              = default;
     buffer_root(const buffer_root&)     = default;
     buffer_root(buffer_root&&) noexcept = default;
@@ -347,6 +358,7 @@ namespace db
     using l_vec        = std::array<int32_t, arr_size>;
     using PP           = attr_root<T, DB_TYPE, arr_size, DEC>;
     constexpr atomic() = default;
+    //    constexpr explicit atomic(cstr_t name): attr_root<T, DB_TYPE, arr_size, DEC>(name){};
     T       value() const { return value(0); }
     T       value(std::size_t ndx) const { return PP::data().at(ndx); }
     void    set_value(const T& data) { set_value(data, 0); }
@@ -538,6 +550,21 @@ namespace db
     brr_t*        res_buf_ = nullptr; //!< result buffer
     // int proc{};
   };
+
+  constexpr static const std::array<attr_data, 5> arr;
+
+  constexpr cstr_t a_name(uint ndx, const std::span<attr_data> a)
+  {
+    if (ndx < a.size()) { return (a.begin() + ndx)->name; }
+    throw std::runtime_error("a_name index out of scope");
+  }
+  constexpr std::size_t a_width(size_t ndx, std::span<const db::attr_data> a)
+  {
+    if (ndx < a.size()) { return (a.begin() + ndx)->width; } // NOLINT
+    throw std::runtime_error("a_name index out of scope");
+  }
+
+
   /*....inline methods .......................................................................*/
 };     // namespace db
 #endif // DBGEN3_TEMPL_HPP
