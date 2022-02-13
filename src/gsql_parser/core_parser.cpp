@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <ostream>
 #include <stdexcept>
 #include <xercesc/dom/DOMText.hpp>
 #include <xercesc/framework/XMLGrammarPool.hpp>
@@ -10,6 +11,7 @@
 #include "executor.hpp"
 #include "gsql_q.hpp"
 #include "gsql_q_set.hpp"
+#include "odbc_db.hpp"
 #include "program_status.hpp"
 #include "xerces_strings.hpp"
 
@@ -47,25 +49,37 @@ namespace dbgen3
       //      parser_ = nullptr;
     }
   }
-  //  bool core_parser::isValid() const { return valid_; }
-
-
-  gsql_qbuf_dscr core_parser::load_qp(const x::DOMElement* an_el, uint a_ndx)
+  gsql_qbuf_dscr core_parser::load_buf(const db::BUF_TYPE& bt, const x::DOMElement* an_el, uint a_ndx)
   {
-    gsql_qbuf_dscr r(db::BUF_TYPE::par);
+    gsql_qbuf_dscr r(bt);
     /// load attributes
     r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
-    r.set_skip(attr_value(an_el, "skip", false));
+    r.set_skip(attr_value_b(an_el, "skip", false));
+    r.set_names(attr_value(an_el, "columns", ""));
+//    err << "qp id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size() << std::endl;
     return r;
   }
-  gsql_qbuf_dscr core_parser::load_qr(const x::DOMElement* an_el, uint a_ndx)
-  {
-    gsql_qbuf_dscr r(db::BUF_TYPE::res);
-    /// load attributes
-    r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
-    r.set_skip(attr_value(an_el, "skip", false));
-    return r;
-  }
+  // gsql_qbuf_dscr core_parser::load_qp(const x::DOMElement* an_el, uint a_ndx)
+  // {
+  //   gsql_qbuf_dscr r(db::BUF_TYPE::par);
+  //   /// load attributes
+  //   r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
+  //   r.set_skip(attr_value_b(an_el, "skip", false));
+  //   r.set_names(attr_value(an_el, "columns", ""));
+  //   err << "qp id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size() << std::endl;
+  //   return r;
+  // }
+  // gsql_qbuf_dscr core_parser::load_qr(const x::DOMElement* an_el, uint a_ndx)
+  // {
+  //   gsql_qbuf_dscr r(db::BUF_TYPE::res);
+  //   /// load attributes
+  //   r.set_id(attr_value(an_el, "id", "qr_" + std::to_string(a_ndx)));
+  //   r.set_skip(attr_value_b(an_el, "skip", false));
+  //   r.set_names(attr_value(an_el, "columns", ""));
+
+  //   err << "qr id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size() << std::endl;
+  //   return r;
+  // }
 
   std::string core_parser::get_text_node(const x::DOMElement* an_el, str_vec a_ctx)
   {
@@ -111,8 +125,6 @@ namespace dbgen3
                                              uint                 ndx,
                                              gsql_sql_set&        r)
   {
-    // const auto* el = dynamic_cast<const x::DOMElement*>(n);
-    //  no enum value testing; XSD handles that
     auto rdbms = ME::enum_cast<RDBMS>(attr_value(el, "rdbms", ME::enum_name(RDBMS::sql)));
     if ((rdbms == RDBMS::sql) || (rdbms == a_db_type))
     { /// only generic SQLs or for a specific database type
@@ -181,22 +193,23 @@ namespace dbgen3
     }
     return r;
   }
-  std::string core_parser::attr_value(const x::DOMElement* an_el,
-                                      cstr_t               an_attr_name,
-                                      cstr_t               a_default)
+  str_t core_parser::attr_value(const x::DOMElement* an_el, cstr_t an_attr_name, cstr_t a_default)
   {
     XS attr_id = an_el->getAttribute(fromNative(str_t(an_attr_name)).data());
-    if (! attr_id.empty()) return toNative(attr_id);
-    return std::string(a_default);
+    if (! attr_id.empty()) return str_t(toNative(attr_id));
+    return str_t(a_default);
   }
-  bool core_parser::attr_value(const x::DOMElement* an_el, cstr_t an_attr_name, bool a_default)
+  bool core_parser::attr_value_b(const x::DOMElement* an_el, cstr_t an_attr_name, bool a_default)
   {
     /// load attributes
     XS attr_id(an_el->getAttribute(fromNative(an_attr_name.data()).data()));
     if (! attr_id.empty()) { return toNative(attr_id) == "true"; }
     return a_default;
   }
-  fld_dscr core_parser::load_fld_dscr(const db::BUF_TYPE& a_bt, SQLHANDLE h, uint ndx)
+  fld_dscr core_parser::load_fld_dscr(cstr_t              def_name,
+                                      const db::BUF_TYPE& a_bt,
+                                      SQLHANDLE           h,
+                                      uint                ndx)
   {
     int16_t    type;
     uint32_t   width;
@@ -205,6 +218,7 @@ namespace dbgen3
     int16_t    col_name_len           = 0;
     const auto max_coloum_name_length = 50;
     int16_t    rc;
+    str_t      name(def_name);
 
     std::array<char, max_coloum_name_length + 1> buf{}; /// buffer that
                                                         /// returns the name of the column
@@ -224,11 +238,13 @@ namespace dbgen3
                          &nullable);
     if (SQL_SUCCESS == rc)
     { /// FIXME convert to to_char
-      std::string name = (a_bt == db::BUF_TYPE::par) ? "par_" + std::to_string(ndx + 1)
-                                                     : std::string(buf.data(), col_name_len);
-      for (auto& ch : name)
-        ch = static_cast<char>(std::tolower(ch)); // FIXME dosn't work with utf-8
-
+      if (name.empty())
+      {
+        name = (a_bt == db::BUF_TYPE::par) ? "par_" + std::to_string(ndx + 1)
+                                           : std::string(buf.data(), col_name_len);
+        for (auto& ch : name)
+          ch = static_cast<char>(std::tolower(ch)); // FIXME doesn't work with utf-8
+      }
       auto n  = ME::enum_cast<DBN>(nullable);
       auto ot = ME::enum_cast<ODBC_TYPE>(type);
       if (! ot.has_value())
@@ -248,13 +264,15 @@ namespace dbgen3
   }
 
   /**
-   * @brief it fetches the parameter/column description or throws exception
+   * @brief it fetches the parameter/column description from db or throws exception
    *
    * @param a_bt bufer_type
    * @param a_stmt statement structure we are executing statements upon
    * @return fld_vec
    */
-  fld_vec core_parser::fetch_param_dscr(const db::BUF_TYPE& a_bt, db::statement& a_stmt)
+  fld_vec core_parser::fetch_param_dscr(const str_vec&      names,
+                                        const db::BUF_TYPE& a_bt,
+                                        db::statement&      a_stmt)
   {
     fld_vec r;
     auto    h       = a_stmt.handle();
@@ -264,7 +282,11 @@ namespace dbgen3
     if (SQL_SUCCESS == rc)
     {
       info << "# of par:" << par_cnt << "\n";
-      for (auto cnt = 0; cnt < par_cnt; ++cnt) { r.push_back(load_fld_dscr(a_bt, h, cnt)); };
+      for (int16_t cnt = 0; cnt < par_cnt; ++cnt) 
+      { 
+        auto def_name = (static_cast<uint>(cnt) < names.size()) ? names.at(cnt) : "";
+        r.push_back(load_fld_dscr(def_name, a_bt, h, cnt)); 
+      };
     }
     else throw db::error_exception(db::error(h, SQL_HANDLE_STMT));
     return r;
@@ -283,8 +305,12 @@ namespace dbgen3
       db::statement stmt_c((a_dbr.connection()));
       if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt_p.exec_direct(sql_p, true);
       rc = stmt_m.prepare(sql_m);
-      r.set_buf_dscr_flds(db::BUF_TYPE::par, fetch_param_dscr(db::BUF_TYPE::par, stmt_m));
-      r.set_buf_dscr_flds(db::BUF_TYPE::res, fetch_param_dscr(db::BUF_TYPE::res, stmt_m));
+      for (auto& buf : r.buf_dscr())
+      {
+//        std::cerr << buf.names().size() << std::endl;
+        buf.set_flds(fetch_param_dscr(buf.names(), buf.type(), stmt_m));
+      }
+      //      r.set_buf_dscr_flds(db::BUF_TYPE::res, fetch_param_dscr(db::BUF_TYPE::res, stmt_m));
       if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
       //            err << sts;
       stmt_p.rollback();
@@ -312,8 +338,8 @@ namespace dbgen3
       {
         auto* el       = dynamic_cast<x::DOMElement*>(n);
         auto  loc_name = toNative(n->getLocalName());
-        if (loc_name == "qp") r.set_buf_dscr(load_qp(el, a_ndx));
-        else if (loc_name == "qr") r.set_buf_dscr(load_qr(el, a_ndx));
+        if (loc_name == "qp") r.set_buf_dscr(load_buf(db::BUF_TYPE::par, el, a_ndx));
+        else if (loc_name == "qr") r.set_buf_dscr(load_buf(db::BUF_TYPE::res, el, a_ndx));
         else if (loc_name == "sql-set") //
         {
           r.set_sql_set(load_sql_set(el, a_ctx, a_db_type)); // XML(DOM) -> internal stuctures
@@ -357,7 +383,7 @@ namespace dbgen3
   }
   std::string core_parser::q_set_id(const x::DOMElement* an_el, cstr_t a_filename)
   {
-    return attr_value(an_el, "id", fs::path(a_filename).stem().string());
+    return str_t(attr_value(an_el, "id", fs::path(a_filename).stem().string())); // FIXME brez str_t
   }
   /**
    * @brief parse gsql file and build internal gsql structure (set of query definitiosn)
@@ -382,12 +408,12 @@ namespace dbgen3
         auto* doc = parser_->parseURI(fn.data());
         if (! eh_.failed()) return load_q_set(doc->getDocumentElement(), fn, a_dbr, a_db_type);
         auto msg = fmt::format(fg(fmt::color::crimson),
-                                dbgen3::program_status::dscr(P_STS::inv_gsql_syntax).data(),
-                                eh_.uri(),
-                                eh_.line(),
-                                eh_.col(),
-                                eh_.e_type(),
-                                eh_.e_msg());
+                               dbgen3::program_status::dscr(P_STS::inv_gsql_syntax).data(),
+                               eh_.uri(),
+                               eh_.line(),
+                               eh_.col(),
+                               eh_.e_type(),
+                               eh_.e_msg());
         throw dbgen3_exc(P_STS::inv_gsql_syntax, msg);
       }
       auto msg = fmt::format(fg(fmt::color::crimson), //
@@ -405,7 +431,7 @@ namespace dbgen3
     }
     catch (const dbgen3_exc& e)
     {
-//      err << __FILE__ << __LINE__ << e.what() << "\n";
+      //      err << __FILE__ << __LINE__ << e.what() << "\n";
       throw;
     }
     catch (const std::runtime_error& e)

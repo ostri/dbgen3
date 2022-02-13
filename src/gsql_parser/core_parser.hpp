@@ -45,25 +45,28 @@ namespace dbgen3
   private:
     /// @name query set structure
     ///@{
-    static fld_dscr       load_fld_dscr(const db::BUF_TYPE& a_bt, SQLHANDLE h, uint ndx);
-    static fld_vec        fetch_param_dscr(const db::BUF_TYPE& a_bt, db::statement& a_stmt);
-    static gsql_q_set     load_q_set(const x::DOMElement* an_el,
-                                     cstr_t               a_filename,
-                                     const db2_reader&    a_dbr,
-                                     const RDBMS&         a_db_type);
-    static gsql_q         load_q(const x::DOMElement* an_el,
-                                 uint                 a_ndx,
-                                 str_vec              a_ctx,
+    static fld_dscr load_fld_dscr(cstr_t def_name, const db::BUF_TYPE& a_bt, SQLHANDLE h, uint ndx);
+    static fld_vec  fetch_param_dscr(const str_vec&      names,
+                                     const db::BUF_TYPE& a_bt,
+                                     db::statement&      a_stmt);
+    static gsql_q_set load_q_set(const x::DOMElement* an_el,
+                                 cstr_t               a_filename,
                                  const db2_reader&    a_dbr,
                                  const RDBMS&         a_db_type);
-    static gsql_q         load_q_children(const x::DOMElement* an_el,
-                                          uint                 a_ndx,
-                                          const str_vec&       a_ctx,
-                                          const db2_reader&    a_dbr,
-                                          const RDBMS&         a_db_type,
-                                          gsql_q&              r);
-    static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
-    static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
+    static gsql_q     load_q(const x::DOMElement* an_el,
+                             uint                 a_ndx,
+                             str_vec              a_ctx,
+                             const db2_reader&    a_dbr,
+                             const RDBMS&         a_db_type);
+    static gsql_q     load_q_children(const x::DOMElement* an_el,
+                                      uint                 a_ndx,
+                                      const str_vec&       a_ctx,
+                                      const db2_reader&    a_dbr,
+                                      const RDBMS&         a_db_type,
+                                      gsql_q&              r);
+    // static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
+    // static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
+    static gsql_qbuf_dscr load_buf(const db::BUF_TYPE& bt, const x::DOMElement* an_el, uint a_ndx);
     static gsql_sql_set   load_sql_set(const x::DOMElement* an_el,
                                        const str_vec&       a_ctx,
                                        const RDBMS&         a_db_type);
@@ -75,11 +78,9 @@ namespace dbgen3
     static gsql_q         load_q_sqlset_from_db(gsql_q& r, const db2_reader& a_dbr);
     ///@}
 
-    static std::string attr_value(const x::DOMElement* an_el,
-                                  cstr_t               an_attr_name,
-                                  cstr_t               a_default);
-    static bool        attr_value(const x::DOMElement* an_el, cstr_t an_attr_name, bool a_default);
-    bool               init();
+    static str_t attr_value(const x::DOMElement* an_el, cstr_t an_attr_name, cstr_t a_default);
+    static bool  attr_value_b(const x::DOMElement* an_el, cstr_t an_attr_name, bool a_default);
+    bool         init();
     static std::string get_statement(const x::DOMElement* an_el, str_vec a_ctx);
     static std::string get_text_node(const x::DOMElement* an_el, str_vec a_ctx);
     /* .........................................................*/

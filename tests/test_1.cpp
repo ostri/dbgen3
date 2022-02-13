@@ -197,10 +197,24 @@ TEST_CASE("full_cycle") // NOLINT
 }
 TEST_CASE("colums_custom_names") // NOLINT
 {
-  const static constexpr std::array<db::attr_data, 17> arr_  
-  {{
-    {"name-1", 20, 10},
-    {"name-2", 21, 10},
-  }};
-  static_assert(db::a_width(1, arr_) == 21, "zgleda da ne dela"); // NOLINT
+  UT::named_columns::xx_p par;
+  UT::named_columns::xx_r res;
+
+  par.set_cond(1);
+  res.set_char8("abc");
+  res.set_dec("123");
+  res.set_decimal("456");
+  res.set_numeric("789");
+  res.set_int16(1);
+  res.set_int32(2);
+  res.set_int64(3);
+  
+  REQUIRE_EQ(par.cond(), 1);
+  REQUIRE_EQ(res.char8(), "abc");
+  REQUIRE_EQ(res.dec(), "123");
+  REQUIRE_EQ(res.decimal(), "456");
+  REQUIRE_EQ(res.numeric(), "789");
+  REQUIRE_EQ(res.int16(), 1);
+  REQUIRE_EQ(res.int32(), 2);
+  REQUIRE_EQ(res.int64(), 3);
 }

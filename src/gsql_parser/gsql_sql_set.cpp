@@ -77,7 +77,7 @@ namespace dbgen3
   std::string gsql_sql_set::fetch_sql(const PHASE& a_phase) const
   {
     const auto* el = fetch(a_phase);
-    return el != nullptr ? trim(el->sql()) : "";
+    return el != nullptr ? str_t(trim(el->sql())) : "";
   }
 
   RDBMS gsql_sql_set::db_type() const { return this->db_type_; }

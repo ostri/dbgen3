@@ -8,8 +8,7 @@ namespace dbgen3
   str_vec multi_line::str_to_vec(cstr_t a_str)
   {
     str_vec r;
-    auto    o(rtrim(a_str)); /// remove trailing whitespaces
-    r = split(o, '\n');
+    r = split(rtrim(a_str), '\n');
     if (! r.empty() && rtrim(r[0]).empty()) // trim leading empty lines
       r.erase(r.begin());
     r = trim_left(r);
@@ -23,7 +22,7 @@ namespace dbgen3
     {
       for (const auto& line : o)
       {
-        auto start = line.find_first_not_of(WHITESPACE);
+        auto start = std::min(line.size(), line.find_first_not_of(WHITESPACE));
         min        = start < min ? start : min;
         if (min == 0) return o; // no possibillity to trim
       }
@@ -54,7 +53,7 @@ namespace dbgen3
   multi_line::operator std::string () const 
   {
     std::string r;
-    for(const auto& l: lines_) r += trim(l)+' ';
+    for(const auto& l: lines_) r += str_t(trim(l))+' ';
     return r;
   }
   std::string multi_line::dump() const { return dump("", 0); }

@@ -32,23 +32,22 @@ namespace dbgen3
   bool        file_exists(cstr_t path);
 
   // rtrim
-  inline std::string rtrim(cstr_t o)
+  inline cstr_t rtrim(cstr_t o)
   {
-    std::string s(o);
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return std::isspace(ch) == 0; })
-              .base(),
-            s.end());
-    return s;
+    // str_t s(o.begin(), std::find_if(o.rbegin(), o.rend(), [](unsigned char ch) { return std::isspace(ch) == 0; })
+    //           .base()-1);
+    return {o.begin(), std::find_if(o.rbegin(), o.rend(), [](unsigned char ch) { return std::isspace(ch) == 0; })
+              .base()};
   }
   // ltrim
-  inline std::string ltrim(cstr_t o)
+  inline cstr_t ltrim(cstr_t o)
   {
-    std::string s(o);
-    auto        pos = std::find_if_not(s.begin(), s.end(), [](char ch) { return isspace(ch); });
-    s.erase(s.begin(), pos);
-    return s;
+    // std::string s(o);
+    // auto        pos = std::find_if_not(o.begin(), o.end(), [](char ch) { return isspace(ch); });
+    // s.erase(s.begin(), pos);
+    return {std::find_if_not(o.begin(), o.end(), [](char ch) { return isspace(ch); }), o.end()};
   }
-  inline std::string trim(cstr_t o) { return ltrim(rtrim(o)); }
+  inline cstr_t trim(cstr_t o) { return ltrim(rtrim(o)); }
   /**
    * @brief split the provided string into vector of stringa
    *
@@ -56,7 +55,7 @@ namespace dbgen3
    * @param delim split point
    * @return str_vec
    */
-  str_vec split(const std::string& s, char delim);
+  str_vec split(cstr_t s, char delim);
   /**
    * @brief test whether the provided path/file exists
    *
@@ -83,7 +82,6 @@ namespace dbgen3
     if (! last.empty()) r += std::string("/") + std::string(last);
     return r;
   }
-
 
 } // namespace dbgen3
 #endif // COMMON_HPP

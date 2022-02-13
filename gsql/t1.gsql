@@ -123,9 +123,9 @@
       </sql>
     </sql-set>
   </q>
-  <q id="named_columns">
-    <qp columns="cond"/>
-    <qr columns="int16 int32 int64 numeric decimal dec char"/>
+  <q id="named-columns">
+    <qp id="xx-p" columns="cond"/>
+    <qr id="xx-r" columns="int16 int32 int64 numeric decimal dec char8"/>
     <sql-set>
       <sql>
         select *

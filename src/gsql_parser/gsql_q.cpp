@@ -18,7 +18,7 @@ namespace dbgen3
     s += out::sl("}", offs);
     return s;
   }
-  void gsql_q::set_id(const str_t& o) { id_ = o; }
+  void gsql_q::set_id(cstr_t o) { id_ = o; }
   gsql_q::gsql_q(const RDBMS& a_db_type): sql_set_(a_db_type){};
   cstr_t            gsql_q::id() const { return id_; }
   const gsql_qbuf_dscr& gsql_q::buf_dscr(const db::BUF_TYPE& a_type) const
@@ -42,10 +42,10 @@ namespace dbgen3
 
   void gsql_q::set_sql_set(const gsql_sql_set& o) { sql_set_ = o; }
 
-  void gsql_q::set_buf_dscr_flds(const db::BUF_TYPE& a_bt, const fld_vec& a_fld_vec)
-  {
-    buf_dscr_[ME::enum_integer<db::BUF_TYPE>(a_bt)].set_flds(a_fld_vec);
-  }
+  // void gsql_q::set_buf_dscr_flds(const db::BUF_TYPE& a_bt, const fld_vec& a_fld_vec)
+  // {
+  //   buf_dscr_[ME::enum_integer<db::BUF_TYPE>(a_bt)].set_flds(a_fld_vec);
+  // }
 
   const gsql_sql_set& gsql_q::sql_set() const { return sql_set_; }
 

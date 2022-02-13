@@ -22,6 +22,8 @@ namespace dbgen3
     db::BUF_TYPE    type() const;
     std::string     id() const;
     bool            should_skip() const;
+    const str_vec&  names()const {return names_;}
+    cstr_t          names(std::size_t ndx) const {return names_.at(ndx);} 
     const fld_vec&  flds() const;
     uint            max_name_len() const;
     uint            max_ctype_len() const;
@@ -31,8 +33,9 @@ namespace dbgen3
     std::string dump(const std::string& a_msg, uint offs) const;
 
     void set_type(const db::BUF_TYPE& type);
-    void set_id(const std::string& id);
+    void set_id(cstr_t id);
     void set_skip(bool skip);
+    void set_names(cstr_t names) { names_ = split(names, ' '); }
     void set_flds(const fld_vec& flds);
   private:
     static uint calc_max_name_length(const fld_vec& vec);
@@ -42,6 +45,7 @@ namespace dbgen3
     std::string  id_{};                     //!< buffer unique name
     bool         skip_{};          //!< should we skip this buffer from the generation phase
     fld_vec      flds_{};          //!< set of field descriptions
+    str_vec      names_{};         //!< alternative names to parameter/result columns
     uint         max_name_len_{};  //!< maximum filed name length
     uint         max_ctype_len_{}; //!< maximum filed name length
   };
@@ -66,7 +70,7 @@ namespace dbgen3
 
   inline void gsql_qbuf_dscr::set_type(const db::BUF_TYPE& type) { this->type_ = type; }
 
-  inline void gsql_qbuf_dscr::set_id(const std::string& id) { this->id_ = id; }
+  inline void gsql_qbuf_dscr::set_id(cstr_t id) { this->id_ = id; }
 
   inline void gsql_qbuf_dscr::set_skip(bool skip) { this->skip_ = skip; }
 

@@ -443,7 +443,7 @@ namespace dbgen3
     const auto& flds = bd.flds();
     auto        txt  = str_t(q.id()) + "::" + str_t(ME::enum_name<db::BUF_TYPE>(bt));
     r += line_text(txt, offs);
-    r += out::sl(fmt::format("template <std::size_t N>"), offs);
+    r += out::sl(fmt::format("template <std::size_t N = 1>"), offs);
     auto BT_name = str_t("db::BUF_TYPE::") + str_t(ME::enum_name<db::BUF_TYPE>(bt));
     r += out::sl(fmt::format("class {0} : public db::buffer_root<{1}, N>", c_name, BT_name), offs);
     r += out::sl(fmt::format("{{"), offs);

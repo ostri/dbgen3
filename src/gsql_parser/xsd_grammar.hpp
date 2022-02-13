@@ -40,12 +40,14 @@ namespace dbgen3
           <xs:documentation>
               definition of the buffer with the following attributes
               - id 
+              - skip
               - columns
             </xs:documentation>
         </xs:annotation>
         <xs:complexType name="buffer_type">
-          <xs:attribute name="id" type="id-name" use="optional" />
+          <xs:attribute name="id"      type="id-name"      use="optional" />
           <xs:attribute name="columns" type="id-name-list" use="optional" />
+          <xs:attribute name="skip"    type="xs:boolean"   use="optional" />
         </xs:complexType>
         <!-- enum RDBMS ....................................................................-->
         <xs:simpleType name="rdbms_type">
