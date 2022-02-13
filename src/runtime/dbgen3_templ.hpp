@@ -1,6 +1,7 @@
 #ifndef DBGEN3_TEMPL_HPP
 #define DBGEN3_TEMPL_HPP
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -36,6 +37,7 @@ namespace db
     uint        db_type{};        //!< attribute type id e.g. SQL_BIGINT -> -5
   } __attribute__((aligned(32))); // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
 
+
   /*....root class for all attributes ........................................................*/
   template <std::size_t arr_size>
   class attr_root_root
@@ -70,7 +72,10 @@ namespace db
     using t_vec  = std::array<T, arr_size>;
     using l_vec  = std::array<int32_t, arr_size>;
     using cstr_t = std::string_view;
-    attr_root()  = default;
+    attr_root() 
+    {
+      std::fill(len_.begin(), len_.end(), SQL_NULL_DATA);
+    }
     // constexpr explicit attr_root(cstr_t name="")
     // : name_(name){};
     virtual ~attr_root()            = default;
@@ -86,15 +91,22 @@ namespace db
     constexpr int32_t     width() { return width_; }
     constexpr int16_t     dec() const { return dec_; }
     constexpr int16_t     db_type() const { return db_type_; }
+    int32_t               len(std::size_t ndx) const { return len_.at(ndx); }
+    void                  set_len(uint32_t v, std::size_t ndx) const { len_.at(ndx) = v; }
+    void                  set_null(std::size_t ndx) { len_.at(ndx) = SQL_NULL_DATA; }
+    bool                  is_null(std::size_t ndx) const { return len_.at(ndx) == SQL_NULL_DATA; }
     /// size of specific element
     size_t el_size(std::size_t ndx) const { return static_cast<size_t>(len_.at(ndx)); }
     /// value getters
-    bstr_t v_bstr(size_t ndx)
+    bstr_t v_bstr(std::size_t ndx)
     { // be careful this can be altered from the outside
-      if constexpr (is_bstring(db_type_)) { return bstr_t{data_.at(ndx).data(), el_size(ndx)}; }
-      return {};
+      if constexpr (is_bstring(db_type_)) 
+      { 
+        return bstr_t{data_.at(ndx).data(), el_size(ndx)}; 
+      }
+      //return {};
     };
-    cbstr_t v_bstr(size_t ndx) const
+    cbstr_t v_bstr(std::size_t ndx) const
     {
       if constexpr (is_bstring(db_type_))
       { // must change uint8_t -> const uint8_t so that it can not be altered from outside
@@ -102,32 +114,35 @@ namespace db
         cbstr_t r(reinterpret_cast<const uint8_t*>(&data_.at(ndx).at(0)), el_size(ndx));
         return r;
       }
-      return {};
+      //return {};
     };
-    cstr_t v_cstr(size_t ndx)
+    cstr_t v_cstr(std::size_t ndx)
     {
       if constexpr (is_string(db_type_)) { return cstr_t{data_.at(ndx).data(), el_size(ndx)}; }
-      return {};
+      //return {};
     };
-    cstr_t v_cstr(size_t ndx) const
+    cstr_t v_cstr(std::size_t ndx) const
     {
       if constexpr (is_string(db_type_)) { return cstr_t{data_.at(ndx).data(), el_size(ndx)}; }
-      else return {};
+      //else return {};
     };
-    T v_T(size_t ndx)
+    T v_T(std::size_t ndx)
     {
       if constexpr (is_atomic(db_type_)) { return data_.at(ndx); }
-      else return {};
+      //else return {};
     };
-    T v_T(size_t ndx) const
+    T v_T(std::size_t ndx) const
     {
       if constexpr (is_atomic(db_type_)) { return data_.at(ndx); }
-      else return {};
+      //else return {};
     };
     void s_T(const T& v, std::size_t ndx)
     {
-      data_.at(ndx) = v;
-      len_.at(ndx)  = sizeof(T);
+      if constexpr (is_atomic(db_type_))
+      {
+        data_.at(ndx) = v;
+        len_.at(ndx)  = sizeof(T);
+      }
     }
     void s_cstr(cstr_t v, std::size_t ndx)
     { /// code for s_cstr and s_bstr is a duplicate on purpose
@@ -167,18 +182,32 @@ namespace db
       s = std::string(offs, ' ') + std::string(a_msg) + "[";
       for (auto cnt = 0UL; cnt < std::min(arr_size, max_el); ++cnt)
       {
+        if (is_null(cnt))
+        {
+          s += "NULL";
+          continue;
+        }
         auto grp = attr_type(db_type_);
         switch (grp)
         {
         case db::ATTR_TYPE::atomic:
-          /*if constexpr (is_atomic(db_type_))*/ s += serialize<T>(v_T(cnt));
-          break;
+          if constexpr (is_atomic(db_type_))
+          {
+            s += serialize<T>(v_T(cnt));
+            break;
+          }
         case db::ATTR_TYPE::string:
-          /*if constexpr (is_string(db_type_))*/ s += serialize<cstr_t>(v_cstr(cnt));
-          break;
+          if constexpr (is_string(db_type_))
+          {
+            s += serialize<cstr_t>(v_cstr(cnt));
+            break;
+          }
         case db::ATTR_TYPE::bstring:
-          /*if constexpr (is_bstring(db_type_))*/ s += serialize<cbstr_t>(v_bstr(cnt));
-          break;
+          if constexpr (is_bstring(db_type_))
+          {
+            s += serialize<cbstr_t>(v_bstr(cnt));
+            break;
+          }
         case db::ATTR_TYPE::unknown:
           throw std::runtime_error("switch error: " + std::string(__FILE__) + " " +
                                    std::to_string(__LINE__));
@@ -215,13 +244,116 @@ namespace db
     }
   protected:
   private:
-    l_vec                          len_{};               //!< value length
+    l_vec                          len_;                 //!< value length
     t_vec                          data_{};              //!< values
     constinit static const int32_t width_   = sizeof(T); //!< parameter width
     constinit static const int16_t db_type_ = DB_TYPE;   //!< parameter type
     constinit static const int16_t dec_     = DEC;       //!< decimal places
     //    const cstr_t                   name_{};              //!< name of the attribute
   };
+  /*....atomic...............................................................................*/
+  template <typename T, int16_t DB_TYPE, int DEC, std::size_t arr_size>
+  class atomic : public attr_root<T, DB_TYPE, arr_size, DEC>
+  {
+  public:
+    using t_vec        = std::array<T, arr_size>;
+    using l_vec        = std::array<int32_t, arr_size>;
+    using PP           = attr_root<T, DB_TYPE, arr_size, DEC>;
+    constexpr atomic() = default;
+    T       value() const { return value(0); }
+    T       value(std::size_t ndx) const { return PP::data().at(ndx); }
+    void    set_value(const T& data) { set_value(data, 0); }
+//    void    set_value(const T& data, std::size_t ndx) { PP::data().at(ndx) = data; }
+    void    set_value(const T& data, std::size_t ndx) { PP::s_T(data, ndx); }
+    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
+    {
+      return PP::bind_par(a_stmt_handle, a_ndx);
+    }
+    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
+    {
+      return PP::bind_col(a_stmt_handle, a_ndx);
+    }
+    std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
+    {
+      return PP::dump_all(a_msg, max_el, offs);
+    }
+  private:
+  };
+  /*....bstring.............................................................................*/
+  /**
+   * @brief block of memory with at most <n> bytes in lenght
+   *
+   * @tparam T
+   * @tparam arr_size
+   */
+  template <typename T, int16_t DB_TYPE, std::size_t arr_size, typename EL, std::size_t DEC>
+  class bstring : public attr_root<T, DB_TYPE, arr_size, DEC>
+  {
+  public:
+    using PP            = attr_root<T, DB_TYPE, arr_size, DEC>;
+    constexpr bstring() = default;
+    bstr_t  value() { return value(0); }
+    cbstr_t value() const { return value(0); }
+    bstr_t  value(std::size_t ndx) { return PP::v_bstr(ndx); }
+    cbstr_t value(std::size_t ndx) const
+    {
+      assert(typeid(EL).hash_code() == typeid(uint8_t).hash_code());
+      return PP::v_bstr(ndx);
+    }
+    void    set_value(cbstr_t data) { set_value(data, 0); }
+    void    set_value(cbstr_t data, std::size_t ndx) { PP::s_bstr(data, ndx); }
+    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
+    {
+      return PP::bind_par(a_stmt_handle, a_ndx);
+    }
+    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
+    {
+      return PP::bind_col(a_stmt_handle, a_ndx);
+    }
+    std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
+    {
+      return PP::dump_all(a_msg, max_el, offs);
+    }
+  private:
+  public:
+  };
+  /*........................................................................................*/
+  /**
+   * @brief string
+   *
+   * @tparam item_size
+   * @tparam arr_size
+   * @tparam T         type of character TODO works only for char
+   *
+   *     FIXME it is assumed that the string is made of one byte characters
+   *
+   */
+  template <typename T, int16_t DB_TYPE, std::size_t arr_size, typename EL, std::size_t DEC>
+  class string : public attr_root<T, DB_TYPE, arr_size, DEC>
+  {
+  public:
+    using PP           = attr_root<T, DB_TYPE, arr_size, DEC>;
+    constexpr string() = default;
+    cstr_t  value() const { return value(0); }
+    cstr_t  value(std::size_t ndx) const { return PP::v_cstr(ndx); }
+    void    set_value(cstr_t data) { set_value(data, 0); }
+    void    set_value(cstr_t data, std::size_t ndx) { PP::s_cstr(data, ndx); }
+    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
+    {
+      return PP::bind_par(a_stmt_handle, a_ndx);
+    }
+    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
+    {
+      return PP::bind_col(a_stmt_handle, a_ndx);
+    }
+    std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
+    {
+      return PP::dump_all(a_msg, max_el, offs);
+    }
+  private:
+  public:
+  };
+  ///////////////////////////////////////////////////////////////////////////////////////////////
   /**
    * @brief buffer root class as seen from programmer (no dimennsion only pure methods)
    *
@@ -349,108 +481,7 @@ namespace db
     s_vec_t                   s_vec_{};       //!< vector of statuses
     size_t                    processed_{};   //!< number of parameters processed
   };
-  /*....atomic...............................................................................*/
-  template <typename T, int16_t DB_TYPE, int DEC, std::size_t arr_size>
-  class atomic : public attr_root<T, DB_TYPE, arr_size, DEC>
-  {
-  public:
-    using t_vec        = std::array<T, arr_size>;
-    using l_vec        = std::array<int32_t, arr_size>;
-    using PP           = attr_root<T, DB_TYPE, arr_size, DEC>;
-    constexpr atomic() = default;
-    //    constexpr explicit atomic(cstr_t name): attr_root<T, DB_TYPE, arr_size, DEC>(name){};
-    T       value() const { return value(0); }
-    T       value(std::size_t ndx) const { return PP::data().at(ndx); }
-    void    set_value(const T& data) { set_value(data, 0); }
-    void    set_value(const T& data, std::size_t ndx) { PP::data().at(ndx) = data; }
-    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
-    {
-      return PP::bind_par(a_stmt_handle, a_ndx);
-    }
-    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
-    {
-      return PP::bind_col(a_stmt_handle, a_ndx);
-    }
-    std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
-    {
-      return PP::dump_all(a_msg, max_el, offs);
-    }
-  private:
-  };
-  /*....bstring.............................................................................*/
-  /**
-   * @brief block of memory with at most <n> bytes in lenght
-   *
-   * @tparam T
-   * @tparam arr_size
-   */
-  template <typename T, int16_t DB_TYPE, std::size_t arr_size, typename EL, std::size_t DEC>
-  class bstring : public attr_root<T, DB_TYPE, arr_size, DEC>
-  {
-  public:
-    using PP            = attr_root<T, DB_TYPE, arr_size, DEC>;
-    constexpr bstring() = default;
-    bstr_t  value() { return value(0); }
-    cbstr_t value() const { return value(0); }
-    bstr_t  value(std::size_t ndx) { return PP::v_bstr(ndx); }
-    cbstr_t value(std::size_t ndx) const
-    {
-      assert(typeid(EL).hash_code() == typeid(uint8_t).hash_code());
-      return PP::v_bstr(ndx);
-    }
-    void    set_value(cbstr_t data) { set_value(data, 0); }
-    void    set_value(cbstr_t data, std::size_t ndx) { PP::s_bstr(data, ndx); }
-    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
-    {
-      return PP::bind_par(a_stmt_handle, a_ndx);
-    }
-    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
-    {
-      return PP::bind_col(a_stmt_handle, a_ndx);
-    }
-    std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
-    {
-      return PP::dump_all(a_msg, max_el, offs);
-    }
-  private:
-  public:
-  };
-  /*........................................................................................*/
-  /**
-   * @brief string
-   *
-   * @tparam item_size
-   * @tparam arr_size
-   * @tparam T         type of character TODO works only for char
-   *
-   *     FIXME it is assumed that the string is made of one byte characters
-   *
-   */
-  template <typename T, int16_t DB_TYPE, std::size_t arr_size, typename EL, std::size_t DEC>
-  class string : public attr_root<T, DB_TYPE, arr_size, DEC>
-  {
-  public:
-    using PP           = attr_root<T, DB_TYPE, arr_size, DEC>;
-    constexpr string() = default;
-    cstr_t  value() const { return value(0); }
-    cstr_t  value(std::size_t ndx) const { return PP::v_cstr(ndx); }
-    void    set_value(cstr_t data) { set_value(data, 0); }
-    void    set_value(cstr_t data, std::size_t ndx) { PP::s_cstr(data, ndx); }
-    int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
-    {
-      return PP::bind_par(a_stmt_handle, a_ndx);
-    }
-    int16_t bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
-    {
-      return PP::bind_col(a_stmt_handle, a_ndx);
-    }
-    std::string dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
-    {
-      return PP::dump_all(a_msg, max_el, offs);
-    }
-  private:
-  public:
-  };
+  ///////////////////////////////////////////////////////////////////////////////////////////
   class utl
   {
   public:

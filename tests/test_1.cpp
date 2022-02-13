@@ -30,11 +30,41 @@ static bool cmp(const db::cbstr_t& v1, const db::cbstr_t& v2)
   auto len = std::min(v1.size(), v2.size());
   return std::memcmp(v1.data(), v2.data(), len) == 0;
 }
-
+/*...........................................................................*/
+static int diag(int rc, int handle, cstr_t a_msg = "")
+{
+  if (rc != SQL_SUCCESS)
+  {
+    std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
+    std::cerr << "rc code:" << rc << std::endl;
+  }
+  return rc;
+}
+/*...........................................................................*/
+static int diag_with_W(int rc, int handle, cstr_t a_msg = "")
+{
+  if ((rc != SQL_SUCCESS) && (rc != SQL_SUCCESS_WITH_INFO))
+  {
+    std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
+    std::cerr << "rc code:" << rc << std::endl;
+  }
+  return rc;
+}
+int16_t cleanup(db::connection* c)
+{
+  UT::del_tbl_rec::utl q(c);
+  auto                 rc = q.exec("");
+  bool res = (rc == SQL_SUCCESS) || (rc == SQL_SUCCESS_WITH_INFO) || (rc == SQL_NO_DATA_FOUND);
+  if (! res) diag_with_W(rc, q.handle(), "empty table: ");
+  REQUIRE(res == true);
+  c->commit();
+  return SQL_SUCCESS;
+}
 
 TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
 {
-  db::connection    c("test");
+  db::connection c("test");
+  REQUIRE_EQ(cleanup(&c), SQL_SUCCESS);
   UT::Q_1::qp_id<2> qp;
   qp.set_par_1(10);            // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   qp.set_par_1(11, 1);         // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
@@ -101,44 +131,16 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   std::cerr << qr.dump("buffer: result");
 }
 /*...........................................................................*/
-static int diag(int rc, int handle, cstr_t a_msg = "")
-{
-  if (rc != SQL_SUCCESS)
-  {
-    std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
-    std::cerr << "rc code:" << rc << std::endl;
-  }
-  return rc;
-}
-/*...........................................................................*/
-static int diag_with_W(int rc, int handle, cstr_t a_msg = "")
-{
-  if ((rc != SQL_SUCCESS) && (rc != SQL_SUCCESS_WITH_INFO))
-  {
-    std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
-    std::cerr << "rc code:" << rc << std::endl;
-  }
-  return rc;
-}
-/*...........................................................................*/
 TEST_CASE("full_cycle") // NOLINT
 {
   db::connection c("test");
-
-  { // cleanup
-    UT::del_tbl_rec::utl q(&c);
-    auto                 rc = q.exec("");
-    bool res = (rc == SQL_SUCCESS) || (rc == SQL_SUCCESS_WITH_INFO) || (rc == SQL_NO_DATA_FOUND);
-    if (! res) diag_with_W(rc, q.handle(), "empty table: ");
-    REQUIRE(res == true);
-    c.commit();
-  }
-  { // insert
-    constexpr const std::size_t max_buf=10; // 10 rows of records in inserted in one exec
-    UT::insert::utl<max_buf> q(&c);
-    auto*               par = q.par_buf();
-    cstr_t dec_const = "-234567890123456789012345.67890";
-    auto   bin_char =
+  REQUIRE_EQ(cleanup(&c), SQL_SUCCESS);
+  {                                           // insert
+    constexpr const std::size_t max_buf = 10; // 10 rows of records in inserted in one exec
+    UT::insert::utl<max_buf>    q(&c);
+    auto*                       par       = q.par_buf();
+    cstr_t                      dec_const = "-234567890123456789012345.67890";
+    auto                        bin_char =
       std::array<uint8_t, 15>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}; // NOLINT
     auto bin_varchar = std::array<uint8_t, 5>{0, 1, 2, 3, 4};                    // NOLINT
 
@@ -215,4 +217,71 @@ TEST_CASE("colums_custom_names") // NOLINT
   REQUIRE_EQ(res.int16(), 1);
   REQUIRE_EQ(res.int32(), 2);
   REQUIRE_EQ(res.int64(), 3);
+}
+TEST_CASE("null_related_tests") // NOLINT
+{
+  db::connection c("test");
+  REQUIRE_EQ(cleanup(&c), SQL_SUCCESS);
+  {
+    UT::insert5::utl q(&c);
+    auto*            par = q.par_buf();
+
+    par->set_id(1);            // small int
+    par->set_null_int32();     // int
+    par->set_null_numeric();   // decimal / string
+    par->set_null_timestamp(); // timestamp
+    par->set_null_blob();      // blob
+
+    REQUIRE(par->id() == 1);
+    REQUIRE(par->is_null_int32());
+    REQUIRE(par->is_null_numeric());
+    REQUIRE(par->is_null_timestamp());
+    REQUIRE(par->is_null_blob());
+
+    std::cerr << q.dump("************************************");
+    auto rc = q.exec();
+    diag(rc, q.handle(), "insert records: ");
+    REQUIRE(rc == SQL_SUCCESS);
+    c.commit();
+  }
+  {
+    UT::select::utl q(&c);
+    auto*           res(q.res_buf());
+
+    auto rc = q.exec();
+    diag(rc, q.handle(), "exec select: ");
+    REQUIRE(rc == SQL_SUCCESS);
+
+    while (rc == SQL_SUCCESS)
+    {
+      rc = q.fetch_scroll(SQL_FETCH_NEXT, res->size());
+      if ((rc != SQL_SUCCESS) && (rc != SQL_NO_DATA)) diag(rc, q.handle(), "fetch");
+      REQUIRE(((rc == SQL_SUCCESS) || (rc == SQL_NO_DATA)));
+      std::cerr << res->dump("***select fetch***") << std::endl;
+      if (q.rows_read() < res->size()) break;
+    }
+    c.commit();
+    REQUIRE(res->c1_smallint() == 1);
+    REQUIRE(res->is_null_c2_int());
+    REQUIRE(res->is_null_c4_numeric());
+    REQUIRE(res->is_null_c11_timestamp());
+    REQUIRE(res->is_null_c13_blob());
+  }
+}
+TEST_CASE("default buffer contents") // NOLINT
+{
+  db::connection c("test");
+  REQUIRE_EQ(cleanup(&c), SQL_SUCCESS);
+
+  {
+    UT::insert::utl q(&c);
+
+    auto* par = q.par_buf();
+    REQUIRE(par->is_null_par_1());
+
+    auto rc = q.exec();
+    diag(rc, q.handle(), "insert records: ");
+    REQUIRE(rc == SQL_SUCCESS);
+    c.commit();
+  }
 }

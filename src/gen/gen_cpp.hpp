@@ -23,18 +23,32 @@ namespace dbgen3
     static str_t gen_buf(const gsql_q& q, const db::BUF_TYPE& bt, uint offs);
     static str_t gen_utl(const gsql_q& q, uint offs);
 
+    static str_t define_trivial_null_getters(const fld_vec& flds,
+                                             uint           max_name_len,
+                                             uint           offs);
     static str_t define_trivial_getters(const fld_vec& flds,
                                         uint           max_name_len,
                                         uint           max_ctype_len,
                                         uint           offs);
+    static str_t define_null_getters(const fld_vec& flds,
+                                     uint           max_name_len,
+                                     uint           offs);
     static str_t define_getters(const fld_vec& flds,
                                 uint           max_name_len,
                                 uint           max_ctype_len,
                                 uint           offs);
+    static str_t define_trivial_null_setters(const fld_vec& flds,
+                                             uint           max_name_len,
+                                             uint           max_ctype_len,
+                                             uint           offs);
     static str_t define_trivial_setters(const fld_vec& flds,
                                         uint           max_name_len,
                                         uint           max_ctype_len,
                                         uint           offs);
+    static str_t define_null_setters(const fld_vec& flds,
+                                     uint           max_name_len,
+                                     uint           max_ctype_len,
+                                     uint           offs);
     static str_t define_setters(const fld_vec& flds,
                                 uint           max_name_len,
                                 uint           max_ctype_len,
@@ -54,7 +68,6 @@ namespace dbgen3
                                      cstr_t              c_name,
                                      const db::BUF_TYPE& bt,
                                      std::size_t         offs);
-
   };
 }; // namespace dbgen3
 

@@ -132,7 +132,26 @@
             from tbl
             where
               c1_smallint=?
-</sql>
+      </sql>
+    </sql-set>
+  </q>
+  <q id="insert5">
+    <qp columns="id int32 numeric timestamp blob"/>
+    <sql-set>
+      <sql>
+        insert into tbl
+          (
+            C1_smallint,
+            C2_int,
+            C4_numeric,
+            C11_timestamp,
+            C13_blob
+          )
+          values
+          (
+              ?,?,?, ?,?
+          )
+      </sql>
     </sql-set>
   </q>
 </q-set>
