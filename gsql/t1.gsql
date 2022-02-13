@@ -3,10 +3,10 @@
   <hdr>
     <![CDATA[
         /*
-        you can insert arbitrary c++ code here
-        #include <string>
-        #include <array>
-        */
+         * you can insert arbitrary c++ code here
+         * #include <string>
+         * #include <array>
+         */
         ]]>
     <!-- header line 1
           header 1.1

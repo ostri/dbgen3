@@ -43,7 +43,13 @@ int main(int argc, char** argv)
         dbgen3::executor e(cmd_par);
         e.process_files();
       }
-      else std::cerr << dbgen3::grammar_ << std::endl;
+      else
+        std::cerr << dbgen3::multi_line::to_str(     //
+                       dbgen3::multi_line::minimize( //
+                         dbgen3::multi_line::to_vec( //
+                           dbgen3::grammar_)),
+                       '\n')
+                  << std::endl;
     }
     else { /* invalid or missing parameters */
       auto tmp = dbgen3::PS::dscr(sts);
