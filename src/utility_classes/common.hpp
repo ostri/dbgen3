@@ -30,14 +30,18 @@ namespace dbgen3
   std::string ctx_to_str(const str_vec& a_ctx);
   std::string ctx_to_str(const str_vec& a_ctx, cstr_t last);
   bool        file_exists(cstr_t path);
+  str_t       snake_case(cstr_t a_name);
+
 
   // rtrim
   inline cstr_t rtrim(cstr_t o)
   {
-    // str_t s(o.begin(), std::find_if(o.rbegin(), o.rend(), [](unsigned char ch) { return std::isspace(ch) == 0; })
+    // str_t s(o.begin(), std::find_if(o.rbegin(), o.rend(), [](unsigned char ch) { return
+    // std::isspace(ch) == 0; })
     //           .base()-1);
-    return {o.begin(), std::find_if(o.rbegin(), o.rend(), [](unsigned char ch) { return std::isspace(ch) == 0; })
-              .base()};
+    return {o.begin(), std::find_if(o.rbegin(), o.rend(), [](unsigned char ch) {
+                         return std::isspace(ch) == 0;
+                       }).base()};
   }
   // ltrim
   inline cstr_t ltrim(cstr_t o)
@@ -65,7 +69,8 @@ namespace dbgen3
    */
   inline bool file_exists(cstr_t path)
   {
-    struct stat buffer{};
+    struct stat buffer
+    { };
     return (stat(std::string(path).data(), &buffer) == 0);
   }
 

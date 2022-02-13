@@ -484,18 +484,14 @@ namespace db
       if ((ptr != nullptr) && (ptr->bt() == bt)) return ptr;
       return nullptr;
     }
-    utl& set_param_buf(brr_t* ptr)
-    {
-      this->par_buf_ = ptr;
-      return *this;
-    }
-    utl& set_result_buf(brr_t* ptr)
-    {
-      this->res_buf_ = ptr;
-      return *this;
-    }
-    int16_t exec() { return exec(""); }
-    int16_t exec(cstr_t sql)
+    void                 set_par_buf(brr_t* ptr) { this->par_buf_ = ptr; }
+    void                 set_res_buf(brr_t* ptr) { this->res_buf_ = ptr; }
+    virtual brr_t*       par_buf() { return this->par_buf_; }
+    virtual const brr_t* par_buf() const { return this->par_buf_; }
+    virtual brr_t*       res_buf() { return this->res_buf_; }
+    virtual const brr_t* res_buf() const { return this->res_buf_; }
+    int16_t              exec() { return exec(""); }
+    int16_t              exec(cstr_t sql)
     {
       int16_t rc = SQL_SUCCESS;
       /* set parameter buffer size */
@@ -547,7 +543,7 @@ namespace db
   private:
     db::statement s_;                 //!< SQL statement associated with th esql operation
     brr_t*        par_buf_ = nullptr; //!< parameter buffer (can be null)
-    brr_t*        res_buf_ = nullptr; //!< result buffer
+    brr_t*        res_buf_ = nullptr; //!< result buffer (can be null)
     // int proc{};
   };
 

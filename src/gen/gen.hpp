@@ -26,7 +26,6 @@ namespace dbgen3
   protected:
     const gsql_q_set& set() const;
     RDBMS             rdbm() const;
-    static str_t      snake_case(cstr_t a_name);
     static str_t      line(uint offs = 0, char ch = '.');
     static str_t      line_text(cstr_t a_msg, uint offs = 0, char ch = '.');
   private:

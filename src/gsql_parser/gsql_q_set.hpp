@@ -8,12 +8,11 @@
 
 namespace dbgen3
 {
+    using q_dic_t = std::map<std::string, int>; // string q.ID() int index in vector
+    using q_vec_t = std::vector<gsql_q>;
   class gsql_q_set
   {
   public:
-    using q_dic_t = std::map<std::string, int>; // string q.ID() int index in vector
-    using q_vec_t = std::vector<gsql_q>;
-
     gsql_q_set()                  = default;
     ~gsql_q_set()                 = default;
     gsql_q_set(const gsql_q_set&) = delete;
@@ -24,14 +23,14 @@ namespace dbgen3
     //@{
     std::string       header_str(int offs) const;
     const multi_line& header_multi_line() const;
-    std::string       dump() const;
-    std::string       dump(int offs) const;
-    std::string       id() const;
-    // const q_dic_t&    q_dic() const { return q_dic_; }
-    gsql_q&       q_vec(std::size_t ndx) { return q_vec_.at(ndx); }
-    const gsql_q& q_vec(std::size_t ndx) const { return q_vec_.at(ndx); }
-    q_vec_t&       q_vec() { return q_vec_; }
-    const q_vec_t& q_vec() const { return q_vec_; }
+    str_t             dump() const;
+    str_t             dump(int offs) const;
+    str_t             id() const;
+    str_t             namespace_str() const;
+    gsql_q&           q_vec(std::size_t ndx);
+    const gsql_q&     q_vec(std::size_t ndx) const;
+    q_vec_t&          q_vec();
+    const q_vec_t&    q_vec() const;
     //@}
     /// @name setters
     //@{

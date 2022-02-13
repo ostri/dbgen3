@@ -24,10 +24,13 @@ namespace dbgen3
     gsql_qbuf_dscr& operator=(gsql_qbuf_dscr&& o) = default;
     db::BUF_TYPE    type() const;
     std::string     id() const;
+    std::string     class_name() const {return snake_case(id_);}
     bool            should_skip() const;
     const str_vec&  names()const {return names_;}
     cstr_t          names(std::size_t ndx) const {return names_.at(ndx);} 
     const fld_vec&  flds() const;
+    bool            must_generate()const {return !skip_ && !flds_.empty();}
+    bool            is_required()const {return !flds_.empty();}
     uint            max_name_len() const;
     uint            max_ctype_len() const;
 

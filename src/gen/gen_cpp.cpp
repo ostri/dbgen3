@@ -21,14 +21,14 @@ namespace dbgen3
       r += out::sl(fmt::format("//@{{"), offs);
       for (const auto& el : flds)
       {
-        int  db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-          const auto* type_name = db::ct_name(db_type_int);
-          r += out::sl(fmt::format("{2:<{3}} {0:<{1}}() const {{return {0}(0);}}", //
-                                   el.name(),
-                                   max_name_len,
-                                   type_name,
-                                   max_ctype_len),
-                       offs);
+        int         db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
+        const auto* type_name   = db::ct_name(db_type_int);
+        r += out::sl(fmt::format("{2:<{3}} {0:<{1}}() const {{return {0}(0);}}", //
+                                 el.name(),
+                                 max_name_len,
+                                 type_name,
+                                 max_ctype_len),
+                     offs);
         //                        auto group       = db::attr_type(db_type_int);
         // switch (group)
         // {
@@ -93,21 +93,22 @@ namespace dbgen3
       r += out::sl(fmt::format("//@{{"), offs);
       for (const auto& el : flds)
       {
-        int  db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-          const auto* type_name = db::ct_name(db_type_int);
-          r += out::sl(fmt::format("{2:<{3}} {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
-                                   el.name(),
-                                   max_name_len,
-                                   type_name,
-                                   max_ctype_len),
-                       offs);
+        int         db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
+        const auto* type_name   = db::ct_name(db_type_int);
+        r += out::sl(fmt::format("{2:<{3}} {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
+                                 el.name(),
+                                 max_name_len,
+                                 type_name,
+                                 max_ctype_len),
+                     offs);
         // auto group       = db::attr_type(db_type_int);
         // switch (group)
         // {
         // case db::ATTR_TYPE::atomic:
         // {
         //   const auto* type_name = db::ct_name(db_type_int);
-        //   r += out::sl(fmt::format("{2:<{3}} {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
+        //   r += out::sl(fmt::format("{2:<{3}} {0:<{1}}(uint ndx) const {{return
+        //   {0}_.value(ndx);}}",
         //                            el.name(),
         //                            max_name_len,
         //                            type_name,
@@ -117,7 +118,8 @@ namespace dbgen3
         // }
         // case db::ATTR_TYPE::string:
         // {
-        //   r += out::sl(fmt::format("{2:<{3}} {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
+        //   r += out::sl(fmt::format("{2:<{3}} {0:<{1}}(uint ndx) const {{return
+        //   {0}_.value(ndx);}}",
         //                            el.name(),
         //                            max_name_len,
         //                            "cstr_t",
@@ -157,9 +159,9 @@ namespace dbgen3
       r += out::sl(fmt::format("//@{{"), offs);
       for (const auto& el : flds)
       {
-        int  db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-//        auto group       = db::attr_type(db_type_int);
-          type_name = db::ct_name(db_type_int);
+        int db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
+        //        auto group       = db::attr_type(db_type_int);
+        type_name = db::ct_name(db_type_int);
         // switch (group)
         // {
         // case db::ATTR_TYPE::atomic:
@@ -203,57 +205,60 @@ namespace dbgen3
       r += out::sl(fmt::format("//@{{"), offs);
       for (const auto& el : flds)
       {
-        int  db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-//        auto group       = db::attr_type(db_type_int);
+        int db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
+        //        auto group       = db::attr_type(db_type_int);
         type_name = db::ct_name(db_type_int);
-          r += out::sl(
-            fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v, ndx);}}",
-                        el.name(),
-                        max_name_len,
-                        type_name,
-                        max_ctype_len),
-            offs);
-//         switch (group)
-//         {
-//         case db::ATTR_TYPE::atomic:
-//         {
-// //          type_name = db::ct_name(db_type_int);
-//           r += out::sl(
-//             fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v, ndx);}}",
-//                         el.name(),
-//                         max_name_len,
-//                         type_name,
-//                         max_ctype_len),
-//             offs);
-//           break;
-//         }
-//         case db::ATTR_TYPE::string:
-//         {
-// //          type_name = "cstr_t";
-//           r += out::sl(
-//             fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v, ndx);}}",
-//                         el.name(),
-//                         max_name_len,
-//                         type_name,
-//                         max_ctype_len),
-//             offs);
-//           break;
-//         }
-//         case db::ATTR_TYPE::bstring:
-//         {
-// //          type_name = "cbstr_t";
-//           r += out::sl(
-//             fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v, ndx);}}",
-//                         el.name(),
-//                         max_name_len,
-//                         type_name,
-//                         max_ctype_len),
-//             offs);
-//           break;
-//         }
-//         case db::ATTR_TYPE::unknown: throw std::runtime_error("unhandled attr group");
-//         }
-       }
+        r +=
+          out::sl(fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v, ndx);}}",
+                              el.name(),
+                              max_name_len,
+                              type_name,
+                              max_ctype_len),
+                  offs);
+        //         switch (group)
+        //         {
+        //         case db::ATTR_TYPE::atomic:
+        //         {
+        // //          type_name = db::ct_name(db_type_int);
+        //           r += out::sl(
+        //             fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v,
+        //             ndx);}}",
+        //                         el.name(),
+        //                         max_name_len,
+        //                         type_name,
+        //                         max_ctype_len),
+        //             offs);
+        //           break;
+        //         }
+        //         case db::ATTR_TYPE::string:
+        //         {
+        // //          type_name = "cstr_t";
+        //           r += out::sl(
+        //             fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v,
+        //             ndx);}}",
+        //                         el.name(),
+        //                         max_name_len,
+        //                         type_name,
+        //                         max_ctype_len),
+        //             offs);
+        //           break;
+        //         }
+        //         case db::ATTR_TYPE::bstring:
+        //         {
+        // //          type_name = "cbstr_t";
+        //           r += out::sl(
+        //             fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v,
+        //             ndx);}}",
+        //                         el.name(),
+        //                         max_name_len,
+        //                         type_name,
+        //                         max_ctype_len),
+        //             offs);
+        //           break;
+        //         }
+        //         case db::ATTR_TYPE::unknown: throw std::runtime_error("unhandled attr group");
+        //         }
+      }
       r += out::sl(fmt::format("//@}}"), offs);
     }
     return r;
@@ -345,7 +350,8 @@ namespace dbgen3
       case db::ATTR_TYPE::string:
       {
         r +=
-          out::sl(fmt::format("db::string <std::array<{2}, {0}_len+1>, {1}, N, {2}, {3}> {0}_{{}}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)",
+          out::sl(fmt::format("db::string <std::array<{2}, {0}_len+1>, {1}, N, {2}, {3}> {0}_{{}}; "
+                              "// NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)",
                               el.name(),
                               db_name,
                               "char",
@@ -372,27 +378,27 @@ namespace dbgen3
     }
     return r;
   }
-  /**
-   * @brief
-   *
-   * @param flds
-   * @param offs
-   * @return str_t
-   */
-  str_t gen_cpp::define_attr_array(const fld_vec& flds, uint /*unused*/, uint offs)
-  {
-    str_t r;
-    if (! flds.empty())
-    {
-      r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
-      r += out::sl(fmt::format("std::array<db::attr_root_root<N>*, max_attr> attr_"), offs);
-      r += out::sl(fmt::format("{{"), offs);
-      for (const auto& attr : flds)
-        r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
-      r += out::sl(fmt::format("}};"), offs);
-    }
-    return r;
-  }
+  // /**
+  //  * @brief
+  //  *
+  //  * @param flds
+  //  * @param offs
+  //  * @return str_t
+  //  */
+  // str_t gen_cpp::define_attr_array(const fld_vec& flds, uint /*unused*/, uint offs)
+  // {
+  //   str_t r;
+  //   if (! flds.empty())
+  //   {
+  //     r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
+  //     r += out::sl(fmt::format("std::array<db::attr_root_root<N>*, max_attr> attr_"), offs);
+  //     r += out::sl(fmt::format("{{"), offs);
+  //     for (const auto& attr : flds)
+  //       r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
+  //     r += out::sl(fmt::format("}};"), offs);
+  //   }
+  //   return r;
+  // }
   /**
    * @brief define buffer default constructor
    *
@@ -457,7 +463,7 @@ namespace dbgen3
     r += out::sl(fmt::format("private:/*...private methods & attributes...*/"), offs);
     r += define_attributes_const(bd.flds(), ml, offs + 2);
     r += define_attributes(bd.flds(), ml, offs + 2);
-    r += define_attr_array(bd.flds(), ml, offs + 2);
+    // r += define_attr_array(bd.flds(), ml, offs + 2);
     r += out::sl(fmt::format("}}; // class {}", c_name), offs);
     return r;
   }
@@ -479,6 +485,88 @@ namespace dbgen3
     return r;
   }
   /**
+   * @brief build utl template header
+   *
+   * depending of on the parameter combination it generates:
+   * - no param necessary ""
+   * - par is necessary "template<std::size_t N_par = 1>
+   * - res is necessary "template<std::size_t N_res = 1>
+   * - both are necessary "template<std::size_t N_par = 1, std::size_t N_res = 1>
+   * @param q q description
+   * @return str_t generated code
+   */
+  str_t gen_cpp::gen_templ_hdr(const gsql_q& q)
+  {
+    str_t r;
+    for (const auto& b : q.buf())
+    {
+      if (b.is_required())
+        r += str_t("std::size_t N_") +                      //
+             str_t(ME::enum_name<db::BUF_TYPE>(b.type())) + //
+             " = 1, ";
+    }
+    if (! r.empty()) r.resize(r.size() - 2); // if no res && par => nothin tu cut away
+    if (r.empty()) return "";
+    r = "template<" + r + ">";
+    return r;
+  }
+  str_t gen_cpp::gen_utl_ctor(const gsql_q& q, uint offs)
+  {
+    str_t r;
+    r += out::sl(fmt::format("explicit utl(db::connection* c)"), offs);
+    r += out::sl(fmt::format(": db::utl(c, sql_)"), offs);
+    r += out::sl(fmt::format("{{"), offs);
+    for (const auto& b : q.buf())
+    {
+      if (b.is_required())
+        r += out::sl(fmt::format("  set_{0}_buf(&{0}_);", ME::enum_name<db::BUF_TYPE>(b.type())),
+                     offs);
+    }
+    r += out::sl(fmt::format("}}"), offs);
+    return r;
+  }
+  str_t gen_cpp::gen_utl_getters(const gsql_q& q, uint offs)
+  {
+    str_t r;
+    for (auto bt : ME::enum_values<db::BUF_TYPE>())
+    {
+      const auto& buf = q.buf_dscr(bt);
+      if (buf.is_required())
+      {
+        r +=             //
+          out::sl(       //
+            fmt::format( //
+              "{0}<N_{1}>* {1}_buf() override "
+              "{{"
+              "return dynamic_cast<{2}<N_{1}>*>(db::utl::{1}_buf());"
+              "}}",
+              buf.class_name(),
+              ME::enum_name<db::BUF_TYPE>(bt),
+              buf.class_name()),
+            offs);
+        //            dynamic_cast<par<N_par>&>(db::utl::par_buf());
+      }
+    };
+    return r;
+  }
+  str_t gen_cpp::gen_utl_member_var(const gsql_q& q, uint offs)
+  {
+    str_t r;
+    for (auto bt : ME::enum_values<db::BUF_TYPE>())
+    {
+      const auto& buf = q.buf_dscr(bt);
+      if (buf.is_required())
+      {
+        r += out::sl(fmt::format( //
+                       "  {0}<N_{1}> {1}_{{}};",
+                       buf.class_name(),
+                       ME::enum_name<db::BUF_TYPE>(bt)),
+                     offs);
+      }
+    };
+    return r;
+  }
+  /**
    * @brief generate utility class
    *
    * @param q
@@ -487,16 +575,21 @@ namespace dbgen3
    */
   str_t gen_cpp::gen_utl(const gsql_q& q, uint offs)
   {
-    str_t r; // FIXME multiline SQLs
-    auto  q_name = snake_case(q.id());
-    auto  sql    = q.sql(PHASE::main);
-    r += out::sl(fmt::format("class {}: public db::utl", "utl"), offs);
+    str_t       r;
+    auto        q_name  = q.namespace_str();
+    auto        sql     = q.sql(PHASE::main);
+    const auto* cl_name = "utl";
+    auto        txt     = fmt::format("{0}::{1}", q_name, cl_name);
+    r += line_text(txt, offs);
+    r += out::sl(fmt::format("{}", gen_templ_hdr(q)), offs);
+    r += out::sl(fmt::format("class {}: public db::utl", cl_name), offs);
     r += out::sl(fmt::format("{{"), offs);
     r += out::sl(fmt::format("public:"), offs);
     r += out::sl(fmt::format("  using brr = db::buffer_root_root;"), offs);
-    r += out::sl(fmt::format("  explicit utl(db::connection* c)"), offs);
-    r += out::sl(fmt::format("  : db::utl(c, sql_) {{}}"), offs);
+    r += gen_utl_ctor(q, offs + 2);
+    r += gen_utl_getters(q, offs + 2);
     r += out::sl(fmt::format("private:"), offs);
+    r += gen_utl_member_var(q, offs + 2);
     r += gen_const_sql(q, offs + 2);
     r += out::sl(fmt::format("}};"), offs);
 
@@ -533,7 +626,7 @@ namespace dbgen3
       r += line_text(ns, offs);
       r += out::sl(fmt::format("namespace {}", ns), offs);
       r += out::sl(fmt::format("{{"), offs);
-      r += gen_buf(q, db::BUF_TYPE::par, offs + 2);
+      r += gen_buf(q, db::BUF_TYPE::par, offs + 2); // FIXME for loop
       r += gen_buf(q, db::BUF_TYPE::res, offs + 2);
       r += gen_utl(q, offs + 2);
       r += out::sl(fmt::format("}}; //namespace {}", ns), offs);
@@ -570,19 +663,24 @@ namespace dbgen3
 
   str_t gen_cpp::gen_file(uint offs)
   {
-    str_t                           r;
-    auto                            now           = std::chrono::system_clock::now();
-    std::time_t                     time          = std::chrono::system_clock::to_time_t(now);
-    constexpr static const uint     ctime_buf_len = 26;
-    std::array<char, ctime_buf_len> buf{};
-    std::string                     time_str = ctime_r(&time, buf.data());
+    constexpr static const uint ctime_buf_len = 26;
 
-    r += out::sl(fmt::format("/* auto generated '{}' - do not alter */",
-                             time_str.substr(0, time_str.size() - 1)),
+    using ctime_buf_t = std::array<char, ctime_buf_len>;
+    str_t       r;
+    auto        now  = std::chrono::system_clock::now();
+    std::time_t time = std::chrono::system_clock::to_time_t(now);
+    ctime_buf_t buf{};
+    std::string time_str = ctime_r(&time, buf.data());
+
+    auto ns = set().namespace_str();
+    r += out::sl(fmt::format( //
+                   "/* auto generated '{}' - do not alter */",
+                   time_str.substr(0, time_str.size() - 1)),
                  offs);
+    r += out::sl(fmt::format("#ifndef gen_{}_hpp", ns));
+    r += out::sl(fmt::format("#define gen_{}_hpp", ns));
     r += gen_includes(offs);
     r += gen_custom_header(set(), offs);
-    auto ns = snake_case(set().id());
     r += out::sl(fmt::format("namespace {}", ns), offs);
     r += out::sl("{", offs);
     r += out::sl("  using uint    = std::size_t;", offs);
@@ -592,6 +690,7 @@ namespace dbgen3
     r += out::sl("  using cbstr_t = std::span<const uint8_t>;", offs);
     r += gen_queries(set(), offs);
     r += out::sl(fmt::format("}}; //namespace {}", ns), offs);
+    r += out::sl(fmt::format("#endif // gen_{}_hpp", ns));
     return r;
   }
 

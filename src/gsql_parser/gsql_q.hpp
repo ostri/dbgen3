@@ -8,6 +8,8 @@
 #include "enums.hpp"
 #include "gsql_qbuf_dscr.hpp"
 #include "gsql_sql_set.hpp"
+#include "magic_enum.hpp"
+#include "odbc_db.hpp"
 
 
 namespace dbgen3
@@ -17,7 +19,7 @@ namespace dbgen3
    *
    */
   // using sql_arr   = std::array<str_t, 3>;
-  using q_buf_arr = std::array<gsql_qbuf_dscr, 2>;
+  using q_buf_arr = std::array<gsql_qbuf_dscr, ME::enum_count<db::BUF_TYPE>()>;
 
   class gsql_q
   {
@@ -39,9 +41,12 @@ namespace dbgen3
     cstr_t                id() const;
     q_buf_arr&            buf_dscr() { return buf_dscr_; }
     const gsql_qbuf_dscr& buf_dscr(const db::BUF_TYPE& a_type) const;
+    q_buf_arr&            buf() { return buf_dscr_; }
+    const q_buf_arr&      buf() const { return buf_dscr_; }
     std::string           sql(const PHASE& a_phase) const;
     std::string           sql() const { return sql(PHASE::main); };
     RDBMS                 db_type() const;
+    str_t                 namespace_str() const;
     std::string           dump() const;
     std::string           dump(uint offs) const;
     std::string           dump(const std::string& a_msg, uint offs) const;
@@ -54,7 +59,7 @@ namespace dbgen3
      */
     bool must_have_buf(const db::BUF_TYPE& a_type) const
     {
-      return ! buf_dscr(a_type).flds().empty();
+      return ! buf_dscr(a_type).must_generate();
     }
 
     //@}

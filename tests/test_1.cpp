@@ -120,7 +120,6 @@ static int diag_with_W(int rc, int handle, cstr_t a_msg = "")
   }
   return rc;
 }
-
 /*...........................................................................*/
 TEST_CASE("full_cycle") // NOLINT
 {
@@ -134,10 +133,10 @@ TEST_CASE("full_cycle") // NOLINT
     REQUIRE(res == true);
     c.commit();
   }
-  {                           // insert
-    UT::insert::par<10> par; // NOLINT
-    UT::insert::utl      q(&c);
-    q.set_param_buf(&par);
+  { // insert
+    constexpr const std::size_t max_buf=10; // 10 rows of records in inserted in one exec
+    UT::insert::utl<max_buf> q(&c);
+    auto*               par = q.par_buf();
     cstr_t dec_const = "-234567890123456789012345.67890";
     auto   bin_char =
       std::array<uint8_t, 15>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}; // NOLINT
@@ -148,27 +147,27 @@ TEST_CASE("full_cycle") // NOLINT
     auto time = TIME_STRUCT{23, 59, 59}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
     auto ts   = TIMESTAMP_STRUCT{
       2022, 1, 22, 23, 59, 59, 99999}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-    for (auto cnt = 0UL; cnt < par.size(); cnt++)
+    for (auto cnt = 0UL; cnt < par->size(); cnt++)
     {
-      par.set_par_1(static_cast<int16_t>(cnt + 1), cnt); // NOLINT
-      par.set_par_2(static_cast<int32_t>(cnt + 1), cnt); // NOLINT
-      par.set_par_3(static_cast<int64_t>(cnt + 1), cnt); // NOLINT
-      par.set_par_4(dec_const, cnt);
-      par.set_par_5("123.45", cnt);
-      par.set_par_6("123.456", cnt);
-      par.set_par_7("abcdefghij", cnt);
-      par.set_par_8("ABC", cnt);
-      par.set_par_9(date, cnt);
-      par.set_par_10(time, cnt);
-      par.set_par_11(ts, cnt);
-      par.set_par_12(std::array<uint8_t, 10>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, cnt); // NOLINT
-      par.set_par_13("clob", cnt);
-      par.set_par_14(bin_char, cnt);    // NOLINT
-      par.set_par_15(123.45, cnt);      // NOLINT
-      par.set_par_16(123.456, cnt);     // NOLINT
-      par.set_par_17(bin_varchar, cnt); // NOLINT
+      par->set_par_1(static_cast<int16_t>(cnt + 1), cnt); // NOLINT
+      par->set_par_2(static_cast<int32_t>(cnt + 1), cnt); // NOLINT
+      par->set_par_3(static_cast<int64_t>(cnt + 1), cnt); // NOLINT
+      par->set_par_4(dec_const, cnt);
+      par->set_par_5("123.45", cnt);
+      par->set_par_6("123.456", cnt);
+      par->set_par_7("abcdefghij", cnt);
+      par->set_par_8("ABC", cnt);
+      par->set_par_9(date, cnt);
+      par->set_par_10(time, cnt);
+      par->set_par_11(ts, cnt);
+      par->set_par_12(std::array<uint8_t, 10>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, cnt); // NOLINT
+      par->set_par_13("clob", cnt);
+      par->set_par_14(bin_char, cnt);    // NOLINT
+      par->set_par_15(123.45, cnt);      // NOLINT
+      par->set_par_16(123.456, cnt);     // NOLINT
+      par->set_par_17(bin_varchar, cnt); // NOLINT
     }
-    par.set_occupied(par.size());
+    par->set_occupied(par->size());
     auto rc = q.exec();
     diag(rc, q.handle(), "insert records: ");
     REQUIRE(rc == SQL_SUCCESS);
@@ -176,9 +175,8 @@ TEST_CASE("full_cycle") // NOLINT
     std::cerr << q.dump("***after insert***") << std::endl;
   }
   { // select
-    UT::select::res<3> res;
-    UT::select::utl     q(&c);
-    q.set_result_buf(&res);
+    UT::select::utl<3> q(&c);
+    auto*              res = q.res_buf();
 
     auto rc = q.exec();
     diag(rc, q.handle(), "exec select: ");
@@ -186,11 +184,11 @@ TEST_CASE("full_cycle") // NOLINT
 
     while (rc == SQL_SUCCESS)
     {
-      rc = q.fetch_scroll(SQL_FETCH_NEXT, res.size());
+      rc = q.fetch_scroll(SQL_FETCH_NEXT, res->size());
       if ((rc != SQL_SUCCESS) && (rc != SQL_NO_DATA)) diag(rc, q.handle(), "fetch");
       REQUIRE(((rc == SQL_SUCCESS) || (rc == SQL_NO_DATA)));
-      std::cerr << res.dump("***select fetch***") << std::endl;
-      if (q.rows_read() < res.size()) break;
+      std::cerr << res->dump("***select fetch***") << std::endl;
+      if (q.rows_read() < res->size()) break;
     }
     c.commit();
   }
@@ -208,7 +206,7 @@ TEST_CASE("colums_custom_names") // NOLINT
   res.set_int16(1);
   res.set_int32(2);
   res.set_int64(3);
-  
+
   REQUIRE_EQ(par.cond(), 1);
   REQUIRE_EQ(res.char8(), "abc");
   REQUIRE_EQ(res.dec(), "123");
