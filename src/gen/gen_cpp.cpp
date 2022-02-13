@@ -556,7 +556,7 @@ namespace dbgen3
   str_t gen_cpp::gen_queries(const gsql_q_set& set, uint offs)
   {
     str_t r;
-    for (const auto& q : set.q_dic()) { r += gen_query(q.second, offs + 2); };
+    for (const auto& q : set.q_vec()) { r += gen_query(q, offs + 2); };
     return r;
   };
 

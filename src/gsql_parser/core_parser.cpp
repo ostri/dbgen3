@@ -19,19 +19,16 @@ namespace dbgen3
 {
   namespace fs = std::filesystem;
   namespace x  = xercesc;
+  /**
+   * @brief Construct a new core parser::core parser object
+   *
+   * @param gp
+   */
   core_parser::core_parser(x::XMLGrammarPool* gp)
-  //  : valid_(false)
-  //  , impl_(xercesc::DOMImplementationRegistry::getDOMImplementation(u"LS"))
-  // , parser_(static_cast<xercesc::DOMImplementationLS*>(impl_) //
-  //             ->createLSParser(xercesc::DOMImplementationLS::MODE_SYNCHRONOUS, nullptr))
   : parser_(executor::create_parser(gp))
-  //  , eh_(new gsql_eh())
-  //  , gp_(gp)
   {
     try
     {
-      //      valid_  = true;
-      //    error_handler eh;
       parser_->getDomConfig()->setParameter(x::XMLUni::fgDOMErrorHandler, &eh_); // NOLINT
     }
     catch (const x::XMLException& e)
@@ -40,46 +37,27 @@ namespace dbgen3
       err << "Error during initialization! :\n" << msg << "\n";
     }
   }
-
+  /**
+   * @brief Destroy the core parser::core parser object
+   *
+   */
   core_parser::~core_parser()
   {
-    if (parser_ != nullptr)
-    {
-      parser_->release();
-      //      parser_ = nullptr;
-    }
+    if (parser_ != nullptr) parser_->release();
   }
-  gsql_qbuf_dscr core_parser::load_buf(const db::BUF_TYPE& bt, const x::DOMElement* an_el, uint a_ndx)
+  gsql_qbuf_dscr core_parser::load_buf(const db::BUF_TYPE&  bt,
+                                       const x::DOMElement* an_el,
+                                       uint                 a_ndx)
   {
     gsql_qbuf_dscr r(bt);
     /// load attributes
     r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
     r.set_skip(attr_value_b(an_el, "skip", false));
     r.set_names(attr_value(an_el, "columns", ""));
-//    err << "qp id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size() << std::endl;
+    //    err << "qp id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size()
+    //    << std::endl;
     return r;
   }
-  // gsql_qbuf_dscr core_parser::load_qp(const x::DOMElement* an_el, uint a_ndx)
-  // {
-  //   gsql_qbuf_dscr r(db::BUF_TYPE::par);
-  //   /// load attributes
-  //   r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
-  //   r.set_skip(attr_value_b(an_el, "skip", false));
-  //   r.set_names(attr_value(an_el, "columns", ""));
-  //   err << "qp id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size() << std::endl;
-  //   return r;
-  // }
-  // gsql_qbuf_dscr core_parser::load_qr(const x::DOMElement* an_el, uint a_ndx)
-  // {
-  //   gsql_qbuf_dscr r(db::BUF_TYPE::res);
-  //   /// load attributes
-  //   r.set_id(attr_value(an_el, "id", "qr_" + std::to_string(a_ndx)));
-  //   r.set_skip(attr_value_b(an_el, "skip", false));
-  //   r.set_names(attr_value(an_el, "columns", ""));
-
-  //   err << "qr id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size() << std::endl;
-  //   return r;
-  // }
 
   std::string core_parser::get_text_node(const x::DOMElement* an_el, str_vec a_ctx)
   {
@@ -282,10 +260,10 @@ namespace dbgen3
     if (SQL_SUCCESS == rc)
     {
       info << "# of par:" << par_cnt << "\n";
-      for (int16_t cnt = 0; cnt < par_cnt; ++cnt) 
-      { 
+      for (int16_t cnt = 0; cnt < par_cnt; ++cnt)
+      {
         auto def_name = (static_cast<uint>(cnt) < names.size()) ? names.at(cnt) : "";
-        r.push_back(load_fld_dscr(def_name, a_bt, h, cnt)); 
+        r.push_back(load_fld_dscr(def_name, a_bt, h, cnt));
       };
     }
     else throw db::error_exception(db::error(h, SQL_HANDLE_STMT));
@@ -307,10 +285,9 @@ namespace dbgen3
       rc = stmt_m.prepare(sql_m);
       for (auto& buf : r.buf_dscr())
       {
-//        std::cerr << buf.names().size() << std::endl;
+        //        std::cerr << buf.names().size() << std::endl;
         buf.set_flds(fetch_param_dscr(buf.names(), buf.type(), stmt_m));
       }
-      //      r.set_buf_dscr_flds(db::BUF_TYPE::res, fetch_param_dscr(db::BUF_TYPE::res, stmt_m));
       if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
       //            err << sts;
       stmt_p.rollback();
@@ -402,7 +379,6 @@ namespace dbgen3
       std::error_code ec;
       fs::path        path(a_filename);
       auto            fn = fs::weakly_canonical(path, ec).string();
-      // auto fn = a_filename;
       if (file_exists(fn))
       {
         auto* doc = parser_->parseURI(fn.data());
@@ -470,13 +446,14 @@ namespace dbgen3
       {
         auto* el       = dynamic_cast<x::DOMElement*>(n);
         auto  loc_name = toNative(n->getLocalName());
-        if (loc_name == "hdr") q_set.set_header(get_text_node(el, ctx)); /* header */
-        else if (loc_name == "q") {                                      /* query set */
+        if (loc_name == "hdr") q_set.set_header(get_text_node(el, ctx)); // header
+        else if (loc_name == "q")                                        // query set
+        {
           auto sts = q_set.q_insert(load_q(el, ++q_ndx, ctx, a_dbr, a_db_type));
           if (! sts)
           {
-            auto msg = fmt::format(fg(fmt::color::crimson),
-                                   dbgen3::program_status::dscr(P_STS::duplicate_sql_dscr_def),
+            auto msg = fmt::format(fg(fmt::color::crimson), //
+                                   PS::dscr(P_STS::duplicate_sql_dscr_def),
                                    q_set.id());
             throw dbgen3_exc(P_STS::duplicate_sql_dscr_def, msg);
           }
@@ -485,8 +462,4 @@ namespace dbgen3
     };
     return q_set;
   }
-  // bool gsql_eh::handleError(const xercesc::DOMError& /*de*/)
-  // {
-  //   return false;
-  // };
 } // namespace dbgen3

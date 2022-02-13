@@ -11,7 +11,9 @@ namespace dbgen3
   class gsql_q_set
   {
   public:
-    using q_dic_t                 = std::map<std::string, gsql_q>;
+    using q_dic_t = std::map<std::string, int>; // string q.ID() int index in vector
+    using q_vec_t = std::vector<gsql_q>;
+
     gsql_q_set()                  = default;
     ~gsql_q_set()                 = default;
     gsql_q_set(const gsql_q_set&) = delete;
@@ -25,7 +27,11 @@ namespace dbgen3
     std::string       dump() const;
     std::string       dump(int offs) const;
     std::string       id() const;
-    const q_dic_t&    q_dic() const { return q_dic_; }
+    // const q_dic_t&    q_dic() const { return q_dic_; }
+    gsql_q&       q_vec(std::size_t ndx) { return q_vec_.at(ndx); }
+    const gsql_q& q_vec(std::size_t ndx) const { return q_vec_.at(ndx); }
+    q_vec_t&       q_vec() { return q_vec_; }
+    const q_vec_t& q_vec() const { return q_vec_; }
     //@}
     /// @name setters
     //@{
@@ -38,7 +44,8 @@ namespace dbgen3
   private:
     multi_line  header_; //!< contents of the header of query set (q-set)
     std::string id_;     //!< q_set unique id; if not provided the basename of gsql filename
-    q_dic_t     q_dic_;  //!< dictionary of queries
+    q_dic_t     q_dic_;  //!< dictionary of query ids
+    q_vec_t     q_vec_;  //!< vector of all query definitions
   };
 
 
@@ -58,7 +65,8 @@ namespace dbgen3
 
   inline bool gsql_q_set::q_insert(const gsql_q& q)
   {
-    const auto [key, sts] = q_dic_.emplace(q.id(), q);
+    q_vec_.emplace_back(q);
+    const auto [key, sts] = q_dic_.emplace(q.id(), q_vec_.size() - 1);
     return sts;
   }
 
@@ -75,7 +83,7 @@ namespace dbgen3
     s += out::sl("  {", offs);
     s += header_.dump("", offs + 4);
     s += out::sl("  }", offs);
-    for (auto const& [key, val] : q_dic_) { s += val.dump(offs + 2); }
+    for (auto const& val : q_vec_) { s += val.dump(offs + 2); }
     s += out::sl("}", offs);
     return s;
   };

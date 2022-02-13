@@ -10,16 +10,16 @@
   - [1.9. dbgen3 --grammar -> left trim](#19-dbgen3---grammar---left-trim)
   - [1.10. Fix bug with "?" in sql](#110-fix-bug-with--in-sql)
   - [1.11. t1.hpp is generated anywhere](#111-t1hpp-is-generated-anywhere)
-  - [1.12. classes in hpp must be in the same order as in gsql](#112-classes-in-hpp-must-be-in-the-same-order-as-in-gsql)
-  - [1.13. documentation](#113-documentation)
-    - [1.13.1. doxygen](#1131-doxygen)
-      - [1.13.1.1. generated files](#11311-generated-files)
-      - [1.13.1.2. source code](#11312-source-code)
-    - [1.13.2. README](#1132-readme)
+  - [1.12. documentation](#112-documentation)
+    - [1.12.1. doxygen](#1121-doxygen)
+      - [1.12.1.1. generated files](#11211-generated-files)
+      - [1.12.1.2. source code](#11212-source-code)
+    - [1.12.2. README](#1122-readme)
 - [2. Done](#2-done)
   - [2.1. restructure the grammar](#21-restructure-the-grammar)
   - [2.2. more specific requirements for elemetns within the grammar e.g. regex for id](#22-more-specific-requirements-for-elemetns-within-the-grammar-eg-regex-for-id)
   - [2.3. option to change the parameter / result column names](#23-option-to-change-the-parameter--result-column-names)
+  - [2.4. classes in hpp must be in the same order as in gsql](#24-classes-in-hpp-must-be-in-the-same-order-as-in-gsql)
 # 1. Todo list
 
 ## 1.1. get both buffers from the utl instance
@@ -33,13 +33,12 @@
 ## 1.9. dbgen3 --grammar -> left trim
 ## 1.10. Fix bug with "?" in sql
 ## 1.11. t1.hpp is generated anywhere
-## 1.12. classes in hpp must be in the same order as in gsql
 
-## 1.13. documentation
-### 1.13.1. doxygen
-#### 1.13.1.1. generated files
-#### 1.13.1.2. source code
-### 1.13.2. README
+## 1.12. documentation
+### 1.12.1. doxygen
+#### 1.12.1.1. generated files
+#### 1.12.1.2. source code
+### 1.12.2. README
 
 
 
@@ -48,3 +47,4 @@
 ## 2.1. restructure the grammar
 ## 2.2. more specific requirements for elemetns within the grammar e.g. regex for id
 ## 2.3. option to change the parameter / result column names
+## 2.4. classes in hpp must be in the same order as in gsql
