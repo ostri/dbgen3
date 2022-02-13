@@ -39,8 +39,6 @@ namespace dbgen3
     {
       auto c_type_len = 0UL;
       auto odbc_type_int = ME::enum_integer<ODBC_TYPE>(fld.type());
-//      if (db::is_bstring(odbc_type_int)) c_type_len = str_t("std::span<const uint8_t>").size();    //24;
-      // else 
       c_type_len = str_t(db::ct_name(odbc_type_int)).size();
       if (c_type_len > len) len = c_type_len;
     }

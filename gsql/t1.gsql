@@ -124,15 +124,15 @@
     </sql-set>
   </q>
   <q id="named-columns">
-    <qp id="xx-p" columns="cond"/>
-    <qr id="xx-r" columns="int16 int32 int64 numeric decimal dec char8"/>
+    <qp id="xx-p" columns="cond" />
+    <qr id="xx-r" columns="int16 int32 int64 numeric decimal dec char8" />
     <sql-set>
       <sql>
         select *
             from tbl
             where
               c1_smallint=?
-      </sql>
+</sql>
     </sql-set>
   </q>
 </q-set>

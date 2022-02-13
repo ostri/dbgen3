@@ -11,6 +11,7 @@
 #include "executor.hpp"
 #include "gsql_q.hpp"
 #include "gsql_q_set.hpp"
+#include "magic_enum.hpp"
 #include "odbc_db.hpp"
 #include "program_status.hpp"
 #include "xerces_strings.hpp"
@@ -47,11 +48,12 @@ namespace dbgen3
   }
   gsql_qbuf_dscr core_parser::load_buf(const db::BUF_TYPE&  bt,
                                        const x::DOMElement* an_el,
-                                       uint                 a_ndx)
+                                       uint /*a_ndx*/)
   {
     gsql_qbuf_dscr r(bt);
     /// load attributes
-    r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
+    //    r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
+    r.set_id(attr_value(an_el, "id", ME::enum_name<db::BUF_TYPE>(bt)));
     r.set_skip(attr_value_b(an_el, "skip", false));
     r.set_names(attr_value(an_el, "columns", ""));
     //    err << "qp id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size()
@@ -353,8 +355,9 @@ namespace dbgen3
     a_ctx.emplace_back(std::string(r.id()));
     auto ndx_str = std::to_string(a_ndx);
     // implicit values unless explicit are provided
-    r.set_buf_dscr(gsql_qbuf_dscr(db::BUF_TYPE::par, "qp_" + ndx_str, false));
-    r.set_buf_dscr(gsql_qbuf_dscr(db::BUF_TYPE::res, "qr_" + ndx_str, false));
+    for (auto e : ME::enum_values<db::BUF_TYPE>()) { r.set_buf_dscr(gsql_qbuf_dscr(e, false)); }
+    // r.set_buf_dscr(gsql_qbuf_dscr(db::BUF_TYPE::par, false));
+    // r.set_buf_dscr(gsql_qbuf_dscr(db::BUF_TYPE::res, false));
     r = load_q_children(an_el, a_ndx, a_ctx, a_dbr, a_db_type, r);
     return r;
   }

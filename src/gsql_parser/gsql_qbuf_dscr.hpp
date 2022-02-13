@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "enums.hpp"
 #include "fld_dscr.hpp"
+#include "magic_enum.hpp"
 #include "odbc_db.hpp"
 #include "string_format.hpp"
 
@@ -15,6 +16,8 @@ namespace dbgen3
     ~gsql_qbuf_dscr() = default;
     explicit gsql_qbuf_dscr(const db::BUF_TYPE& a_type);
     gsql_qbuf_dscr(const db::BUF_TYPE& a_type, cstr_t an_id, bool should_skip);
+    gsql_qbuf_dscr(const db::BUF_TYPE& a_type, bool should_skip)
+    : gsql_qbuf_dscr(a_type, ME::enum_name<db::BUF_TYPE>(a_type), should_skip) {}
     gsql_qbuf_dscr(const gsql_qbuf_dscr&) = default;
     gsql_qbuf_dscr(gsql_qbuf_dscr&&)      = default;
     gsql_qbuf_dscr& operator=(const gsql_qbuf_dscr& o) = default;

@@ -8,13 +8,15 @@
 namespace dbgen3
 {
 
-  str_vec multi_line::to_vec(cstr_t a_str)
-  {
-    str_vec r;
-    r = minimize(split(rtrim(a_str), '\n'));
-    return r;
-  }
-  bool multi_line::is_whitespace_line(cstr_t l)
+  str_vec multi_line::to_vec(cstr_t a_str) { return minimize(split(rtrim(a_str), '\n')); }
+  /**
+   * @brief is the provided string made of whitespace characters?
+   * 
+   * @param l 
+   * @return true 
+   * @return false 
+   */
+  bool    multi_line::is_whitespace_line(cstr_t l)
   { // NOLINTNEXTLINE clang-tidy(readability-use-anyofallof)
     for (const auto& ch : l)
       if (std::isspace(ch) == 0) return false;

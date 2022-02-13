@@ -135,7 +135,7 @@ TEST_CASE("full_cycle") // NOLINT
     c.commit();
   }
   {                           // insert
-    UT::insert::qp_5<10> par; // NOLINT
+    UT::insert::par<10> par; // NOLINT
     UT::insert::utl      q(&c);
     q.set_param_buf(&par);
     cstr_t dec_const = "-234567890123456789012345.67890";
@@ -176,7 +176,7 @@ TEST_CASE("full_cycle") // NOLINT
     std::cerr << q.dump("***after insert***") << std::endl;
   }
   { // select
-    UT::select::qr_6<3> res;
+    UT::select::res<3> res;
     UT::select::utl     q(&c);
     q.set_result_buf(&res);
 
