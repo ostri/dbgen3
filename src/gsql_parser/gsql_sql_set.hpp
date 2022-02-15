@@ -14,12 +14,10 @@ namespace dbgen3
   enum class INS_OP : int
   { // generic == SQL (standard SQL)
     // specific == SQL with extended features characteristic for a selected RDBMS
-    inserted = 0, // no SQLs yet, just insert
-    ambigous = 1, // two sql statements for the active RDBMS (both generic or both actve RDBMS)
-    specific = 2, // replacing old generic with new specific
-    other    = 3, // sql statement is for RDBMS that not selcted
-    skip     = 4, // new SQL is generic, but we already have old specific SQL
-                  
+    inserted  = 0, // no SQLs yet, just insert
+    ambiguous = 1, // two sql statements for the active RDBMS (both generic or both actve RDBMS)
+    specific  = 2, // replacing old generic with new specific
+    skip      = 3, // new SQL is generic, but we already have old specific SQL
   };
   class gsql_sql_set
   {
@@ -32,19 +30,21 @@ namespace dbgen3
     gsql_sql_set& operator=(const gsql_sql_set&) = default;
     gsql_sql_set& operator=(gsql_sql_set&&) = default;
 
-    uint        size() const;
     std::string dump() const;
     std::string dump(uint offs) const;
     std::string dump(cstr_t a_msg, uint offs) const;
 
-    INS_OP               insert(const gsql_sql_dscr& a_val);
-    const gsql_sql_dscr* fetch(const PHASE& a_phase) const;
+    INS_OP               put(const gsql_sql_dscr& a_val);
+    const gsql_sql_dscr& get() const { return sql_dscr_; };
     RDBMS                db_type() const;
-    std::string          fetch_sql(const PHASE& a_phase) const;
+    std::string          sql() const;
+    std::string          prep_sql() const;
+    const multi_line&    sql_ml() const;
+    const multi_line&    prep_sql_ml() const;
   private:
-    using sql_map    = std::map<uint, gsql_sql_dscr>;
-    sql_map sql_map_ = {}; //!< dictionary of sql statements index by (rdbms, phase)
-    RDBMS   db_type_;      //!< rdbms type that we are generating code for
+    gsql_sql_dscr sql_dscr_{};   //!< sql descriptor (not owner)
+    RDBMS         db_type_;      //!< rdbms type that we are generating code for
+    bool          empty_ = true; //!< is the sql_dscr_ structure already loaded
   };
 
 }; // namespace dbgen3

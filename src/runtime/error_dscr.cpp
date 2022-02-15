@@ -10,10 +10,7 @@ namespace db
   { }
   str_t error_dscr::dump(cstr_t a_msg) const
   {
-    str_t s;
-    s += str_t(a_msg) + " [code: " + std::to_string(code_) + " state: " + state_ + " msg: " + msg_ +
-         "]";
-    // log(s.str());
-    return s;
+    return str_t(a_msg) + " [code: " + std::to_string(code_) + " state: '" + str_t(state_) + "' msg: '" + msg_ +
+         "']";
   }
 } // namespace db

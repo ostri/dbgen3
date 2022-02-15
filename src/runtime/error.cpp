@@ -10,6 +10,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <sqlcli1.h>
 #include <sstream>
@@ -64,7 +65,8 @@ namespace db
     case SQL_SUCCESS:
     {
       //      error_dscr err(code, cstr_t(state.data(), state.size()), cstr_t(msg.data(), msg_len));
-      errors_.emplace_back(code, cstr_t(state.data(), state.size()), cstr_t(msg.data(), msg_len));
+      auto state_len = std::strlen(state.data());
+      errors_.emplace_back(code, cstr_t(state.data(), state_len), cstr_t(msg.data(), msg_len));
       break;
     }
     case SQL_SUCCESS_WITH_INFO:
@@ -134,7 +136,10 @@ namespace db
   std::string error::dump(cstr_t a_msg) const
   {
     std::string s(a_msg);
-    for (const auto& e_dscr : errors_) { s += "[" + e_dscr.dump("") + "]\n"; }
+    for (const auto& e_dscr : errors_) 
+    { 
+      s += e_dscr.dump("") + "...\n"; 
+    }
     return s;
   }
   void error::log(const std::string& msg) { std::cerr << msg; }

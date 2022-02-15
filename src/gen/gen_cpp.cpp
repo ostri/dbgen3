@@ -430,7 +430,7 @@ namespace dbgen3
   str_t gen_cpp::gen_const_sql(const gsql_q& q, uint offs)
   {
     str_t       r;
-    const auto& ml_sql = q.sql_set().fetch(PHASE::main)->sql_ml().lines();
+    const auto& ml_sql = q.sql_set().get().sql_ml().lines();
     r += out::sl(fmt::format("constexpr static const cstr_t sql_ ="), offs);
     r += out::sl(fmt::format("R\"k0a1f2k3a4("), offs);
     for (auto l : ml_sql) { r += out::sl(fmt::format("{}", l), offs + 2); }
@@ -530,7 +530,7 @@ namespace dbgen3
   {
     str_t       r;
     auto        q_name  = q.namespace_str();
-    auto        sql     = q.sql(PHASE::main);
+    auto        sql     = q.sql();
     const auto* cl_name = "utl";
     auto        txt     = fmt::format("{0}::{1}", q_name, cl_name);
     r += line_text(txt, offs);
@@ -573,7 +573,7 @@ namespace dbgen3
   {
     str_t r;
     auto  ns  = snake_case(q.id());
-    auto  sql = q.sql(PHASE::main);
+    auto  sql = q.sql();
     if (! sql.empty())
     {
       r += line_text(ns, offs);

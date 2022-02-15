@@ -101,8 +101,6 @@ namespace db
     /// It checks the return status of the cli call and raises exception upon error otherwise
     /// returns SQL_SUCCESS
     std::int16_t chk(std::int16_t err_code,
-                     cstr_t       ok_msg,
-                     cstr_t       err_msg,
                      bool         should_throw = true) const;
     /// check if code is on the list and throw accordingly if not
     int handle_return_code(int rc, cstr_t allowed_codes);

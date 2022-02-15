@@ -43,8 +43,9 @@ namespace dbgen3
     const gsql_qbuf_dscr& buf_dscr(const db::BUF_TYPE& a_type) const;
     q_buf_arr&            buf() { return buf_dscr_; }
     const q_buf_arr&      buf() const { return buf_dscr_; }
-    std::string           sql(const PHASE& a_phase) const;
-    std::string           sql() const { return sql(PHASE::main); };
+    // std::string           sql() const;
+    std::string           sql() const { return sql_set_.sql(); };
+    std::string           sql_prep() const { return sql_set_.prep_sql(); };
     RDBMS                 db_type() const;
     str_t                 namespace_str() const;
     std::string           dump() const;
@@ -72,7 +73,7 @@ namespace dbgen3
     //@}
     const gsql_sql_set& sql_set() const; //<! fetches vector of sql descriptions
   private:
-    uint size() const; //!< number of sql statements
+//    uint size() const; //!< number of sql statements
     /*...................................................................*/
     str_t        id_{};       //!< name of the gsql_id (unique id)
     q_buf_arr    buf_dscr_{}; //!< query buffer descriptions

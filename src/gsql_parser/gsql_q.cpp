@@ -29,7 +29,7 @@ namespace dbgen3
     return this->buf_dscr_[ME::enum_integer(a_type)];
   }
 
-  std::string gsql_q::sql(const PHASE& a_phase) const { return sql_set_.fetch_sql(a_phase); }
+  // std::string gsql_q::sql() const { return sql_set_.sql(); }
 
   RDBMS gsql_q::db_type() const { return sql_set_.db_type(); }
 
@@ -48,6 +48,6 @@ namespace dbgen3
 
   const gsql_sql_set& gsql_q::sql_set() const { return sql_set_; }
 
-  uint gsql_q::size() const { return sql_set_.size(); }
+//  uint gsql_q::size() const { return sql_set_.size(); }
 
 } // namespace dbgen3

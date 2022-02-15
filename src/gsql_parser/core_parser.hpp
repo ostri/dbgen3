@@ -83,9 +83,11 @@ namespace dbgen3
     bool         init();
     static std::string get_statement(const x::DOMElement* an_el, str_vec a_ctx);
     static std::string get_text_node(const x::DOMElement* an_el, str_vec a_ctx);
+    static std::pair<str_t, str_t> get_text_node_with_prepare(const x::DOMElement* an_el, str_vec a_ctx);
     /* .........................................................*/
     x::DOMLSParser*   parser_; //!< DOM parser
     dom_error_handler eh_{};   //!< error handler
+
   };
 };     // namespace dbgen3
 #endif // CORE_PARSER_HPP

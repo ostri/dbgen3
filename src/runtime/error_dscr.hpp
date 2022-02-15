@@ -22,7 +22,7 @@ namespace db
   {
   public:
     /// constructor
-    error_dscr()=default;
+    error_dscr() = default;
     error_dscr(int code, cstr_t state, cstr_t msg);
     /// copy constructor
     error_dscr(const error_dscr& o) = default;
@@ -32,10 +32,10 @@ namespace db
     /// destructor
     virtual ~error_dscr() = default;
     /// getters
-    int                get_code() const { return code_; }
-    const std::string& get_state() const { return state_; }
-    const std::string& get_msg() const { return msg_; }
-    str_t              dump(cstr_t a_msg) const;
+    int    get_code() const { return code_; }
+    cstr_t get_state() const { return state_; }
+    cstr_t get_msg() const { return msg_; }
+    str_t  dump(cstr_t a_msg) const;
   private:
     int   code_  = 0;  //!< sql code
     str_t state_ = {}; //!< sql state

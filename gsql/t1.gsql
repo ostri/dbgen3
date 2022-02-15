@@ -26,21 +26,16 @@
                 phase ::= prepare | main | cleanup
             -->
       <sql rdbms="sql" phase="main">
+        <prepare>select * from tbl</prepare>
         select *
                 from tbl
                 where
                   c1_smallint=?
         <!--todo fix the bug with apostophies-->
       </sql>
-      <sql rdbms="sql" phase="prepare">
-                               select * from tbl
-</sql>
-      <sql rdbms="sql" phase="cleanup">
-                select * from tbl
-</sql>
       <sql rdbms="db2" phase="cleanup">
 
-                select * from tbl
+                select * from tbl where c1_smallint=?
 </sql>
       <!-- <sql rdbms="db2">
 
@@ -151,6 +146,25 @@
           (
               ?,?,?, ?,?
           )
+      </sql>
+    </sql-set>
+  </q>
+  <q id="prepare">
+    <sql-set>
+      <sql>
+        <prepare>
+          DECLARE GLOBAL TEMPORARY TABLE TEMPPROD
+          (SERIAL       CHAR(8)     NOT NULL WITH DEFAULT '99999999',
+           DESCRIPTION  VARCHAR(60) NOT NULL,
+           PRODCOUNT    INTEGER GENERATED ALWAYS AS IDENTITY,
+           MFGCOST      DECIMAL(8,2),
+           MFGDEPT      CHAR(3),
+           MARKUP       SMALLINT,
+           SALESDEPT    CHAR(3),
+           CURDATE      DATE        NOT NULL
+          );
+        </prepare>
+        select * from session.tempprod
       </sql>
     </sql-set>
   </q>

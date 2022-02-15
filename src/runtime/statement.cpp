@@ -50,8 +50,8 @@ namespace db
       chk(SQLExecDirect(handle_,
                         reinterpret_cast<SQLCHAR*>(const_cast<char*>(sql().data())), // NOLINT
                         SQL_NTS),
-          str_t("exec direct ok    :- sql='") + str_t(sql()) + "'.",
-          str_t("exec direct failed:- sql='") + str_t(sql()) + "'.",
+          // str_t("exec direct ok    :- sql='") + str_t(sql()) + "'.",
+          // str_t("exec direct failed:- sql='") + str_t(sql()) + "'.",
           should_throw);
     return sts;
   }
@@ -62,8 +62,8 @@ namespace db
   std::int16_t statement::exec() const
   {
     return chk(SQLExecute(handle_),
-               str_t("exec ok    :- sql='") + str_t(sql()) + "'.",
-               str_t("exec failed:- sql='") + str_t(sql()) + "'.",
+              //  str_t("exec ok    :- sql='") + str_t(sql()) + "'.",
+              //  str_t("exec failed:- sql='") + str_t(sql()) + "'.",
                false);
   }
   /*!
@@ -86,8 +86,10 @@ namespace db
                      const_cast<char*>( // NOLINT -cppcoreguidelines-pro-type-reinterpret-cast
                        sql().data())),
                    SQL_NTS),
-        ok_ans,
-        nak_ans);
+        // ok_ans,
+        // nak_ans
+        false
+        );
       is_prepared_ = rc == SQL_SUCCESS;
     }
     else log(str_t("Already prepared: '") + str_t(sql()) + str_t("'."));
@@ -128,8 +130,8 @@ namespace db
   std::int16_t statement::fetch_scroll(int16_t a_dir, uint a_len, bool should_throw) const
   {
     return chk(SQLFetchScroll(handle_, a_dir, static_cast<std::make_signed_t<uint>>(a_len)),
-               str_t("fetch scroll ok    :- sql='") + str_t(sql()) + "'.",
-               str_t("fetch scroll failed:- sql='") + str_t(sql()) + "'.",
+              //  str_t("fetch scroll ok    :- sql='") + str_t(sql()) + "'.",
+              //  str_t("fetch scroll failed:- sql='") + str_t(sql()) + "'.",
                should_throw);
   }
   /*!
@@ -142,20 +144,19 @@ namespace db
    *                     false - on error just return error code (i.e. no exception)
    */
   std::int16_t statement::chk(std::int16_t err_code,
-                              cstr_t       ok_msg,
-                              cstr_t       err_msg,
+//                              cstr_t       ok_msg,
+//                              cstr_t       err_msg,
                               bool         should_throw) const
   {
     if (err_code != SQL_SUCCESS)
     {
       error err;
       err.load(handle_, SQL_HANDLE_STMT);
-      std::string str = str_t(err_msg) + str_t(" : '") + err.dump(str_t(sql()) + "' ##  err:");
-      log(str);
+      std::string str = err.dump(sql_) ;
       if (should_throw) throw error_exception(str);
       //      log("Error code: " + std::to_string(err_code));
     }
-    else log(str_t(ok_msg));
+    //else log(str_t(ok_msg));
     return err_code;
   }
   /// fetch an sql statement

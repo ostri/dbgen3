@@ -1,22 +1,19 @@
 #include "gsql_sql_dscr.hpp"
+#include "multi_line.hpp"
 
 namespace dbgen3
 {
 
-  gsql_sql_dscr::gsql_sql_dscr(const RDBMS&       a_db,
-                               const PHASE&       a_phase,
-                               const std::string& sql)
+  gsql_sql_dscr::gsql_sql_dscr(const RDBMS& a_db, cstr_t sql, cstr_t sql_prep)
     : db_type_(a_db)
-    , phase_(a_phase)
     , ml_sql_(sql)
+    , ml_sql_prep_(sql_prep)
   { }
 
-  gsql_sql_dscr::gsql_sql_dscr(const RDBMS&      a_db,
-                               const PHASE&      a_phase,
-                               const multi_line& sql)
+  gsql_sql_dscr::gsql_sql_dscr(const RDBMS& a_db, multi_line sql, multi_line sql_prep)
     : db_type_(a_db)
-    , phase_(a_phase)
-    , ml_sql_(sql)
+    , ml_sql_(std::move(sql))
+    , ml_sql_prep_(std::move(sql_prep))
   { }
 
   std::string gsql_sql_dscr::dump() const { return dump("", 0); }
@@ -32,20 +29,22 @@ namespace dbgen3
     if (! a_msg.empty()) s += out::sl(a_msg, offs);
     s += out::sl("sql:", offs);
     s += out::sl("{", offs);
-    s += out::sl(fmt::format("  key      : {}", key()), offs);
+//    s += out::sl(fmt::format("  key      : {}", key()), offs);
     s += out::sl(fmt::format("  db_type  : {:<7} {}", ME::enum_name(db_type_), ME::enum_integer(db_type_)), offs);
-    s += out::sl(fmt::format("  phase    : {:<7} {}", ME::enum_name(phase_), ME::enum_integer(phase_)), offs);
-    s += out::sl("  statement:", ml_sql_.dump(offs), offs);
+//    s += out::sl(fmt::format("  phase    : {:<7} {}", ME::enum_name(phase_), ME::enum_integer(phase_)), offs);
+    s += out::sl("  sql     :", ml_sql_.dump(offs), offs);
+    s += out::sl("  sql_prep:  ", ml_sql_prep_.dump(offs), offs);
     s += out::sl("}", offs);
     // clang-format on
     return s;
   }
 
-  uint8_t gsql_sql_dscr::key() const { return ME::enum_integer<PHASE>(phase_); }
+  uint8_t gsql_sql_dscr::key() const { return ME::enum_integer<RDBMS>(db_type_); }
   std::string    gsql_sql_dscr::sql() const { return static_cast<const std::string>(ml_sql_);}
+  std::string    gsql_sql_dscr::sql_prep() const { return static_cast<const std::string>(ml_sql_prep_);}
 
   RDBMS          gsql_sql_dscr::db_type() const { return db_type_; }
 
-  PHASE          gsql_sql_dscr::phase() const { return phase_; }
+//  PHASE          gsql_sql_dscr::phase() const { return phase_; }
 
 }; // namespace dbgen3

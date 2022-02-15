@@ -55,7 +55,7 @@ namespace dbgen3
       {P_STS::unk_db_name,            "Unknown db name provided. '{}'"}, //FIXME
       {P_STS::unk_exception,          "Unknown exception"},
       {P_STS::gsql_file_not_exists,   "Provided GSQL file '{}' does not exist or is not accesible."},
-      {P_STS::duplicate_sql_buf_def,  "Duplicate SQL buffer definition. query id: {} sql#: {} rdbms: {} phase: {}"},
+      {P_STS::duplicate_sql_buf_def,  "Duplicate SQL buffer definition. query id: {} sql#: {} rdbms: {}"},
       {P_STS::duplicate_sql_dscr_def, "Duplicate SQL description definition. query id: {}"},
       {P_STS::sql_stat_too_long,      "SQL statement length exceeds hard limit {}. Shorten it. query id: {} sql#: {}"},
       {P_STS::cant_open_for_writing,  "Can't open file '{}' for  writing."},

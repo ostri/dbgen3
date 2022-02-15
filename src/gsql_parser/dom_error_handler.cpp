@@ -17,7 +17,7 @@ namespace dbgen3
     line_   = loc->getLineNumber();
     col_    = loc->getColumnNumber();
     e_type_ = x_warn ? "warning" : "error";
-    throw dbgen3_exc(P_STS::inv_grammar_syntax, "kr neki");
+    //throw dbgen3_exc(P_STS::inv_grammar_syntax, "kr neki");
     return true;
   }
   str_t dom_error_handler::uri() const { return this->uri_; }

@@ -85,23 +85,6 @@ namespace dbgen3
             <xs:enumeration value="cleanup"/>
           </xs:restriction>
         </xs:simpleType>
-        <!-- sql-dscr...................................................................-->
-        <xs:complexType name="sql-dscr">
-          <xs:annotation>
-            <xs:documentation>
-              SQL description
-              - sql command
-              - sql rdbms
-              - sql phase
-            </xs:documentation>
-          </xs:annotation>
-          <xs:simpleContent>
-            <xs:extension base="xs:string">
-              <xs:attribute name="rdbms" type="rdbms_type" use="optional" />
-              <xs:attribute name="phase" type="phase_type" use="optional" />
-            </xs:extension>
-          </xs:simpleContent>
-        </xs:complexType>
         <!-- sql-set ...................................................................-->
         <xs:complexType name="sql-set">
           <xs:annotation>
@@ -110,7 +93,10 @@ namespace dbgen3
             </xs:documentation>
           </xs:annotation>
           <xs:sequence>
-            <xs:element name="sql" type="sql-dscr"  minOccurs="1" maxOccurs="unbounded" />
+            <xs:element name="sql" minOccurs="1" maxOccurs="unbounded" type="mixed">
+              <xs:element name="prepare" type="xs:string" minOccurs="0" maxOccurs="1"/>
+              <xs:attribute name="rdbms" type="rdbms_type" use="optional" />
+            </xs:element>
           </xs:sequence>
         </xs:complexType>
         <!-- query ....................................................................-->
