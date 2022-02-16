@@ -69,22 +69,6 @@ namespace dbgen3
             <xs:enumeration value="mariadb"/>
           </xs:restriction>
         </xs:simpleType>
-        <!-- enum PHASE ..................................................................-->
-        <xs:simpleType name="phase_type">
-          <xs:annotation>
-            <xs:documentation>
-              SQL statement phases:
-              - prepare      to prepare the environment for main SQL
-              - main         main SQL
-              - cleanup      to scrape the environment established in prepare phase
-            </xs:documentation>
-          </xs:annotation>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="prepare"/>
-            <xs:enumeration value="main"/>
-            <xs:enumeration value="cleanup"/>
-          </xs:restriction>
-        </xs:simpleType>
         <!-- sql-set ...................................................................-->
         <xs:complexType name="sql-set">
           <xs:annotation>
@@ -99,6 +83,20 @@ namespace dbgen3
             </xs:element>
           </xs:sequence>
         </xs:complexType>
+        <!-- simple-sql................................................................-->
+        <xs:complexType name="simple-sql">
+          <xs:annotation>
+            <xs:documentation>
+              sequence of sql descriptions
+            </xs:documentation>
+          </xs:annotation>
+          <xs:sequence>
+            <xs:element name="sql" minOccurs="0" maxOccurs="unbounded" type="mixed">
+              <xs:element name="prepare" type="xs:string" minOccurs="0" maxOccurs="1"/>
+              <xs:attribute name="rdbms" type="rdbms_type" use="optional" />
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
         <!-- query ....................................................................-->
         <xs:complexType name="query-type">
           <xs:annotation>
@@ -107,9 +105,14 @@ namespace dbgen3
             </xs:documentation>
           </xs:annotation>
           <xs:sequence minOccurs="1" maxOccurs="1">
-            <xs:element name="qp"      type="buffer_type" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="qr"      type="buffer_type" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="sql-set" type="sql-set"     minOccurs="1" maxOccurs="1"/>
+            <xs:element name="qp" type="buffer_type" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="qr" type="buffer_type" minOccurs="0" maxOccurs="1"/>
+            <xs:sequence>
+              <xs:element name="sql" minOccurs="0" maxOccurs="unbounded">
+                  <xs:element name="prepare" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                  <xs:attribute name="rdbms" type="rdbms_type" use="optional" />
+              </xs:element>
+            </xs:sequence>
           </xs:sequence>
           <xs:attribute name="id" type="id-name" use="optional"/>
         </xs:complexType>

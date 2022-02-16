@@ -2,11 +2,12 @@
   - [1.1. Tests](#11-tests)
     - [1.1.1. integrate all tests under single umbrela](#111-integrate-all-tests-under-single-umbrela)
   - [1.2. Features](#12-features)
-    - [1.2.1. shorter gsql definition - sql-set and sql](#121-shorter-gsql-definition---sql-set-and-sql)
-    - [1.2.2. better error reporting upon grammar errors](#122-better-error-reporting-upon-grammar-errors)
-    - [1.2.3. Fix bug with "?" in sql](#123-fix-bug-with--in-sql)
-    - [1.2.4. support for u16string values](#124-support-for-u16string-values)
-    - [1.2.5. better api for fetch scroll](#125-better-api-for-fetch-scroll)
+    - [1.2.1. better error reporting upon grammar errors](#121-better-error-reporting-upon-grammar-errors)
+    - [1.2.2. Fix bug with "?" in sql](#122-fix-bug-with--in-sql)
+    - [1.2.3. support for u16string values](#123-support-for-u16string-values)
+    - [1.2.4. better api for fetch scroll](#124-better-api-for-fetch-scroll)
+    - [1.2.5. API for error reporting](#125-api-for-error-reporting)
+    - [1.2.6. --db_types](#126---db_types)
   - [1.3. CMAKE](#13-cmake)
     - [1.3.1. restructure the cmake files](#131-restructure-the-cmake-files)
     - [1.3.2. build package](#132-build-package)
@@ -29,16 +30,18 @@
   - [2.9. buf support for null values getters and setters](#29-buf-support-for-null-values-getters-and-setters)
   - [2.10. initialize buffers so that insert / select wont report error](#210-initialize-buffers-so-that-insert--select-wont-report-error)
   - [2.11. features - eleminate phases](#211-features---eleminate-phases)
+    - [2.11.1. shorter gsql definition - sql-set and sql](#2111-shorter-gsql-definition---sql-set-and-sql)
 # 1. Todo list
 
 ## 1.1. Tests
 ### 1.1.1. integrate all tests under single umbrela
 ## 1.2. Features
-### 1.2.1. shorter gsql definition - sql-set and sql
-### 1.2.2. better error reporting upon grammar errors
-### 1.2.3. Fix bug with "?" in sql
-### 1.2.4. support for u16string values
-### 1.2.5. better api for fetch scroll
+### 1.2.1. better error reporting upon grammar errors
+### 1.2.2. Fix bug with "?" in sql
+### 1.2.3. support for u16string values
+### 1.2.4. better api for fetch scroll
+### 1.2.5. API for error reporting
+### 1.2.6. --db_types
 ## 1.3. CMAKE
 ### 1.3.1. restructure the cmake files
 ### 1.3.2. build package
@@ -63,3 +66,4 @@
 ## 2.9. buf support for null values getters and setters
 ## 2.10. initialize buffers so that insert / select wont report error
 ## 2.11. features - eleminate phases
+### 2.11.1. shorter gsql definition - sql-set and sql

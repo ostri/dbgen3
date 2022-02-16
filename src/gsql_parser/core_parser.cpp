@@ -100,7 +100,8 @@ namespace dbgen3
     return r;
   }
 
-  std::pair<str_t, str_t> core_parser::get_text_node_with_prepare(const x::DOMElement* an_el, str_vec a_ctx)
+  std::pair<str_t, str_t> core_parser::get_text_node_with_prepare(const x::DOMElement* an_el,
+                                                                  str_vec              a_ctx)
   {
     str_t r;
     str_t prepare_sql;
@@ -132,7 +133,7 @@ namespace dbgen3
       {
         auto*       el = dynamic_cast<x::DOMElement*>(n);
         const auto* ln = el->getLocalName();
-        if ((ln != nullptr) && ("prepare" == toNative(ln))) 
+        if ((ln != nullptr) && ("prepare" == toNative(ln)))
         { /* obtain prepare */
           prepare_sql = get_text_node(el, a_ctx);
           break;
@@ -159,10 +160,11 @@ namespace dbgen3
     auto rdbms = ME::enum_cast<RDBMS>(attr_value(el, "rdbms", ME::enum_name(RDBMS::sql)));
     if ((rdbms == RDBMS::sql) || (rdbms == a_db_type))
     { /// only generic SQLs or for a specific database type
-//      auto phase = ME::enum_cast<PHASE>(attr_value(el, "phase", ME::enum_name(PHASE::main)));
+      //      auto phase = ME::enum_cast<PHASE>(attr_value(el, "phase",
+      //      ME::enum_name(PHASE::main)));
       auto [sql, sql_prep] = get_text_node_with_prepare(el, a_ctx);
-      gsql_sql_dscr     sql_dscr(rdbms.value(), sql, sql_prep);
-      auto              res = r.put(sql_dscr);
+      gsql_sql_dscr sql_dscr(rdbms.value(), sql, sql_prep);
+      auto          res = r.put(sql_dscr);
       if (res == INS_OP::ambiguous)
       { // the same specific database twice
         // auto ctx = ctx_to_str(a_ctx, std::to_string(sql_cnt));
@@ -170,8 +172,7 @@ namespace dbgen3
                                dbgen3::program_status::dscr(P_STS::duplicate_sql_buf_def),
                                a_ctx[1],
                                ndx,
-                               ME::enum_name<RDBMS>(rdbms.value())
-                               );
+                               ME::enum_name<RDBMS>(rdbms.value()));
         throw dbgen3_exc(P_STS::duplicate_sql_buf_def, msg);
       }
     }
@@ -324,16 +325,15 @@ namespace dbgen3
   }
   gsql_q core_parser::load_q_sqlset_from_db(gsql_q& r, const db2_reader& a_dbr)
   {
-    // TODO(ostri): think if we need only prepare, main and no cleanup, since we have rollback
     auto sql_m = r.sql();
     auto sql_p = r.sql_prep(); // preparation
-//    auto sql_c = r.sql(PHASE::cleanup); // cleanup
+                               //    auto sql_c = r.sql(PHASE::cleanup); // cleanup
     if (! sql_m.empty())
     {
       auto          rc = SQL_SUCCESS;
       db::statement stmt_m((a_dbr.connection()));
       db::statement stmt_p((a_dbr.connection()));
-//      db::statement stmt_c((a_dbr.connection()));
+      //      db::statement stmt_c((a_dbr.connection()));
       if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt_p.exec_direct(sql_p, true);
       rc = stmt_m.prepare(sql_m);
       for (auto& buf : r.buf_dscr())
@@ -341,11 +341,11 @@ namespace dbgen3
         //        std::cerr << buf.names().size() << std::endl;
         buf.set_flds(fetch_param_dscr(buf.names(), buf.type(), stmt_m));
       }
-//      if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
+      //      if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
       //            err << sts;
       stmt_p.rollback();
       stmt_m.rollback();
-//      stmt_c.rollback();
+      //      stmt_c.rollback();
     }
     else {
       // FIXME what we should do? abort or detect the missing sql later?
@@ -359,6 +359,8 @@ namespace dbgen3
                                       const RDBMS&         a_db_type,
                                       gsql_q&              r)
   {
+    gsql_sql_set r1(a_db_type); //!< result of the method
+    auto         sql_cnt = 0;
     for (x::DOMNode* n(an_el->getFirstChild()); n != nullptr; n = n->getNextSibling())
     {
       auto n_type = static_cast<NT>(n->getNodeType()); // tag type
@@ -370,10 +372,16 @@ namespace dbgen3
         auto  loc_name = toNative(n->getLocalName());
         if (loc_name == "qp") r.set_buf_dscr(load_buf(db::BUF_TYPE::par, el, a_ndx));
         else if (loc_name == "qr") r.set_buf_dscr(load_buf(db::BUF_TYPE::res, el, a_ndx));
-        else if (loc_name == "sql-set") //
+        // else if (loc_name == "sql-set") //
+        // {
+        //   r.set_sql_set(load_sql_set(el, a_ctx, a_db_type)); // XML(DOM) -> internal stuctures
+        //   r = load_q_sqlset_from_db(r, a_dbr);
+        // }
+        else if (loc_name == "sql") //
         {
-          r.set_sql_set(load_sql_set(el, a_ctx, a_db_type)); // XML(DOM) -> internal stuctures
-          r = load_q_sqlset_from_db(r, a_dbr);
+          ++sql_cnt;
+          const auto* el = dynamic_cast<const x::DOMElement*>(n);
+          r1             = load_sql_set_sql(el, a_ctx, a_db_type, sql_cnt, r1);
         }
         else
           throw std::runtime_error(std::string("internal error only qp, qr and sql-set allowed.") +
@@ -391,6 +399,11 @@ namespace dbgen3
                       ctx_to_str(a_ctx)));
       }
       }
+    }
+    if (! r1.is_empty())
+    {
+      r.set_sql_set(r1); // XML(DOM) -> internal stuctures
+      r = load_q_sqlset_from_db(r, a_dbr);
     }
     return r;
   }

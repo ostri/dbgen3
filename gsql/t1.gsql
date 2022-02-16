@@ -20,7 +20,6 @@
     <!-- query -->
     <qp id="qp-id" /> <!-- query parameters -->
     <qr id="qr-id" /> <!-- query result -->
-    <sql-set>
       <!-- sql set
                 rdbms ::= sql | db2 | mariadb | oracle
                 phase ::= prepare | main | cleanup
@@ -36,32 +35,24 @@
       <sql rdbms="db2" phase="cleanup">
 
                 select * from tbl where c1_smallint=?
-</sql>
+      </sql>
       <!-- <sql rdbms="db2">
 
                 select * from tbl
             </sql> -->
-    </sql-set>
   </q>
   <q>
-    <sql-set>
       <sql></sql>
-    </sql-set>
   </q>
   <q>
-    <sql-set>
       <sql></sql>
-    </sql-set>
   </q>
   <q id="del-tbl-rec">
-    <sql-set>
       <sql>
                 delete from tbl;
-</sql>
-    </sql-set>
+     </sql>
   </q>
   <q id="insert">
-    <sql-set>
       <sql>
         insert into tbl
                 (
@@ -89,10 +80,8 @@
                     ?,?,?, ?,?,?, ?,?,?, ?,?,?, ?,?,?, ?,?
                 )
       </sql>
-    </sql-set>
   </q>
   <q id="select">
-    <sql-set>
       <sql>
         select
                     C1_smallint,
@@ -116,23 +105,19 @@
                 from
                   tbl
       </sql>
-    </sql-set>
   </q>
   <q id="named-columns">
     <qp id="xx-p" columns="cond" />
     <qr id="xx-r" columns="int16 int32 int64 numeric decimal dec char8" />
-    <sql-set>
       <sql>
         select *
             from tbl
             where
               c1_smallint=?
       </sql>
-    </sql-set>
   </q>
   <q id="insert5">
     <qp columns="id int32 numeric timestamp blob"/>
-    <sql-set>
       <sql>
         insert into tbl
           (
@@ -147,10 +132,8 @@
               ?,?,?, ?,?
           )
       </sql>
-    </sql-set>
   </q>
   <q id="prepare">
-    <sql-set>
       <sql>
         <prepare>
           DECLARE GLOBAL TEMPORARY TABLE TEMPPROD
@@ -166,6 +149,28 @@
         </prepare>
         select * from session.tempprod
       </sql>
-    </sql-set>
+  </q>
+  <q id="simple">
+    <sql rdbms="oracle">
+      select * from session.tempprod
+    </sql>
+    <sql rdbms="sql">
+      select * from session.tempprod
+    </sql>
+    <sql rdbms="db2">
+      <prepare >
+        DECLARE GLOBAL TEMPORARY TABLE TEMPPROD
+        (SERIAL       CHAR(8)     NOT NULL WITH DEFAULT '99999999',
+         DESCRIPTION  VARCHAR(60) NOT NULL,
+         PRODCOUNT    INTEGER GENERATED ALWAYS AS IDENTITY,
+         MFGCOST      DECIMAL(8,2),
+         MFGDEPT      CHAR(3),
+         MARKUP       SMALLINT,
+         SALESDEPT    CHAR(3),
+         CURDATE      DATE        NOT NULL
+        );
+      </prepare>
+      select serial from session.tempprod
+    </sql>
   </q>
 </q-set>

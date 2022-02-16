@@ -41,6 +41,7 @@ namespace dbgen3
     std::string          prep_sql() const;
     const multi_line&    sql_ml() const;
     const multi_line&    prep_sql_ml() const;
+    bool is_empty() const { return this->empty_; }
   private:
     gsql_sql_dscr sql_dscr_{};   //!< sql descriptor (not owner)
     RDBMS         db_type_;      //!< rdbms type that we are generating code for
