@@ -2,6 +2,7 @@
 #include <gflags/gflags.h>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 #include "cmdline_parameters.hpp"
 #include "string_format.hpp"
@@ -11,7 +12,8 @@ DECLARE_string(out_folder); // NOLINT
 DECLARE_string(lang);       // NOLINT
 DECLARE_string(db_type);    // NOLINT
 DECLARE_string(verbose);    // NOLINT
-DECLARE_bool  (grammar);    // NOLINT
+DECLARE_bool(grammar);      // NOLINT
+DECLARE_bool(types);        // NOLINT
 namespace dbgen3
 {
   /**
@@ -28,17 +30,17 @@ namespace dbgen3
   , database_type_(db_type_code(FLAGS_db_type))
   , verbose_(verbose(std::string(FLAGS_verbose)))
   , grammar_(FLAGS_grammar)
+  , types_{FLAGS_types}
   { }
   P_STS cmdline_parameters::check_parameters() const
   {
-    if (! is_grammar())
-    {
-      if (db_name_.empty()) { return P_STS::no_db_name; };
-      if (database_type_ == RDBMS::sql) { return P_STS::unknown_db_type; };
-      if (lang_ == PROG_LANG::invalid) { return P_STS::unknown_lang; };
-      if (! file_exists(out_folder_)) { return P_STS::out_folder_not_exist; };
-      if (gsql_list_.empty()) { return P_STS::no_gsql_files; }
-    }
+    if (is_grammar()) return P_STS::success;
+    if (is_types()) return P_STS::success;
+    if (db_name_.empty()) { return P_STS::no_db_name; };
+    if (database_type_ == RDBMS::sql) { return P_STS::unknown_db_type; };
+    if (lang_ == PROG_LANG::invalid) { return P_STS::unknown_lang; };
+    if (! file_exists(out_folder_)) { return P_STS::out_folder_not_exist; };
+    if (gsql_list_.empty()) { return P_STS::no_gsql_files; }
     return P_STS::success;
   }
   /**
@@ -59,7 +61,9 @@ namespace dbgen3
     out::s (" qsql files : ", files.size() > 1 ? files : "no files" + out::ln(),offs) +
     out::sl(" lang       : ", ME::enum_name(lang_), offs) +
     out::sl(" db type    : ", ME::enum_name(database_type_), offs)+
-    out::sl(" verbose    : ", ME::enum_name(verbose_), offs)
+    out::sl(" verbose    : ", ME::enum_name(verbose_), offs) +
+    out::sl(fmt::format(" grammar    : {}", grammar_), offs) +
+    out::sl(fmt::format(" types      : {}", types_), offs)
     ;
     // clang-format on
   }

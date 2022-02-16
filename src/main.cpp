@@ -14,12 +14,13 @@
 #include "xsd_grammar.hpp"
 
 // clang-format off
-DEFINE_string(db_name,        "",      "database name");                       // NOLINT
-DEFINE_string(out_folder,     "./",    "folder for generated files");          // NOLINT
-DEFINE_string(lang,           "cpp",   "language we generate source code in"); // NOLINT
-DEFINE_string(db_type,        "db2",   "database type");                       // NOLINT
-DEFINE_string(verbose,        "FALSE", "verbosity");                           // NOLINT
-DEFINE_bool  (grammar,        false,   "display xsd grammar");                 // NOLINT
+DEFINE_string(db_name,        "",      "database name");                           // NOLINT
+DEFINE_string(out_folder,     "./",    "folder for generated files");              // NOLINT
+DEFINE_string(lang,           "cpp",   "language we generate source code in");     // NOLINT
+DEFINE_string(db_type,        "db2",   "database type");                           // NOLINT
+DEFINE_string(verbose,        "FALSE", "verbosity");                               // NOLINT
+DEFINE_bool  (grammar,        false,   "display xsd grammar");                     // NOLINT
+DEFINE_bool  (types,          false,   "display supported database column types"); // NOLINT
 // clang-format on
 
 using out = dbgen3::string_format;
@@ -38,18 +39,13 @@ int main(int argc, char** argv)
     if (sts == dbgen3::P_STS::success)
     { /* parameters are OK */
       info << out::sl("parameters are ok.", 0);
-      if (! cmd_par.is_grammar())
+      if (cmd_par.is_grammar()) dbgen3::executor::dsp_grammar();
+      else if (cmd_par.is_types()) dbgen3::executor::dsp_types();
+      else
       {
         dbgen3::executor e(cmd_par);
-        e.process_files();
+        return e.process_files();
       }
-      else
-        std::cerr << dbgen3::multi_line::to_str(     //
-                       dbgen3::multi_line::minimize( //
-                         dbgen3::multi_line::to_vec( //
-                           dbgen3::grammar_)),
-                       '\n')
-                  << std::endl;
     }
     else { /* invalid or missing parameters */
       auto tmp = dbgen3::PS::dscr(sts);
@@ -75,6 +71,7 @@ int main(int argc, char** argv)
   catch (...)
   {
     std::cerr << "unknown exception" << '\n';
+    return dbgen3::ME::enum_integer<dbgen3::P_STS>(dbgen3::P_STS::unknown_error);
   }
-  // TODO(ostri): each exception should return distinct error code
+  return dbgen3::ME::enum_integer<dbgen3::P_STS>(dbgen3::P_STS::success);
 }

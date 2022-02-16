@@ -12,6 +12,7 @@
 #include "dom_error_handler.hpp"
 #include "exceptions.hpp"
 #include "fmt/core.h"
+#include "magic_enum.hpp"
 #include "multi_line.hpp"
 #include "program_status.hpp"
 #include "xsd_grammar.hpp"
@@ -58,15 +59,32 @@ namespace dbgen3
 #endif
     return parser;
   }
+
+  void            executor::dsp_grammar()
+  {
+    std::cerr << multi_line::to_str(     //
+                   multi_line::minimize( //
+                     multi_line::to_vec( //
+                       grammar_)),
+                   '\n')
+              << std::endl;
+  }
+
+  void executor::dsp_types()
+  {
+    for (auto ndx = 1UL; ndx < db::size(); ++ndx)
+    {
+      const auto [db_type, c_type] = db::db_types(ndx);
+      std::cerr << fmt::format("{:18} {} \n", db_type, c_type);
+    }
+  }
   x::Grammar* executor::load_grammar(x::XMLGrammarPool* gp)
   {
-    //auto              sts = 0;
     x::Grammar*       gram = nullptr;
     x::DOMLSParser*   parser(create_parser(gp));
     dom_error_handler eh;
     parser->getDomConfig()->setParameter(x::XMLUni::fgDOMErrorHandler, &eh); // NOLINT
 
-    //multi_line ml(grammar_);
     str_t      g(trim(grammar_)); // to remove leading spaces; there must be nothing before
                                   // first tag in the xml file
     // NOLINTNEXTLINE
@@ -76,8 +94,6 @@ namespace dbgen3
     {
       gram = parser->loadGrammar(&wmis, xercesc::Grammar::SchemaGrammarType, true);
     }
-    // catch (const x::DOMException& e)
-    // catch (const x::XMLException& e)
     catch (...)
     {
       if (eh.failed() /*|| gram == nullptr*/)
@@ -123,9 +139,8 @@ namespace dbgen3
       gen->set_set(gsql_struct);
       gen->set_rdbm(cmd_p_.database_type());
       hpp_file_ << gen->gen_file(0);
-      //        err << gsql_struct.dump("finale");
       hpp_file_.close();
     }
-    return 0;
+    return ME::enum_integer<P_STS>(P_STS::success);
   }
 }; // namespace dbgen3

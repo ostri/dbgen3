@@ -42,6 +42,7 @@ namespace dbgen3
     const str_vec&   qsql_list() const; //!< fetch list of gsql filenames
 
     bool is_grammar() const { return this->grammar_; }
+    bool is_types() const { return this->types_; }
 
     ///@}
   private:
@@ -51,7 +52,8 @@ namespace dbgen3
     PROG_LANG   lang_          = PROG_LANG::cpp; //!< code is generated in this prog language
     RDBMS       database_type_ = RDBMS::db2;     //!< code it generated for this rdbms type
     VERBOSE     verbose_       = VERBOSE::FALSE; //!< verbose program operation
-    bool        grammar_{};                      //!< shoudl we display grammar
+    bool        grammar_{};                      //!< should we display grammar
+    bool        types_{};                        //!< should we display supported db types
   };
 
   inline VERBOSE cmdline_parameters::verbose(const std::string& val)

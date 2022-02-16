@@ -6,8 +6,7 @@
     - [1.2.2. Fix bug with "?" in sql](#122-fix-bug-with--in-sql)
     - [1.2.3. support for u16string values](#123-support-for-u16string-values)
     - [1.2.4. better api for fetch scroll](#124-better-api-for-fetch-scroll)
-    - [1.2.5. API for error reporting](#125-api-for-error-reporting)
-    - [1.2.6. --db_types](#126---db_types)
+    - [1.2.5. API for error reporting in runtime utl class](#125-api-for-error-reporting-in-runtime-utl-class)
   - [1.3. CMAKE](#13-cmake)
     - [1.3.1. restructure the cmake files](#131-restructure-the-cmake-files)
     - [1.3.2. build package](#132-build-package)
@@ -31,6 +30,7 @@
   - [2.10. initialize buffers so that insert / select wont report error](#210-initialize-buffers-so-that-insert--select-wont-report-error)
   - [2.11. features - eleminate phases](#211-features---eleminate-phases)
     - [2.11.1. shorter gsql definition - sql-set and sql](#2111-shorter-gsql-definition---sql-set-and-sql)
+    - [2.11.2. --types](#2112---types)
 # 1. Todo list
 
 ## 1.1. Tests
@@ -40,8 +40,7 @@
 ### 1.2.2. Fix bug with "?" in sql
 ### 1.2.3. support for u16string values
 ### 1.2.4. better api for fetch scroll
-### 1.2.5. API for error reporting
-### 1.2.6. --db_types
+### 1.2.5. API for error reporting in runtime utl class
 ## 1.3. CMAKE
 ### 1.3.1. restructure the cmake files
 ### 1.3.2. build package
@@ -67,3 +66,4 @@
 ## 2.10. initialize buffers so that insert / select wont report error
 ## 2.11. features - eleminate phases
 ### 2.11.1. shorter gsql definition - sql-set and sql
+### 2.11.2. --types

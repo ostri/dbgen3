@@ -2,8 +2,10 @@
 #define ODBC_DB_HPP
 #include <array>
 #include <sqlcli1.h>
+#include <string_view>
 namespace db
 {
+  using cstr_t = std::string_view;
   enum class BUF_TYPE
   {
     par = 0, //!< parameter
@@ -36,7 +38,7 @@ namespace db
     using AT = ATTR_TYPE;
     // clang-format off
     // NOLINTNEXTLINE clang-tidy(misc-definitions-in-headers)
-    static constexpr const std::array<type_dscr, 24> dscr_
+    static constexpr const std::array<type_dscr, 23> dscr_
     //constinit static const type_dscr dscr_[] //NOLINT
     {{ // DB type          c/c++ type            attr type   ct name                  db type name
       {SQL_UNKNOWN_TYPE,   SQL_UNKNOWN_TYPE,     AT::unknown, "unknown",          "unknown"},
@@ -107,5 +109,12 @@ namespace db
   constexpr bool is_atomic(int db_type) { return is_something(db_type, ATTR_TYPE::atomic); }
   constexpr bool is_string(int db_type) { return is_something(db_type, ATTR_TYPE::string); }
   constexpr bool is_bstring(int db_type) { return is_something(db_type, ATTR_TYPE::bstring); }
+
+  constexpr  std::pair<cstr_t, cstr_t> db_types(uint ndx)
+  {
+    if (ndx < dscr_.size()) return {dscr_.at(ndx).dbt_name_, dscr_.at(ndx).ct_name_};
+    return {};
+  }
+  constexpr std::size_t size(){return dscr_.size();}
 } // namespace db
 #endif // ODBC_DB_HPP

@@ -11,21 +11,25 @@
 #include "gen.hpp"
 #include "gen_cpp.hpp"
 #include "gsql_q_set.hpp"
+#include "odbc_db.hpp"
+#include "xsd_grammar.hpp"
 
 namespace dbgen3
 {
-  //namespace fs = std::filesystem;
+  // namespace fs = std::filesystem;
   class executor
   {
   public:
     explicit executor(cmdline_parameters cmd_p);
     ~executor();
-    executor(const executor&) = delete;
-    executor(executor&&) = delete;
-    executor& operator=(const executor&) = delete;
-    executor& operator=(executor&&) = delete;
-    int process_files();
+    executor(const executor&)      = delete;
+    executor(executor&&)           = delete;
+    executor&              operator=(const executor&) = delete;
+    executor&              operator=(executor&&) = delete;
+    int                    process_files();
     static x::DOMLSParser* create_parser(x::XMLGrammarPool* pool);
+    static void            dsp_grammar();
+    static void            dsp_types();
   protected:
   private:
     static x::Grammar* load_grammar(x::XMLGrammarPool* gp);
@@ -33,7 +37,6 @@ namespace dbgen3
     const cmdline_parameters cmd_p_;    //!< command line parameters
     gsql_q_set               gsql_p_;   //!< contents of the GSQL file
     std::ofstream            hpp_file_; //!< generated hpp file (output)
-
   };
 }; // namespace dbgen3
 
