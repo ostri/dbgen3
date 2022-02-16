@@ -252,7 +252,7 @@ namespace db
     //    const cstr_t                   name_{};              //!< name of the attribute
   };
   /*....atomic...............................................................................*/
-  template <typename T, int16_t DB_TYPE, int DEC, std::size_t arr_size>
+  template <typename T, int16_t DB_TYPE, std::size_t arr_size, int DEC>
   class atomic : public attr_root<T, DB_TYPE, arr_size, DEC>
   {
   public:
@@ -286,11 +286,11 @@ namespace db
    * @tparam T
    * @tparam arr_size
    */
-  template <typename T, int16_t DB_TYPE, std::size_t arr_size, typename EL, std::size_t DEC>
-  class bstring : public attr_root<T, DB_TYPE, arr_size, DEC>
+  template <typename T, int16_t DB_TYPE, std::size_t arr_size, typename EL>
+  class bstring : public attr_root<T, DB_TYPE, arr_size, 0>
   {
   public:
-    using PP            = attr_root<T, DB_TYPE, arr_size, DEC>;
+    using PP            = attr_root<T, DB_TYPE, arr_size, 0>;
     constexpr bstring() = default;
     bstr_t  value() { return value(0); }
     cbstr_t value() const { return value(0); }
@@ -328,7 +328,7 @@ namespace db
    *     FIXME it is assumed that the string is made of one byte characters
    *
    */
-  template <typename T, int16_t DB_TYPE, std::size_t arr_size, typename EL, std::size_t DEC>
+  template <typename T, int16_t DB_TYPE, std::size_t arr_size, std::size_t DEC, typename EL>
   class string : public attr_root<T, DB_TYPE, arr_size, DEC>
   {
   public:

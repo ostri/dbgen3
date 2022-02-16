@@ -57,7 +57,7 @@ TEST_SUITE("templates")
     constexpr auto           v0      = "";
     auto                     v1      = std::string(v) + "A";
     constexpr auto           str_len = 10; // must be v.size()
-    db::string<std::array<char, str_len>, SQL_CHAR,  dim, char, 0> f1;
+    db::string<std::array<char, str_len>, SQL_CHAR,  dim, 0, char> f1;
     REQUIRE(f1.size() == dim);
     f1.set_value(v);
     REQUIRE_EQ(f1.value(), v);
@@ -73,7 +73,7 @@ TEST_SUITE("templates")
     f1.set_value(v1);
     REQUIRE_EQ(f1.value(), v); // yes v and not v1
 
-    db::string<std::array<char, str_len>, SQL_CHAR, 0, char, 0> f0;
+    db::string<std::array<char, str_len>, SQL_CHAR, 0, 0, char> f0;
     REQUIRE_EQ(f0.size(), 0);
   }
   TEST_CASE("bstring") // NOLINT
@@ -87,7 +87,7 @@ TEST_SUITE("templates")
     auto      v1 = std::array<uint8_t, 6>{1, 2, 3, 4, 5, 6};
     std::span s{v};
 
-    db::bstring<std::array<uint8_t,5>, SQL_BINARY, dim, uint8_t, 0> f1;
+    db::bstring<std::array<uint8_t,5>, SQL_BINARY, dim, uint8_t> f1;
     REQUIRE(f1.size() == dim);
     f1.set_value(s);
     REQUIRE_EQ(cmp(f1.value(),std::span(v)), true);
@@ -104,7 +104,7 @@ TEST_SUITE("templates")
     REQUIRE_EQ(std::equal(f1.value().begin(), f1.value().end(), v.begin()),
                true); // yes v and not v1
 
-    db::bstring<std::array<char, 5>, SQL_BINARY, 0, char, 0> f0;
+    db::bstring<std::array<char, 5>, SQL_BINARY, 0, char> f0;
     REQUIRE_EQ(f0.size(), 0);
   }
 
