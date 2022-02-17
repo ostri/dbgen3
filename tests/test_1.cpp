@@ -41,22 +41,19 @@ static int diag(int rc, int handle, cstr_t a_msg = "")
   return rc;
 }
 /*...........................................................................*/
-static int diag_with_W(int rc, int handle, cstr_t a_msg = "")
-{
-  if ((rc != SQL_SUCCESS) && (rc != SQL_SUCCESS_WITH_INFO))
-  {
-    std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
-    std::cerr << "rc code:" << rc << std::endl;
-  }
-  return rc;
-}
+// static int diag_with_W(int rc, int handle, cstr_t a_msg = "")
+// {
+//   if ((rc != SQL_SUCCESS) && (rc != SQL_SUCCESS_WITH_INFO))
+//   {
+//     std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
+//     std::cerr << "rc code:" << rc << std::endl;
+//   }
+//   return rc;
+// }
 int16_t cleanup(db::connection* c)
 {
   UT::del_tbl_rec::utl q(c);
-  auto                 rc = q.exec("");
-  bool res = (rc == SQL_SUCCESS) || (rc == SQL_SUCCESS_WITH_INFO) || (rc == SQL_NO_DATA_FOUND);
-  if (! res) diag_with_W(rc, q.handle(), "empty table: ");
-  REQUIRE(res == true);
+  q.exec(""); // we dont care for the status it is already empty or it is purged
   c->commit();
   return SQL_SUCCESS;
 }
@@ -64,7 +61,8 @@ int16_t cleanup(db::connection* c)
 TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
 {
   db::connection c("test");
-  REQUIRE_EQ(cleanup(&c), SQL_SUCCESS);
+  auto rc = cleanup(&c);
+  REQUIRE_EQ(rc, SQL_SUCCESS);
   UT::Q_1::qp_id<2> qp;
   qp.set_par_1(10);            // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   qp.set_par_1(11, 1);         // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)

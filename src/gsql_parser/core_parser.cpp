@@ -47,17 +47,14 @@ namespace dbgen3
     if (parser_ != nullptr) parser_->release();
   }
   gsql_qbuf_dscr core_parser::load_buf(const db::BUF_TYPE&  bt,
-                                       const x::DOMElement* an_el,
-                                       uint /*a_ndx*/)
+                                       const x::DOMElement* an_el
+                                       )
   {
     gsql_qbuf_dscr r(bt);
     /// load attributes
-    //    r.set_id(attr_value(an_el, "id", "qp_" + std::to_string(a_ndx)));
     r.set_id(attr_value(an_el, "id", ME::enum_name<db::BUF_TYPE>(bt)));
     r.set_skip(attr_value_b(an_el, "skip", false));
     r.set_names(attr_value(an_el, "columns", ""));
-    //    err << "qp id:" << r.id() << " skip:" << r.should_skip() << " names:" << r.names().size()
-    //    << std::endl;
     return r;
   }
 
@@ -327,25 +324,19 @@ namespace dbgen3
   {
     auto sql_m = r.sql();
     auto sql_p = r.sql_prep(); // preparation
-                               //    auto sql_c = r.sql(PHASE::cleanup); // cleanup
     if (! sql_m.empty())
     {
       auto          rc = SQL_SUCCESS;
       db::statement stmt_m((a_dbr.connection()));
       db::statement stmt_p((a_dbr.connection()));
-      //      db::statement stmt_c((a_dbr.connection()));
       if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt_p.exec_direct(sql_p, true);
       rc = stmt_m.prepare(sql_m);
       for (auto& buf : r.buf_dscr())
       {
-        //        std::cerr << buf.names().size() << std::endl;
         buf.set_flds(fetch_param_dscr(buf.names(), buf.type(), stmt_m));
       }
-      //      if ((rc == SQL_SUCCESS) && ! sql_c.empty()) rc = stmt_c.exec_direct(sql_c, true);
-      //            err << sts;
       stmt_p.rollback();
       stmt_m.rollback();
-      //      stmt_c.rollback();
     }
     else {
       // FIXME what we should do? abort or detect the missing sql later?
@@ -370,13 +361,8 @@ namespace dbgen3
       {
         auto* el       = dynamic_cast<x::DOMElement*>(n);
         auto  loc_name = toNative(n->getLocalName());
-        if (loc_name == "qp") r.set_buf_dscr(load_buf(db::BUF_TYPE::par, el, a_ndx));
-        else if (loc_name == "qr") r.set_buf_dscr(load_buf(db::BUF_TYPE::res, el, a_ndx));
-        // else if (loc_name == "sql-set") //
-        // {
-        //   r.set_sql_set(load_sql_set(el, a_ctx, a_db_type)); // XML(DOM) -> internal stuctures
-        //   r = load_q_sqlset_from_db(r, a_dbr);
-        // }
+        if (loc_name == "qp") r.set_buf_dscr(load_buf(db::BUF_TYPE::par, el));
+        else if (loc_name == "qr") r.set_buf_dscr(load_buf(db::BUF_TYPE::res, el));
         else if (loc_name == "sql") //
         {
           ++sql_cnt;
@@ -416,12 +402,11 @@ namespace dbgen3
     gsql_q r(a_db_type); /// result
     /// load attributes
     r.set_id(attr_value(an_el, "id", "q_" + std::to_string(a_ndx))); // load unique query id
+    r.set_allowed(attr_value(an_el, "allowed", "0"));
     a_ctx.emplace_back(std::string(r.id()));
     auto ndx_str = std::to_string(a_ndx);
     // implicit values unless explicit are provided
     for (auto e : ME::enum_values<db::BUF_TYPE>()) { r.set_buf_dscr(gsql_qbuf_dscr(e, false)); }
-    // r.set_buf_dscr(gsql_qbuf_dscr(db::BUF_TYPE::par, false));
-    // r.set_buf_dscr(gsql_qbuf_dscr(db::BUF_TYPE::res, false));
     r = load_q_children(an_el, a_ndx, a_ctx, a_dbr, a_db_type, r);
     return r;
   }

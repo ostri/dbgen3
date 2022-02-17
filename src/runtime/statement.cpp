@@ -3,6 +3,7 @@
  * \brief Implementation of class db::statement
  *
  */
+#include <span>
 #include <sqlcli1.h>
 #include <sstream>
 #include <stdexcept>
@@ -62,8 +63,8 @@ namespace db
   std::int16_t statement::exec() const
   {
     return chk(SQLExecute(handle_),
-              //  str_t("exec ok    :- sql='") + str_t(sql()) + "'.",
-              //  str_t("exec failed:- sql='") + str_t(sql()) + "'.",
+               //  str_t("exec ok    :- sql='") + str_t(sql()) + "'.",
+               //  str_t("exec failed:- sql='") + str_t(sql()) + "'.",
                false);
   }
   /*!
@@ -88,8 +89,7 @@ namespace db
                    SQL_NTS),
         // ok_ans,
         // nak_ans
-        false
-        );
+        false);
       is_prepared_ = rc == SQL_SUCCESS;
     }
     else log(str_t("Already prepared: '") + str_t(sql()) + str_t("'."));
@@ -130,8 +130,6 @@ namespace db
   std::int16_t statement::fetch_scroll(int16_t a_dir, uint a_len, bool should_throw) const
   {
     return chk(SQLFetchScroll(handle_, a_dir, static_cast<std::make_signed_t<uint>>(a_len)),
-              //  str_t("fetch scroll ok    :- sql='") + str_t(sql()) + "'.",
-              //  str_t("fetch scroll failed:- sql='") + str_t(sql()) + "'.",
                should_throw);
   }
   /*!
@@ -143,20 +141,17 @@ namespace db
    * \param should_throw true - on error it throws an exception
    *                     false - on error just return error code (i.e. no exception)
    */
-  std::int16_t statement::chk(std::int16_t err_code,
-//                              cstr_t       ok_msg,
-//                              cstr_t       err_msg,
-                              bool         should_throw) const
+  std::int16_t statement::chk(std::int16_t err_code, bool should_throw) const
   {
     if (err_code != SQL_SUCCESS)
     {
       error err;
       err.load(handle_, SQL_HANDLE_STMT);
-      std::string str = err.dump(sql_) ;
+      std::string str = err.dump(sql_);
       if (should_throw) throw error_exception(str);
       //      log("Error code: " + std::to_string(err_code));
     }
-    //else log(str_t(ok_msg));
+    // else log(str_t(ok_msg));
     return err_code;
   }
   /// fetch an sql statement
@@ -192,9 +187,9 @@ namespace db
    * @return CLI return code
    * \throws db::error_exception for all non provided error codes
    */
-  int statement::fetch_with_codes(int16_t            a_dir,
-                                  const std::string& allowed_codes,
-                                  uint               a_num_of_records)
+  int statement::fetch_with_codes(int16_t                     a_dir,
+                                  const std::span<const int>& allowed_codes,
+                                  uint                        a_num_of_records) const
   {
     auto rc = fetch_scroll(a_dir, a_num_of_records + 0, false);
     return handle_return_code(rc, allowed_codes);
@@ -215,24 +210,21 @@ namespace db
    * @return SQL_SUCCESS or one of allowed codes
    * @throws it can throw an error_exception object for each unlisted return code
    */
-  int statement::handle_return_code(int rc, cstr_t allowed_codes)
-  { // FIXME should be binary vector
-    std::string fnc(&__func__[0]);
+  int16_t statement::handle_return_code(int rc, const std::span<const int>& allowed_codes) const
+  {
     if (rc != SQL_SUCCESS)
     {
       error err;
-      err.load(handle_, SQL_HANDLE_STMT);
-
-      int code = err.get_error_code(0);
-      if (str_t(allowed_codes).find(std::to_string(code)) == std::string::npos)
+      err.load_stmt_err(handle_);
+      for (const auto& ec : err.errors()) /// all errors detected
       {
-        std::string err_str = err.dump(sql());
-        log(fnc + str_t(":") + err_str);
-        throw error_exception(err_str);
-      };
+        int c = ec.get_code();
+        for (auto code : allowed_codes) /// all allowed codes
+          if (c == code) return static_cast<int16_t>(code);
+      }
+      throw error_exception(err.dump(sql()));
     }
-    log(fnc + str_t(": OK"));
-    return rc;
+    return static_cast<int16_t>(rc);
   }
   /*!
    * The method set the statement attribute as unsigned integer value.

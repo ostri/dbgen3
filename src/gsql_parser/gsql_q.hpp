@@ -44,13 +44,13 @@ namespace dbgen3
     q_buf_arr&            buf() { return buf_dscr_; }
     const q_buf_arr&      buf() const { return buf_dscr_; }
     // std::string           sql() const;
-    std::string           sql() const { return sql_set_.sql(); };
-    std::string           sql_prep() const { return sql_set_.prep_sql(); };
-    RDBMS                 db_type() const;
-    str_t                 namespace_str() const;
-    std::string           dump() const;
-    std::string           dump(uint offs) const;
-    std::string           dump(const std::string& a_msg, uint offs) const;
+    std::string sql() const { return sql_set_.sql(); };
+    std::string sql_prep() const { return sql_set_.prep_sql(); };
+    RDBMS       db_type() const;
+    str_t       namespace_str() const;
+    std::string dump() const;
+    std::string dump(uint offs) const;
+    std::string dump(const std::string& a_msg, uint offs) const;
     /**
      * @brief does SQL demands a buffer (PAR/RES)
      *
@@ -72,12 +72,16 @@ namespace dbgen3
     void set_buf_dscr_flds(const db::BUF_TYPE& a_bt, const fld_vec& a_fld_vec);
     //@}
     const gsql_sql_set& sql_set() const; //<! fetches vector of sql descriptions
+    const int_vec&      allowed() const;
+    void                set_allowed(const int_vec& allowed);
+    void                set_allowed(cstr_t allowed);
   private:
-//    uint size() const; //!< number of sql statements
+    //    uint size() const; //!< number of sql statements
     /*...................................................................*/
     str_t        id_{};       //!< name of the gsql_id (unique id)
     q_buf_arr    buf_dscr_{}; //!< query buffer descriptions
-    gsql_sql_set sql_set_;    //!< set of sql statements in the gsql item
+    gsql_sql_set sql_set_;    //!< set of sql statements in the gsql item FIXME only buf_dscr
+    int_vec      allowed_{0}; //!< allowed errorcodes i.e. they dont throw (0 and others)
   };
 
 }; // namespace dbgen3

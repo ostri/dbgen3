@@ -3,6 +3,18 @@
 #include "odbc_db.hpp"
 namespace dbgen3
 {
+  gsql_qbuf_dscr::gsql_qbuf_dscr(const db::BUF_TYPE& a_type, bool should_skip)
+  : gsql_qbuf_dscr(a_type, ME::enum_name<db::BUF_TYPE>(a_type), should_skip)
+  { }
+
+  std::string     gsql_qbuf_dscr::class_name() const { return snake_case(id_); }
+
+  cstr_t          gsql_qbuf_dscr::names(std::size_t ndx) const { return names_.at(ndx); }
+
+  bool            gsql_qbuf_dscr::must_generate() const { return ! skip_ && ! flds_.empty(); }
+
+  bool            gsql_qbuf_dscr::is_required() const { return ! flds_.empty(); }
+
   uint gsql_qbuf_dscr::max_name_len() const { return this->max_name_len_; }
   uint gsql_qbuf_dscr::max_ctype_len() const { return this->max_ctype_len_; }
 
@@ -24,6 +36,9 @@ namespace dbgen3
     s += out::sl("}", offs);
     return s;
   }
+
+  void gsql_qbuf_dscr::set_names(cstr_t names) { names_ = split(names, ' '); }
+
 
   uint gsql_qbuf_dscr::calc_max_name_length(const fld_vec& vec)
   {

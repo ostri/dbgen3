@@ -5,6 +5,7 @@
 #ifndef STATEMENT_H
 #define STATEMENT_H
 
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -93,17 +94,18 @@ namespace db
     /// fetch buffer set
     std::int16_t fetch_scroll(int16_t a_dir, uint a_len, bool should_throw = true) const;
     /// fetch buffer set and throw only for unallowed return codes
-    int fetch_with_codes(int16_t a_dir, const std::string& allowed_codes, uint a_num_of_records);
+    int fetch_with_codes(int16_t                     a_dir,
+                         const std::span<const int>& allowed_codes,
+                         uint                        a_num_of_records) const;
     int close_cursor() const; //!< close cursor on statement (for selects only)
     //@}
     //! @name auxiliary methods
     //@{
     /// It checks the return status of the cli call and raises exception upon error otherwise
     /// returns SQL_SUCCESS
-    std::int16_t chk(std::int16_t err_code,
-                     bool         should_throw = true) const;
+    std::int16_t chk(std::int16_t err_code, bool should_throw = true) const;
     /// check if code is on the list and throw accordingly if not
-    int handle_return_code(int rc, cstr_t allowed_codes);
+    int16_t handle_return_code(int rc, const std::span<const int>& allowed_codes) const;
     /// set the result set current position
     virtual std::int16_t set_pos(size_t a_rec_pos);
     /// set result set current position

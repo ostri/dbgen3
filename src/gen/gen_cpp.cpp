@@ -231,6 +231,18 @@ namespace dbgen3
     return r;
   }
 
+  str_t gen_cpp::define_allowed_codes(const int_vec& allowed_codes, uint offs)
+  {
+    str_t r;
+    r += out::sl("/// return codes that do not triger an exception", offs);
+    r += out::sl(fmt::format("std::vector<int> allowed_codes()const override"), offs);
+    r += out::sl(fmt::format("  {{return {{{0}}};}} //NOLINT "
+                             "clang-tidy(cppcoreguidelines-avoid-magic-numbers)",
+                             fmt::join(allowed_codes, ", ")),
+                 offs);
+    return r;
+  }
+
   str_t gen_cpp::define_attributes_const(const fld_vec& flds, uint /*max_name_len*/, uint offs)
   {
     str_t r;
@@ -247,7 +259,7 @@ namespace dbgen3
       case db::ATTR_TYPE::atomic:
       {
         r +=
-          out::sl(fmt::format("constexpr static const uint {1} = {0}; // number of decimal places",
+          out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
                               el.dec(),
                               dec_name),
                   offs);
@@ -256,7 +268,7 @@ namespace dbgen3
       case db::ATTR_TYPE::string:
       {
         r +=
-          out::sl(fmt::format("constexpr static const uint {1} = {0}; // number of decimal places",
+          out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
                               el.dec(),
                               dec_name),
                   offs);
@@ -264,11 +276,10 @@ namespace dbgen3
       }
       case db::ATTR_TYPE::bstring:
       {
-        r +=
-          out::sl(fmt::format("constexpr static const uint {1} = {0}; // width of the attribute",
-                              el.width(),
-                              len_name),
-                  offs);
+        r += out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // width of the attribute",
+                                 el.width(),
+                                 len_name),
+                     offs);
         break;
       }
       case db::ATTR_TYPE::unknown:
@@ -458,11 +469,10 @@ namespace dbgen3
     r += define_getters(flds, ml, mctl, offs + 2);
     r += define_trivial_setters(flds, ml, mctl, offs + 2);
     r += define_setters(flds, ml, mctl, offs + 2);
-    //      r += define_dump(flds, ml, offs + 2);
     r += out::sl(fmt::format("private:/*...private methods & attributes...*/"), offs);
-    r += define_attributes_const(bd.flds(), ml, offs + 2);
-    r += define_attr_types(bd.flds(), ml, offs + 2);
-    r += define_attributes(bd.flds(), ml, offs + 2);
+    r += define_attributes_const(flds, ml, offs + 2);
+    r += define_attr_types(flds, ml, offs + 2);
+    r += define_attributes(flds, ml, offs + 2);
     // r += define_attr_array(bd.flds(), ml, offs + 2);
     r += out::sl(fmt::format("}}; // class {}", c_name), offs);
     return r;
@@ -588,6 +598,7 @@ namespace dbgen3
     r += out::sl(fmt::format("  using brr = db::buffer_root_root;"), offs);
     r += gen_utl_ctor(q, offs + 2);
     r += gen_utl_getters(q, offs + 2);
+    r += define_allowed_codes(q.allowed(), offs + 2);
     r += out::sl(fmt::format("private:"), offs);
     r += gen_utl_member_var(q, offs + 2);
     r += gen_const_sql(q, offs + 2);
@@ -627,7 +638,6 @@ namespace dbgen3
       r += out::sl(fmt::format("namespace {}", ns), offs);
       r += out::sl(fmt::format("{{"), offs);
       for (auto bt : ME::enum_values<db::BUF_TYPE>()) r += gen_buf(q, bt, offs + 2);
-      //      r += gen_buf(q, db::BUF_TYPE::res, offs + 2);
       r += gen_utl(q, offs + 2);
       r += out::sl(fmt::format("}}; //namespace {}", ns), offs);
     }

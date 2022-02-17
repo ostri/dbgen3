@@ -66,7 +66,9 @@ namespace dbgen3
                                       gsql_q&              r);
     // static gsql_qbuf_dscr load_qp(const x::DOMElement* an_el, uint a_ndx);
     // static gsql_qbuf_dscr load_qr(const x::DOMElement* an_el, uint a_ndx);
-    static gsql_qbuf_dscr load_buf(const db::BUF_TYPE& bt, const x::DOMElement* an_el, uint a_ndx);
+    static gsql_qbuf_dscr load_buf(const db::BUF_TYPE&  bt,
+                                   const x::DOMElement* an_el
+                                   );
     static gsql_sql_set   load_sql_set(const x::DOMElement* an_el,
                                        const str_vec&       a_ctx,
                                        const RDBMS&         a_db_type);

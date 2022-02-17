@@ -35,6 +35,10 @@ namespace dbgen3
           </xs:annotation>
           <xs:list itemType="id-name"></xs:list>
         </xs:simpleType> 
+        <!-- list of integers ...............................................................-->
+        <xs:simpleType name="integer-list">
+          <xs:list itemType="xs:integer"/>
+        </xs:simpleType>
         <!-- definition of a buffer .........................................................-->
         <xs:annotation>
           <xs:documentation>
@@ -115,6 +119,7 @@ namespace dbgen3
             </xs:sequence>
           </xs:sequence>
           <xs:attribute name="id" type="id-name" use="optional"/>
+          <xs:attribute name="allowed" type="integer-list" use="optional" /> 
         </xs:complexType>
         <!-- query ....................................................................-->
         <xs:complexType name="query-set-type">

@@ -36,7 +36,7 @@ namespace db
    * \returns true if there is an error condition
    */
   bool error::is_error() const { return ! errors_.empty(); }
-  
+
   // NOLINTNEXTLINE bugprone-easily-swappable-parameters
   int16_t error::wrap_diag_rec(int32_t a_handle, int16_t a_handle_type)
   {
@@ -108,7 +108,7 @@ namespace db
     };
     return rc;
   }
-
+  std::size_t error::load_stmt_err(SQLHANDLE a_handle) { return load(a_handle, SQL_HANDLE_STMT); }
   /*!
    * The method loads the vector m_err_vec with error descriptions related to the provided handle
    * \param a_handle      - handle about which we want to obtain an error description
@@ -136,10 +136,7 @@ namespace db
   std::string error::dump(cstr_t a_msg) const
   {
     std::string s(a_msg);
-    for (const auto& e_dscr : errors_) 
-    { 
-      s += e_dscr.dump("") + "...\n"; 
-    }
+    for (const auto& e_dscr : errors_) { s += e_dscr.dump("") + "\n"; }
     return s;
   }
   void error::log(const std::string& msg) { std::cerr << msg; }

@@ -29,8 +29,6 @@ namespace dbgen3
     return this->buf_dscr_[ME::enum_integer(a_type)];
   }
 
-  // std::string gsql_q::sql() const { return sql_set_.sql(); }
-
   RDBMS gsql_q::db_type() const { return sql_set_.db_type(); }
 
   void gsql_q::set_buf_dscr(const gsql_qbuf_dscr& buf_dscr)
@@ -41,13 +39,19 @@ namespace dbgen3
 
   void gsql_q::set_sql_set(const gsql_sql_set& o) { sql_set_ = o; }
 
-  // void gsql_q::set_buf_dscr_flds(const db::BUF_TYPE& a_bt, const fld_vec& a_fld_vec)
-  // {
-  //   buf_dscr_[ME::enum_integer<db::BUF_TYPE>(a_bt)].set_flds(a_fld_vec);
-  // }
 
   const gsql_sql_set& gsql_q::sql_set() const { return sql_set_; }
 
-//  uint gsql_q::size() const { return sql_set_.size(); }
+  const int_vec& gsql_q::allowed() const { return this->allowed_; }
+
+  void gsql_q::set_allowed(const int_vec& allowed) { this->allowed_ = allowed; }
+
+  void gsql_q::set_allowed(cstr_t allowed)
+  {
+    std::stringstream iss(str_t(allowed.data(), allowed.size()));
+    int               number;
+    while (iss >> number) allowed_.push_back(number);
+    std::sort(allowed_.begin(), allowed_.end());
+  }
 
 } // namespace dbgen3

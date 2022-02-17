@@ -16,9 +16,9 @@
         -->
     <!-- header line 3 -->
   </hdr>
-  <q id="Q-1">
+  <q id="Q-1" allowed="1 2 3 -100">
     <!-- query -->
-    <qp id="qp-id" /> <!-- query parameters -->
+    <qp id="qp-id"  /> <!-- query parameters -->
     <qr id="qr-id" /> <!-- query result -->
       <!-- sql set
                 rdbms ::= sql | db2 | mariadb | oracle
@@ -47,7 +47,7 @@
   <q>
       <sql></sql>
   </q>
-  <q id="del-tbl-rec">
+  <q id="del-tbl-rec" allowed="513">
       <sql>
                 delete from tbl;
      </sql>

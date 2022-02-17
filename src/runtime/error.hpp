@@ -55,6 +55,7 @@ namespace db
      */
     // NOLINTNEXTLINE bugprone-easily-swappable-parameters
     std::size_t load(SQLHANDLE a_handle, SQLSMALLINT a_handle_type);
+    std::size_t load_stmt_err(SQLHANDLE a_handle); //!< load for statements only
     /// getters
     /// is there some error
     bool is_error() const;
@@ -62,6 +63,7 @@ namespace db
     std::string dump(cstr_t a_msg = "") const;
     /// fetch a corresponding error code
     int get_error_code(uint ndx) const; // FIXME handle_return_code
+    const std::vector<error_dscr>& errors() const { return this->errors_; }
   private:
     /// fetch the number of error descriptions
     uint get_number_of_messages() const;

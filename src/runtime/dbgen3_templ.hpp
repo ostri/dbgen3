@@ -18,8 +18,10 @@
 #include <type_traits>
 #include <vector>
 
-#include "odbc_db.hpp"
+#include "error.hpp"
 #include "connection.hpp"
+#include "error_exception.hpp"
+#include "odbc_db.hpp"
 #include "serialize_templ.hpp"
 #include "statement.hpp"
 namespace db
@@ -72,10 +74,7 @@ namespace db
     using t_vec  = std::array<T, arr_size>;
     using l_vec  = std::array<int32_t, arr_size>;
     using cstr_t = std::string_view;
-    attr_root() 
-    {
-      std::fill(len_.begin(), len_.end(), SQL_NULL_DATA);
-    }
+    attr_root() { std::fill(len_.begin(), len_.end(), SQL_NULL_DATA); }
     // constexpr explicit attr_root(cstr_t name="")
     // : name_(name){};
     virtual ~attr_root()            = default;
@@ -100,11 +99,8 @@ namespace db
     /// value getters
     bstr_t v_bstr(std::size_t ndx)
     { // be careful this can be altered from the outside
-      if constexpr (is_bstring(db_type_)) 
-      { 
-        return bstr_t{data_.at(ndx).data(), el_size(ndx)}; 
-      }
-      //return {};
+      if constexpr (is_bstring(db_type_)) { return bstr_t{data_.at(ndx).data(), el_size(ndx)}; }
+      // return {};
     };
     cbstr_t v_bstr(std::size_t ndx) const
     {
@@ -114,27 +110,27 @@ namespace db
         cbstr_t r(reinterpret_cast<const uint8_t*>(&data_.at(ndx).at(0)), el_size(ndx));
         return r;
       }
-      //return {};
+      // return {};
     };
     cstr_t v_cstr(std::size_t ndx)
     {
       if constexpr (is_string(db_type_)) { return cstr_t{data_.at(ndx).data(), el_size(ndx)}; }
-      //return {};
+      // return {};
     };
     cstr_t v_cstr(std::size_t ndx) const
     {
       if constexpr (is_string(db_type_)) { return cstr_t{data_.at(ndx).data(), el_size(ndx)}; }
-      //else return {};
+      // else return {};
     };
     T v_T(std::size_t ndx)
     {
       if constexpr (is_atomic(db_type_)) { return data_.at(ndx); }
-      //else return {};
+      // else return {};
     };
     T v_T(std::size_t ndx) const
     {
       if constexpr (is_atomic(db_type_)) { return data_.at(ndx); }
-      //else return {};
+      // else return {};
     };
     void s_T(const T& v, std::size_t ndx)
     {
@@ -175,6 +171,14 @@ namespace db
         }
       }
     }
+    /**
+     * @brief serialize contents of the instance into stirng
+     * 
+     * @param a_msg string to prefix the serialized instance content
+     * @param max_el how many values do we display (0== all)
+     * @param offs offset from the left border
+     * @return str_t prefixed serialized instance content
+     */
     str_t dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const override
     {
       std::string s;
@@ -216,10 +220,17 @@ namespace db
       s += "]";
       return s;
     }
+    /**
+     * @brief bind attribute to statement
+     * 
+     * @param a_stmt_handle statement to bind to
+     * @param a_ndx attribute index within the parameter the parameter list 1..n
+     * @return int16_t 
+     */
     int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
     {
-      std::cerr << ct_name(db_type_) << "--" << dbt_name(db_type_) << "-- " << width() << "--"
-                << dec_ << std::endl;
+      // std::cerr << ct_name(db_type_) << "--" << dbt_name(db_type_) << "-- " << width() << "--"
+      //           << dec_ << std::endl;
       auto rc = SQLBindParameter(a_stmt_handle,
                                  a_ndx,
                                  SQL_PARAM_INPUT,
@@ -260,10 +271,10 @@ namespace db
     using l_vec        = std::array<int32_t, arr_size>;
     using PP           = attr_root<T, DB_TYPE, arr_size, DEC>;
     constexpr atomic() = default;
-    T       value() const { return value(0); }
-    T       value(std::size_t ndx) const { return PP::data().at(ndx); }
-    void    set_value(const T& data) { set_value(data, 0); }
-//    void    set_value(const T& data, std::size_t ndx) { PP::data().at(ndx) = data; }
+    T    value() const { return value(0); }
+    T    value(std::size_t ndx) const { return PP::data().at(ndx); }
+    void set_value(const T& data) { set_value(data, 0); }
+    //    void    set_value(const T& data, std::size_t ndx) { PP::data().at(ndx) = data; }
     void    set_value(const T& data, std::size_t ndx) { PP::s_T(data, ndx); }
     int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
     {
@@ -485,8 +496,9 @@ namespace db
   class utl
   {
   public:
-    using brr_t = buffer_root_root;
-    utl()       = delete;
+    using brr_t    = buffer_root_root;
+    using int_span = std::span<const int>;
+    utl()          = delete;
     utl(db::connection* c, cstr_t sql)
     : utl(c, sql, nullptr, nullptr) // no parameters or results
     { }
@@ -532,7 +544,8 @@ namespace db
       if (rc == SQL_SUCCESS && par_buf_ != nullptr) rc = par_buf_->bind(s_.handle());
       if (rc == SQL_SUCCESS && res_buf_ != nullptr) rc = res_buf_->bind(s_.handle());
       if (rc == SQL_SUCCESS) rc = s_.exec();
-      return rc;
+      if (rc != SQL_SUCCESS) return s_.handle_return_code(rc, allowed_codes());
+      return SQL_SUCCESS; // ni pravo mesto, mora biti na na q
     }
     auto  handle() const { return s_.handle(); }
     str_t dump(cstr_t a_msg) const
@@ -571,10 +584,12 @@ namespace db
       }
       return rc;
     }
+    virtual std::vector<int> allowed_codes() const = 0;
   private:
     db::statement s_;                 //!< SQL statement associated with th esql operation
     brr_t*        par_buf_ = nullptr; //!< parameter buffer (can be null)
     brr_t*        res_buf_ = nullptr; //!< result buffer (can be null)
+
     // int proc{};
   };
 
