@@ -2,9 +2,8 @@
   - [1.1. Tests](#11-tests)
     - [1.1.1. integrate all tests under single umbrela](#111-integrate-all-tests-under-single-umbrela)
   - [1.2. Features](#12-features)
-    - [1.2.1. better error reporting upon grammar errors](#121-better-error-reporting-upon-grammar-errors)
-    - [1.2.2. Fix bug with "?" in sql](#122-fix-bug-with--in-sql)
-    - [1.2.3. support for u16string values](#123-support-for-u16string-values)
+    - [1.2.1. support for u16string values](#121-support-for-u16string-values)
+    - [1.2.2. check status codes upon insert (e.g. duplicates)](#122-check-status-codes-upon-insert-eg-duplicates)
   - [1.3. CMAKE](#13-cmake)
     - [1.3.1. restructure the cmake files](#131-restructure-the-cmake-files)
     - [1.3.2. build package](#132-build-package)
@@ -34,14 +33,16 @@
     - [2.11.5. better api for fetch scroll](#2115-better-api-for-fetch-scroll)
     - [2.11.6. API for error reporting in runtime utl class](#2116-api-for-error-reporting-in-runtime-utl-class)
     - [2.11.7. list of error codes that are not thrown - res](#2117-list-of-error-codes-that-are-not-thrown---res)
+    - [2.11.8. Fix bug with "?" in sql - reports error](#2118-fix-bug-with--in-sql---reports-error)
+    - [2.11.9. better error reporting upon grammar errors](#2119-better-error-reporting-upon-grammar-errors)
+    - [2.11.10. in sql node any atribute is allowed - fix it](#21110-in-sql-node-any-atribute-is-allowed---fix-it)
 # 1. Todo list
 
 ## 1.1. Tests
 ### 1.1.1. integrate all tests under single umbrela
 ## 1.2. Features
-### 1.2.1. better error reporting upon grammar errors
-### 1.2.2. Fix bug with "?" in sql
-### 1.2.3. support for u16string values
+### 1.2.1. support for u16string values
+### 1.2.2. check status codes upon insert (e.g. duplicates)
 ## 1.3. CMAKE
 ### 1.3.1. restructure the cmake files
 ### 1.3.2. build package
@@ -73,3 +74,6 @@
 ### 2.11.5. better api for fetch scroll
 ### 2.11.6. API for error reporting in runtime utl class
 ### 2.11.7. list of error codes that are not thrown - res
+### 2.11.8. Fix bug with "?" in sql - reports error
+### 2.11.9. better error reporting upon grammar errors
+### 2.11.10. in sql node any atribute is allowed - fix it

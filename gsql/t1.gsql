@@ -8,13 +8,6 @@
          * #include <array>
          */
         ]]>
-    <!-- header line 1
-          header 1.1
-        header line 2 -->
-    <!-- header part to be included into generated file immediatelly after the guard
-            <?xml-model href="gsql_file.xsd"?>
-        -->
-    <!-- header line 3 -->
   </hdr>
   <q id="Q-1" allowed="1 2 3 -100">
     <!-- query -->
@@ -24,15 +17,14 @@
                 rdbms ::= sql | db2 | mariadb | oracle
                 phase ::= prepare | main | cleanup
             -->
-      <sql rdbms="sql" phase="main">
+      <sql rdbms="sql">
         <prepare>select * from tbl</prepare>
         select *
                 from tbl
                 where
                   c1_smallint=?
-        <!--todo fix the bug with apostophies-->
       </sql>
-      <sql rdbms="db2" phase="cleanup">
+      <sql rdbms="db2">
 
                 select * from tbl where c1_smallint=?
       </sql>
