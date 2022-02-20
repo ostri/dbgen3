@@ -23,6 +23,7 @@ namespace dbgen3
              )
     : pos_(pos)
     , name_(name)
+    , a_name_(fmt::format("a_{:02}_", pos-1))
     , type_(type)
     , width_(width)
     , dec_(dec)
@@ -32,6 +33,7 @@ namespace dbgen3
     //@{
     uint       pos() const { return this->pos_; }
     str_t     name() const { return this->name_; }
+    str_t     a_name() const { return this->a_name_; }
     ODBC_TYPE type() const { return this->type_; }
     uint32_t  width() const { return this->width_; }
     int16_t   dec() const { return this->dec_; }
@@ -55,10 +57,11 @@ namespace dbgen3
       str_t r;
       r = out::sl(
         fmt::format(
-          "{}[{:3}]:{{name: {:25} type: {:5} t.name: {:20} width: {:5} dec: {:2} null: {:12} }}",
+          "{}[{:3}]:{{name: {:25} a_name: {:4} type: {:5} t.name: {:20} width: {:5} dec: {:2} null: {:12} }}",
           a_msg,
           pos_,
           name_,
+          a_name_,
           ME::enum_integer<ODBC_TYPE>(type_),
           ME::enum_name<ODBC_TYPE>(type_),
           width_,
@@ -71,6 +74,7 @@ namespace dbgen3
   private:
     uint      pos_;      //!< positiion within the parameter/result list (starting from 1)
     str_t     name_;     //!< name of the column or parameter
+    str_t     a_name_;   //!< attribute name of the column or parameter
     ODBC_TYPE type_;     //!< query column type
     uint32_t  width_;    //!< colmn width
     int16_t   dec_;      //!< column decimaks

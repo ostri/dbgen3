@@ -17,19 +17,20 @@ namespace dbgen3
     {
       r += out::sl(fmt::format("/// @brief trivial null getters"), offs);
       r += out::sl(fmt::format("//@{{"), offs);
+      uint ndx = 0;
       for (const auto& el : flds)
       {
+        str_t attr_name = fmt::format("a_{0:02}", ndx);
         //        int         db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
         //        const auto* type_name   = db::ct_name(db_type_int);
-        r += out::sl(fmt::format("bool is_null_{0:<{1}}() const {{return is_null_{0}(0);}}", //
+        r += out::sl(fmt::format("bool is_null_{0:<{1}}() const {{return {2}.is_null(0);}}", //
                                  el.name(),
-                                 max_name_len //,
-                                              //  type_name,
-                                              //  max_ctype_len
-                                 ),
+                                 max_name_len,
+                                 el.a_name()),
                      offs);
       }
       r += out::sl(fmt::format("//@}}"), offs);
+      ++ndx;
     }
     return r;
   }
@@ -47,11 +48,12 @@ namespace dbgen3
       {
         int         db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
         const auto* type_name   = db::ct_name(db_type_int);
-        r += out::sl(fmt::format("{2:<{3}} {0:<{1}}() const {{return {0}(0);}}", //
+        r += out::sl(fmt::format("{2:<{3}} {0:<{1}}() const {{return {4}.value(0);}}", //
                                  el.name(),
                                  max_name_len,
                                  type_name,
-                                 max_ctype_len),
+                                 max_ctype_len,
+                                 el.a_name()),
                      offs);
       }
       r += out::sl(fmt::format("//@}}"), offs);
@@ -75,15 +77,11 @@ namespace dbgen3
       r += out::sl(fmt::format("//@{{"), offs);
       for (const auto& el : flds)
       {
-        //        int         db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-        //        const auto* type_name   = db::ct_name(db_type_int);
         r +=
-          out::sl(fmt::format("bool is_null_{0:<{1}}(uint ndx) const {{return {0}_.is_null(ndx);}}",
+          out::sl(fmt::format("bool is_null_{0:<{1}}(uint ndx) const {{return {2}.is_null(ndx);}}",
                               el.name(),
-                              max_name_len //,
-                                           //                                 type_name,
-                                           //                                 max_ctype_len
-                              ),
+                              max_name_len,
+                              el.a_name()),
                   offs);
       }
       r += out::sl(fmt::format("//@}}"), offs);
@@ -112,11 +110,12 @@ namespace dbgen3
       {
         int         db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
         const auto* type_name   = db::ct_name(db_type_int);
-        r += out::sl(fmt::format("{2:<{3}} {0:<{1}}(uint ndx) const {{return {0}_.value(ndx);}}",
+        r += out::sl(fmt::format("{2:<{3}} {0:<{1}}(uint ndx) const {{return {4}.value(ndx);}}",
                                  el.name(),
                                  max_name_len,
                                  type_name,
-                                 max_ctype_len),
+                                 max_ctype_len,
+                                 el.a_name()),
                      offs);
       }
       r += out::sl(fmt::format("//@}}"), offs);
@@ -138,13 +137,10 @@ namespace dbgen3
       {
         int db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
         type_name       = db::ct_name(db_type_int);
-        r += out::sl(fmt::format("void set_null_{0:<{1}}() {{set_null_{0}(0);}}",
-                                 el.name(),
-                                 max_name_len //,
-                                 // type_name,
-                                 // max_ctype_len
-                                 ),
-                     offs);
+        r += out::sl(
+          fmt::format(
+            "void set_null_{0:<{1}}() {{{2}.set_null(0);}}", el.name(), max_name_len, el.a_name()),
+          offs);
       }
       r += out::sl(fmt::format("//@}}"), offs);
     }
@@ -165,11 +161,12 @@ namespace dbgen3
       {
         int db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
         type_name       = db::ct_name(db_type_int);
-        r += out::sl(fmt::format("void set_{0:<{1}}({2:<{3}} v) {{set_{0}(v, 0);}}",
+        r += out::sl(fmt::format("void set_{0:<{1}}({2:<{3}} v) {{{4}.set_value(v, 0);}}",
                                  el.name(),
                                  max_name_len,
                                  type_name,
-                                 max_ctype_len),
+                                 max_ctype_len,
+                                 el.a_name()),
                      offs);
       }
       r += out::sl(fmt::format("//@}}"), offs);
@@ -191,11 +188,12 @@ namespace dbgen3
       {
         int db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
         type_name       = db::ct_name(db_type_int);
-        r += out::sl(fmt::format("void set_null_{0:<{1}}(uint ndx) {{{0}_.set_null(ndx);}}",
+        r += out::sl(fmt::format("void set_null_{0:<{1}}(uint ndx) {{{4}.set_null(ndx);}}",
                                  el.name(),
                                  max_name_len,
                                  type_name,
-                                 max_ctype_len),
+                                 max_ctype_len,
+                                 el.a_name()),
                      offs);
       }
       r += out::sl(fmt::format("//@}}"), offs);
@@ -216,13 +214,14 @@ namespace dbgen3
       for (const auto& el : flds)
       {
         int db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-        type_name = db::ct_name(db_type_int);
+        type_name       = db::ct_name(db_type_int);
         r +=
-          out::sl(fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v, ndx);}}",
+          out::sl(fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{4}.set_value(v, ndx);}}",
                               el.name(),
                               max_name_len,
                               type_name,
-                              max_ctype_len),
+                              max_ctype_len,
+                              el.a_name()),
                   offs);
       }
       r += out::sl(fmt::format("//@}}"), offs);
@@ -241,18 +240,19 @@ namespace dbgen3
                  offs);
     return r;
   }
-  str_t gen_cpp::define_ID_const(const fld_vec& flds, uint /*max_name_len*/, uint offs)
-  {
-    str_t r;
-    for (auto cnt = 0UL; cnt < flds.size(); cnt++)
-    {
-      r += out::sl(fmt::format("constexpr static const uint Id{0:02} = {0:2}; // attribute id {1}",
-                               cnt,
-                               flds[cnt].name()),
-                   offs);
-    }
-    return r;
-  }
+  // str_t gen_cpp::define_ID_const(const fld_vec& flds, uint /*max_name_len*/, uint offs)
+  // {
+  //   str_t r;
+  //   for (auto cnt = 0UL; cnt < flds.size(); cnt++)
+  //   {
+  //     r += out::sl(fmt::format("constexpr static const uint Id{0:02} = {0:2}; // attribute id
+  //     {1}",
+  //                              cnt,
+  //                              flds[cnt].name()),
+  //                  offs);
+  //   }
+  //   return r;
+  // }
 
   str_t gen_cpp::define_attributes_const(const fld_vec& flds, uint /*max_name_len*/, uint offs)
   {
@@ -356,20 +356,21 @@ namespace dbgen3
       str_t       type_name   = fmt::format("T_{0:0{1}}", ndx, 2);
       str_t       dec_name    = fmt::format("dec_{0:0{1}}", ndx, 2);
       str_t       len_name    = fmt::format("dec_{0:0{1}}", ndx, 2);
+      str_t       attr_name   = fmt::format("a_{0:02}", ndx);
       switch (db_type)
       {
       case db::ATTR_TYPE::atomic:
       {
         r += out::sl(
           fmt::format(
-            "db::atomic <{0}, {1:18}, N, {3}> {2}_{{}}; ", type_name, db_name, el.name(), dec_name),
+            "db::atomic <{0}, {1:18}, N, {3}> {2}_{{}}; ", type_name, db_name, attr_name, dec_name),
           offs);
         break;
       }
       case db::ATTR_TYPE::string:
       {
         r += out::sl(fmt::format("db::string <{2}, {1:18}, N, {4}, {3}> {0}_{{}};",
-                                 el.name(),
+                                 attr_name,
                                  db_name,
                                  type_name,
                                  "char",
@@ -380,7 +381,7 @@ namespace dbgen3
       case db::ATTR_TYPE::bstring:
       { // FIXME we don't need decimal places with bstring
         r += out::sl(fmt::format("db::bstring<{2}, {1:18}, N, {3}> {0}_{{}}; ",
-                                 el.name(),
+                                 attr_name,
                                  db_name,
                                  type_name,
                                  "uint8_t"),
@@ -403,15 +404,25 @@ namespace dbgen3
    * @param offs
    * @return str_t
    */
-  str_t gen_cpp::define_attr_array(const fld_vec& flds, uint /*unused*/, uint offs)
+  str_t gen_cpp::define_attr_array(const fld_vec& flds, uint max_width, uint offs)
   {
     str_t r;
     if (! flds.empty())
     {
-      // r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
       r += out::sl(fmt::format("attr_vec_t A_"), offs);
       r += out::sl(fmt::format("{{"), offs);
-      for (const auto& attr : flds) r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
+      str_t s;
+      for (const auto& el : flds)
+      {
+        s += fmt::format("&{}, ", el.a_name());
+        if (s.size() > max_width)
+        {
+          s.resize(s.size() - 1); // remove last space
+          r += out::sl(s, offs + 2);
+          s.clear();
+        };
+      }
+      if (! s.empty()) r += out::sl(s, offs + 2);
       r += out::sl(fmt::format("}};"), offs);
     }
     return r;
@@ -498,11 +509,11 @@ namespace dbgen3
     r += out::sl(fmt::format("protected:/*...protected methods..............*/"), offs);
     r += define_attribute_access(offs + 2);
     r += out::sl(fmt::format("private:  /*...private methods & attributes...*/"), offs);
-    r += define_ID_const(flds, ml, offs + 2);
+    //    r += define_ID_const(flds, ml, offs + 2);
     r += define_attributes_const(flds, ml, offs + 2);
     r += define_attr_types(flds, ml, offs + 2);
     r += define_attributes(flds, ml, offs + 2);
-    r += define_attr_array(bd.flds(), ml, offs + 2);
+    r += define_attr_array(bd.flds(), generated_width - 8, offs + 2); // NOLINT
     r += out::sl(fmt::format("}}; // class {}", c_name), offs);
     return r;
   }

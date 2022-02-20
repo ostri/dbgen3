@@ -58,7 +58,7 @@
                 (
                     C1_smallint,
         <!-- komentar -->
-        C2_int,
+                    C2_int,
                     C3_bigint,
                     C4_numeric,
                     C5_decimal,

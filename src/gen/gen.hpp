@@ -28,8 +28,8 @@ namespace dbgen3
     RDBMS             rdbm() const;
     static str_t      line(uint offs = 0, char ch = '.');
     static str_t      line_text(cstr_t a_msg, uint offs = 0, char ch = '.');
-  private:
     static const int  generated_width = 100;     //!< width of the generated document (well mostly)
+  private:
     const gsql_q_set* set_            = nullptr; //!< gsql set data
     RDBMS             rdbm_           = RDBMS::db2; //!< database type we are generating code for
   };
