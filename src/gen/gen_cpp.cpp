@@ -258,29 +258,28 @@ namespace dbgen3
       {
       case db::ATTR_TYPE::atomic:
       {
-        r += out::sl(
-          fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
-                      el.dec(),
-                      dec_name),
-          offs);
+        r +=
+          out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
+                              el.dec(),
+                              dec_name),
+                  offs);
         break;
       }
       case db::ATTR_TYPE::string:
       {
-        r += out::sl(
-          fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
-                      el.dec(),
-                      dec_name),
-          offs);
+        r +=
+          out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
+                              el.dec(),
+                              dec_name),
+                  offs);
         [[fallthrough]];
       }
       case db::ATTR_TYPE::bstring:
       {
-        r +=
-          out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // width of the attribute",
-                              el.width(),
-                              len_name),
-                  offs);
+        r += out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // width of the attribute",
+                                 el.width(),
+                                 len_name),
+                     offs);
         break;
       }
       case db::ATTR_TYPE::unknown:
@@ -385,26 +384,27 @@ namespace dbgen3
     }
     return r;
   }
-  /**
-   * @brief
-   *
-   * @param flds
-   * @param offs
-   * @return str_t
-   */
-  str_t gen_cpp::define_attr_array(const fld_vec& flds, uint /*unused*/, uint offs)
-  {
-    str_t r;
-    // if (! flds.empty())
-    // {
-    // r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
-    r += out::sl(fmt::format("const db::attr_vec attr_"), offs);
-    r += out::sl(fmt::format("{{"), offs);
-    for (const auto& attr : flds) r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
-    r += out::sl(fmt::format("}};"), offs);
-    // }
-    return r;
-  }
+  // /**
+  //  * @brief
+  //  *
+  //  * @param flds
+  //  * @param offs
+  //  * @return str_t
+  //  */
+  // str_t gen_cpp::define_attr_array(const fld_vec& flds, uint /*unused*/, uint offs)
+  // {
+  //   str_t r;
+  //   if (! flds.empty())
+  //   {
+  //     r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
+  //     r += out::sl(fmt::format("std::array<db::attr_root_root<N>*, max_attr> attr_"), offs);
+  //     r += out::sl(fmt::format("{{"), offs);
+  //     for (const auto& attr : flds)
+  //       r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
+  //     r += out::sl(fmt::format("}};"), offs);
+  //   }
+  //   return r;
+  // }
   /**
    * @brief define buffer default constructor
    *
@@ -460,9 +460,6 @@ namespace dbgen3
     r += out::sl(fmt::format("class {0} : public db::buffer_root<{1}, N>", c_name, BT_name), offs);
     r += out::sl(fmt::format("{{"), offs);
     r += out::sl(fmt::format("public: /*...public methods...*/"), offs);
-    r += out::sl(fmt::format("  const static uint max_attr = {};", flds.size()), offs);
-    // r += out::sl(
-    //   fmt::format("  using attr_vec = const std::array<db::attr_root_root<N>*, max_attr>;"), offs);
     r += define_default_ctor(flds, ml, c_name, bt, offs + 2);
     r += define_trivial_null_getters(flds, ml, offs + 2);
     r += define_null_getters(flds, ml, offs + 2);
@@ -472,14 +469,11 @@ namespace dbgen3
     r += define_getters(flds, ml, mctl, offs + 2);
     r += define_trivial_setters(flds, ml, mctl, offs + 2);
     r += define_setters(flds, ml, mctl, offs + 2);
-    r += out::sl(fmt::format("protected:/*...protected methods & attributes...*/"), offs);
-    r += out::sl(fmt::format("  db::attr_root_root<N>::attr_vec attributes() override"), offs);
-    r += out::sl(fmt::format("    {{return attr_;}}"), offs);
     r += out::sl(fmt::format("private:/*...private methods & attributes...*/"), offs);
     r += define_attributes_const(flds, ml, offs + 2);
     r += define_attr_types(flds, ml, offs + 2);
     r += define_attributes(flds, ml, offs + 2);
-    r += define_attr_array(bd.flds(), ml, offs + 2);
+    // r += define_attr_array(bd.flds(), ml, offs + 2);
     r += out::sl(fmt::format("}}; // class {}", c_name), offs);
     return r;
   }
@@ -573,9 +567,11 @@ namespace dbgen3
       const auto& buf = q.buf_dscr(bt);
       if (buf.is_required())
       {
-        r += out::sl(
-          fmt::format("  {0}<N_{1}> {1}_{{}};", buf.class_name(), ME::enum_name<db::BUF_TYPE>(bt)),
-          offs);
+        r += out::sl(fmt::format( //
+                       "  {0}<N_{1}> {1}_{{}};",
+                       buf.class_name(),
+                       ME::enum_name<db::BUF_TYPE>(bt)),
+                     offs);
       }
     };
     return r;
