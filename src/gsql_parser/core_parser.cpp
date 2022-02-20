@@ -402,7 +402,7 @@ namespace dbgen3
     gsql_q r(a_db_type); /// result
     /// load attributes
     r.set_id(attr_value(an_el, "id", "q_" + std::to_string(a_ndx))); // load unique query id
-    r.set_allowed(attr_value(an_el, "allowed", "0"));
+    r.set_allowed(attr_value(an_el, "allowed", ""));
     a_ctx.emplace_back(std::string(r.id()));
     auto ndx_str = std::to_string(a_ndx);
     // implicit values unless explicit are provided
