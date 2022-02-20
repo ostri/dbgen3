@@ -55,7 +55,7 @@ namespace dbgen3
     static str_t define_attr_types(const fld_vec& flds, uint max_type_len, uint offs);
 
     static str_t define_attributes(const fld_vec& flds, uint max_name_len, uint offs);
-    //    static str_t define_attr_array(const fld_vec& flds, uint max_name_len, uint offs);
+    static str_t define_attr_array(const fld_vec& flds, uint max_name_len, uint offs);
 
     static str_t gen_includes(uint offs);
     static str_t gen_queries(const gsql_q_set& set, uint offs);

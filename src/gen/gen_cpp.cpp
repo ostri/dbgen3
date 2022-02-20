@@ -384,27 +384,27 @@ namespace dbgen3
     }
     return r;
   }
-  // /**
-  //  * @brief
-  //  *
-  //  * @param flds
-  //  * @param offs
-  //  * @return str_t
-  //  */
-  // str_t gen_cpp::define_attr_array(const fld_vec& flds, uint /*unused*/, uint offs)
-  // {
-  //   str_t r;
-  //   if (! flds.empty())
-  //   {
-  //     r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
-  //     r += out::sl(fmt::format("std::array<db::attr_root_root<N>*, max_attr> attr_"), offs);
-  //     r += out::sl(fmt::format("{{"), offs);
-  //     for (const auto& attr : flds)
-  //       r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
-  //     r += out::sl(fmt::format("}};"), offs);
-  //   }
-  //   return r;
-  // }
+  /**
+   * @brief
+   *
+   * @param flds
+   * @param offs
+   * @return str_t
+   */
+  str_t gen_cpp::define_attr_array(const fld_vec& flds, uint /*unused*/, uint offs)
+  {
+    str_t r;
+    if (! flds.empty())
+    {
+      r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
+      r += out::sl(fmt::format("std::array<db::attr_root_root<N>*, max_attr> A_"), offs);
+      r += out::sl(fmt::format("{{"), offs);
+      for (const auto& attr : flds)
+        r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
+      r += out::sl(fmt::format("}};"), offs);
+    }
+    return r;
+  }
   /**
    * @brief define buffer default constructor
    *
@@ -473,7 +473,7 @@ namespace dbgen3
     r += define_attributes_const(flds, ml, offs + 2);
     r += define_attr_types(flds, ml, offs + 2);
     r += define_attributes(flds, ml, offs + 2);
-    // r += define_attr_array(bd.flds(), ml, offs + 2);
+    r += define_attr_array(bd.flds(), ml, offs + 2);
     r += out::sl(fmt::format("}}; // class {}", c_name), offs);
     return r;
   }
