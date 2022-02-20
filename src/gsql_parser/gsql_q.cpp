@@ -19,15 +19,36 @@ namespace dbgen3
     s += out::sl("}", offs);
     return s;
   }
+  /**
+   * @brief does SQL demands a buffer (PAR/RES)
+   *
+   * @param a_type type of buffer (PAR/RES)
+   * @return true SQL requires the buffer
+   * @return false SQL does not mandate the buffer
+   */
+  bool gsql_q::must_have_buf(const db::BUF_TYPE& a_type) const
+  {
+    return ! buf_dscr(a_type).must_generate();
+  }
   void gsql_q::set_id(cstr_t o) { id_ = o; }
   gsql_q::gsql_q(const RDBMS& a_db_type)
   : sql_set_(a_db_type){};
   cstr_t                gsql_q::id() const { return id_; }
+  q_buf_arr&            gsql_q::buf_dscr() { return buf_dscr_; }
   str_t                 gsql_q::namespace_str() const { return snake_case(id_); }
   const gsql_qbuf_dscr& gsql_q::buf_dscr(const db::BUF_TYPE& a_type) const
   {
     return this->buf_dscr_[ME::enum_integer(a_type)];
   }
+
+  q_buf_arr&            gsql_q::buf() { return buf_dscr_; }
+
+  const q_buf_arr&      gsql_q::buf() const { return buf_dscr_; }
+
+  // std::string           sql() const;
+  std::string gsql_q::sql() const { return sql_set_.sql(); };
+
+  std::string gsql_q::sql_prep() const { return sql_set_.prep_sql(); };
 
   RDBMS gsql_q::db_type() const { return sql_set_.db_type(); }
 

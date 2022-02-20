@@ -39,29 +39,18 @@ namespace dbgen3
     /// @name getters
     ///@{
     cstr_t                id() const;
-    q_buf_arr&            buf_dscr() { return buf_dscr_; }
+    q_buf_arr&            buf_dscr();
     const gsql_qbuf_dscr& buf_dscr(const db::BUF_TYPE& a_type) const;
-    q_buf_arr&            buf() { return buf_dscr_; }
-    const q_buf_arr&      buf() const { return buf_dscr_; }
-    // std::string           sql() const;
-    std::string sql() const { return sql_set_.sql(); };
-    std::string sql_prep() const { return sql_set_.prep_sql(); };
+    q_buf_arr&            buf();
+    const q_buf_arr&      buf() const;
+    std::string sql() const;
+    std::string sql_prep() const;
     RDBMS       db_type() const;
     str_t       namespace_str() const;
     std::string dump() const;
     std::string dump(uint offs) const;
     std::string dump(const std::string& a_msg, uint offs) const;
-    /**
-     * @brief does SQL demands a buffer (PAR/RES)
-     *
-     * @param a_type type of buffer (PAR/RES)
-     * @return true SQL requires the buffer
-     * @return false SQL does not mandate the buffer
-     */
-    bool must_have_buf(const db::BUF_TYPE& a_type) const
-    {
-      return ! buf_dscr(a_type).must_generate();
-    }
+    bool must_have_buf(const db::BUF_TYPE& a_type) const;
 
     //@}
     /// @name setters
@@ -81,7 +70,7 @@ namespace dbgen3
     str_t        id_{};       //!< name of the gsql_id (unique id)
     q_buf_arr    buf_dscr_{}; //!< query buffer descriptions
     gsql_sql_set sql_set_;    //!< set of sql statements in the gsql item FIXME only buf_dscr
-    int_vec      allowed_{0}; //!< allowed errorcodes i.e. they dont throw (0 and others)
+    int_vec      allowed_{};  //!< allowed errorcodes i.e. they dont throw (0 and others)
   };
 
 }; // namespace dbgen3
