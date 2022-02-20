@@ -36,10 +36,6 @@
 
                 select * from tbl where c1_smallint=?
       </sql>
-      <!-- <sql rdbms="db2">
-
-                select * from tbl
-            </sql> -->
   </q>
   <q>
       <sql></sql>
@@ -52,7 +48,12 @@
                 delete from tbl;
      </sql>
   </q>
-  <q id="insert">
+  <q id="del-tbl-rec-throw">
+    <sql>
+              delete from tbl;
+   </sql>
+</q>
+<q id="insert">
       <sql>
         insert into tbl
                 (
@@ -81,7 +82,7 @@
                 )
       </sql>
   </q>
-  <q id="select">
+  <q id="select" allowed="100">
       <sql>
         select
                     C1_smallint,
@@ -171,6 +172,19 @@
         );
       </prepare>
       select serial from session.tempprod
+    </sql>
+  </q>
+  <q id="both">
+    <sql>
+      select
+        id, name
+      from new table
+      (
+        insert into tbl_1
+          (name)
+        values
+          (?), (?), (?), (?), (?)
+      );
     </sql>
   </q>
 </q-set>

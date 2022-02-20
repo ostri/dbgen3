@@ -407,18 +407,17 @@ namespace db
     buffer_root(buffer_root&&) noexcept = default;
     buffer_root& operator=(const buffer_root&) = default;
     buffer_root& operator=(buffer_root&&) noexcept = default;
-    size_t       size() const override { return arr_size; }
+    std::size_t  size() const override { return arr_size; }
     void*        s_vec() override { return s_vec_.data(); }
     const void*  s_vec() const override { return s_vec_.data(); }
-    size_t&      procesed() override { return processed_; }
-    size_t       processed() const override { return processed_; }
+    std::size_t& procesed() override { return processed_; }
+    std::size_t  processed() const override { return processed_; }
 
     str_t dump(cstr_t a_msg) const override
     {
       str_t r;
       r += str_t(a_msg) + "\n";
       r += "# attr:   " + std::to_string(attributes().size()) + "\n";
-      ;
       r += "# lines:  " + std::to_string(size()) + "\n";
       r += "#occupied:" + std::to_string(occupied_) + "\n";
       if (bt_ == BUF_TYPE::par)
@@ -445,12 +444,12 @@ namespace db
       return rebind(a_stmt_handle);
     }
     // virtual attr_vec_t& attr_vec() { return attributes(); } // TODO(ostri): eliminate
-    size_t              occupied() const override { return occupied_; }
-    void                set_occupied(size_t v) override { occupied_ = v; }
-    size_t*             occupied_addr() override { return &occupied_; }
-    constexpr BUF_TYPE  bt() override { return buffer_root::bt_; }
+    size_t             occupied() const override { return occupied_; }
+    void               set_occupied(size_t v) override { occupied_ = v; }
+    size_t*            occupied_addr() override { return &occupied_; }
+    constexpr BUF_TYPE bt() override { return buffer_root::bt_; }
   protected:
-    virtual std::vector<db::attr_root_root<arr_size>*>& attributes() = 0;
+    virtual std::vector<db::attr_root_root<arr_size>*>&       attributes()       = 0;
     virtual const std::vector<db::attr_root_root<arr_size>*>& attributes() const = 0;
   private:
     int16_t bind_par(std::int32_t a_stmt_handle)
@@ -486,12 +485,12 @@ namespace db
     /*.......................................................................................*/
     constexpr static std::size_t arr_size_ = arr_size; //!< number of values in each attribute
     //  TODO(ostri): sometimes arr_vec_t can be sts::array
-    constexpr static BUF_TYPE bt_ = BT;       //!< buffer type
-    size_t                    occupied_{};    //!< how many records is occupied [0..size())
- //   attr_vec_t                attr_vec_ = {}; //!< attributes of the buffer
-    bool                      bind_{};        //!< are the parameters bound to the statement?
-    s_vec_t                   s_vec_{};       //!< vector of statuses
-    size_t                    processed_{};   //!< number of parameters processed
+    constexpr static BUF_TYPE bt_ = BT;    //!< buffer type
+    size_t                    occupied_{}; //!< how many records is occupied [0..size())
+    //   attr_vec_t                attr_vec_ = {}; //!< attributes of the buffer
+    bool    bind_{};      //!< are the parameters bound to the statement?
+    s_vec_t s_vec_{};     //!< vector of statuses
+    size_t  processed_{}; //!< number of parameters processed
   };
   ///////////////////////////////////////////////////////////////////////////////////////////
   class utl
@@ -534,64 +533,122 @@ namespace db
     virtual const brr_t* par_buf() const { return this->par_buf_; }
     virtual brr_t*       res_buf() { return this->res_buf_; }
     virtual const brr_t* res_buf() const { return this->res_buf_; }
-    int16_t              exec() { return exec(""); }
-    int16_t              exec(cstr_t sql)
+    /**
+     * @brief default prepared query execution
+     *
+     * @return int16_t
+     */
+    int16_t exec() { return exec(""); }
+    /**
+     * @brief execute the prepared query
+     *
+     * The method configures the parameter and/or result variables, prepare and bind the
+     * sql statement to buffer(s) nad execute the statement.
+     * upon completition it returns the operation return code.
+     * if code is listed upon "allowrd codes" it return such code, for unknown code it raises an
+     * exception.
+     *
+     * @param sql sql statement to be executed
+     * @return int16_t result code
+     */
+    int16_t exec(cstr_t sql)
     {
-      int16_t rc = SQL_SUCCESS;
+      rc_ = SQL_SUCCESS;
       /* set parameter buffer size */
-      if (rc == SQL_SUCCESS) rc = prepare_parameter_buffer();
-      if (rc == SQL_SUCCESS) rc = prepare_result_buffer();
-      if (rc == SQL_SUCCESS) rc = s_.prepare(sql);
-      if (rc == SQL_SUCCESS && par_buf_ != nullptr) rc = par_buf_->bind(s_.handle());
-      if (rc == SQL_SUCCESS && res_buf_ != nullptr) rc = res_buf_->bind(s_.handle());
-      if (rc == SQL_SUCCESS) rc = s_.exec();
-      if (rc != SQL_SUCCESS) return s_.handle_return_code(rc, allowed_codes());
+      if (rc_ == SQL_SUCCESS) rc_ = prepare_parameter_buffer();
+      if (rc_ == SQL_SUCCESS) rc_ = prepare_result_buffer();
+      if (rc_ == SQL_SUCCESS) rc_ = s_.prepare(sql);
+      if (rc_ == SQL_SUCCESS && par_buf_ != nullptr) rc_ = par_buf_->bind(s_.handle());
+      if (rc_ == SQL_SUCCESS && res_buf_ != nullptr) rc_ = res_buf_->bind(s_.handle());
+      if (rc_ == SQL_SUCCESS) rc_ = s_.exec();
+      if (rc_ != SQL_SUCCESS) return s_.handle_return_code(rc_, allowed_codes());
       return SQL_SUCCESS; // ni pravo mesto, mora biti na na q
     }
-    auto  handle() const { return s_.handle(); }
+    /**
+     * @brief return statement handle
+     *
+     * @return auto statement handle
+     */
+    auto handle() const { return s_.handle(); }
+    /**
+     * @brief serialize instance contents
+     *
+     * @param a_msg message to prefix the serialized content
+     * @return str_t serialized contents of the instance
+     */
     str_t dump(cstr_t a_msg) const
     {
       str_t r;
       r += str_t(a_msg) + "\n";
-      r += par_buf_ != nullptr ? par_buf_->dump("***par:***\n") : "";
-      r += res_buf_ != nullptr ? res_buf_->dump("***res:***\n") : "";
+      r += par_buf_ != nullptr ? par_buf_->dump("-->par:***\n") : "";
+      r += res_buf_ != nullptr ? res_buf_->dump("-->res:***\n") : "";
       return r;
     }
-    int16_t fetch_scroll(int16_t a_dir, uint a_len) { return s_.fetch_scroll(a_dir, a_len, false); }
+    /**
+     * @brief fech next block of records
+     *
+     * @return int16_t usually SQL_SUCCESS and SQL_NO_DATA
+     */
+    int16_t fetch()
+    {
+      if (res_buf_ != nullptr)
+      {
+        rc_ = s_.fetch_scroll(SQL_FETCH_NEXT, res_buf_->size(), false);
+        return s_.handle_return_code(rc_, allowed_codes());
+      }
+      throw std::runtime_error("error - fetch and no result buffer defined.");
+    }
+    //    int16_t fetch_scroll(int16_t a_dir, uint a_len) { return s_.fetch_scroll(a_dir, a_len,
+    //    false); }
     size_t  rows_read() const { return res_buf_ != nullptr ? res_buf_->occupied() : 0; }
+    int16_t rc() const { return this->rc_; }
   protected:
+    /**
+     * @brief set the parameter buffer related variables
+     *
+     * @return int16_t
+     */
     int16_t prepare_parameter_buffer()
     {
-      int16_t rc = SQL_SUCCESS;
+      rc_ = SQL_SUCCESS;
       if (par_buf_ != nullptr)
       {
         auto dim = par_buf_->occupied();
-        if (dim > 1) rc = s_.set_attr(SQL_ATTR_PARAMSET_SIZE, static_cast<int>(dim));
-        if (rc == SQL_SUCCESS)
-          rc = s_.SSA_ptr(SQL_ATTR_PARAMS_PROCESSED_PTR, &par_buf_->procesed());
-        if (rc == SQL_SUCCESS) rc = s_.SSA_ptr(SQL_ATTR_PARAM_STATUS_PTR, par_buf_->s_vec());
+        if (dim > 1) rc_ = s_.set_attr(SQL_ATTR_PARAMSET_SIZE, static_cast<int>(dim));
+        if (rc_ == SQL_SUCCESS)
+          rc_ = s_.SSA_ptr(SQL_ATTR_PARAMS_PROCESSED_PTR, &par_buf_->procesed());
+        if (rc_ == SQL_SUCCESS) rc_ = s_.SSA_ptr(SQL_ATTR_PARAM_STATUS_PTR, par_buf_->s_vec());
       }
-      return rc;
+      return rc_;
     }
+    /**
+     * @brief set the result buffer variables
+     *
+     * @return int16_t
+     */
     int16_t prepare_result_buffer()
     {
-      int16_t rc = SQL_SUCCESS;
+      rc_ = SQL_SUCCESS;
       if (res_buf_ != nullptr)
       {
         auto dim = res_buf_->size();
-        if (dim > 1) { rc = s_.set_attr_l(SQL_ATTR_ROW_ARRAY_SIZE, dim); }
-        if (rc == SQL_SUCCESS)
-          rc = s_.SSA_ptr(SQL_ATTR_ROWS_FETCHED_PTR, res_buf_->occupied_addr());
+        if (dim > 1) { rc_ = s_.set_attr_l(SQL_ATTR_ROW_ARRAY_SIZE, dim); }
+        if (rc_ == SQL_SUCCESS)
+          rc_ = s_.SSA_ptr(SQL_ATTR_ROWS_FETCHED_PTR, res_buf_->occupied_addr());
       }
-      return rc;
+      return rc_;
     }
+    /**
+     * @brief list of return codes that do not raise exception
+     *
+     * @return std::vector<int>
+     */
     virtual std::vector<int> allowed_codes() const = 0;
   private:
-    db::statement s_;                 //!< SQL statement associated with th esql operation
-    brr_t*        par_buf_ = nullptr; //!< parameter buffer (can be null)
-    brr_t*        res_buf_ = nullptr; //!< result buffer (can be null)
-
-    // int proc{};
+    db::statement s_;                     //!< SQL statement associated with th esql operation
+    brr_t*        par_buf_ = nullptr;     //!< parameter buffer (can be null)
+    brr_t*        res_buf_ = nullptr;     //!< result buffer (can be null)
+    int16_t       rc_      = SQL_SUCCESS; //!< return codes
   };
 
   constexpr static const std::array<attr_data, 5> arr;

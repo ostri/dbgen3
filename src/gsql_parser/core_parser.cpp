@@ -46,9 +46,7 @@ namespace dbgen3
   {
     if (parser_ != nullptr) parser_->release();
   }
-  gsql_qbuf_dscr core_parser::load_buf(const db::BUF_TYPE&  bt,
-                                       const x::DOMElement* an_el
-                                       )
+  gsql_qbuf_dscr core_parser::load_buf(const db::BUF_TYPE& bt, const x::DOMElement* an_el)
   {
     gsql_qbuf_dscr r(bt);
     /// load attributes

@@ -61,7 +61,7 @@ int16_t cleanup(db::connection* c)
 TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
 {
   db::connection c("test");
-  auto rc = cleanup(&c);
+  auto           rc = cleanup(&c);
   REQUIRE_EQ(rc, SQL_SUCCESS);
   UT::Q_1::qp_id<2> qp;
   qp.set_par_1(10);            // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
@@ -182,11 +182,8 @@ TEST_CASE("full_cycle") // NOLINT
     diag(rc, q.handle(), "exec select: ");
     REQUIRE(rc == SQL_SUCCESS);
 
-    while (rc == SQL_SUCCESS)
+    while (q.fetch() == SQL_SUCCESS)
     {
-      rc = q.fetch_scroll(SQL_FETCH_NEXT, res->size());
-      if ((rc != SQL_SUCCESS) && (rc != SQL_NO_DATA)) diag(rc, q.handle(), "fetch");
-      REQUIRE(((rc == SQL_SUCCESS) || (rc == SQL_NO_DATA)));
       std::cerr << res->dump("***select fetch***") << std::endl;
       if (q.rows_read() < res->size()) break;
     }
@@ -250,11 +247,8 @@ TEST_CASE("null_related_tests") // NOLINT
     diag(rc, q.handle(), "exec select: ");
     REQUIRE(rc == SQL_SUCCESS);
 
-    while (rc == SQL_SUCCESS)
+    while (q.fetch() == SQL_SUCCESS)
     {
-      rc = q.fetch_scroll(SQL_FETCH_NEXT, res->size());
-      if ((rc != SQL_SUCCESS) && (rc != SQL_NO_DATA)) diag(rc, q.handle(), "fetch");
-      REQUIRE(((rc == SQL_SUCCESS) || (rc == SQL_NO_DATA)));
       std::cerr << res->dump("***select fetch***") << std::endl;
       if (q.rows_read() < res->size()) break;
     }
@@ -282,4 +276,37 @@ TEST_CASE("default buffer contents") // NOLINT
     REQUIRE(rc == SQL_SUCCESS);
     c.commit();
   }
+}
+TEST_CASE("insert and select") // NOLINT
+{
+  db::connection c("test");
+  REQUIRE_EQ(cleanup(&c), SQL_SUCCESS);
+
+  { // this is not an error it is how the ODBC works
+    // in select (insert unless it is fom other table) you can insert and select only one record
+    const uint                      par_max = 10;
+    const uint                      res_max = 2;
+    UT::both::utl<par_max, res_max> q(&c); // NOLINT
+    auto*                           par = q.par_buf();
+    auto*                           res = q.res_buf();
+
+    for (auto cnt = 0UL; cnt < par->size(); cnt++) { par->set_par_1("xx_" + std::to_string(cnt), cnt); }
+    par->set_occupied(par->size());
+    std::cerr << par->dump("insert buffer") << std::endl;
+    /*auto rc =*/ q.exec();
+    res->set_occupied(res->size());
+    while (SQL_SUCCESS == q.fetch())
+    {
+      std::cerr << res->dump("***select fetch***") << std::endl;
+      if (q.rows_read() < res->size()) break;
+    }
+    c.commit();
+  }
+}
+TEST_CASE("undefined return codes") // NOLINT clang-tidy(cert-err58-cpp)
+{
+  db::connection             c("test");
+  UT::del_tbl_rec_throw::utl q(&c);
+  REQUIRE_THROWS(q.exec()); // NOLINT
+  c.rollback();
 }

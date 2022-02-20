@@ -5,9 +5,6 @@
     - [1.2.1. better error reporting upon grammar errors](#121-better-error-reporting-upon-grammar-errors)
     - [1.2.2. Fix bug with "?" in sql](#122-fix-bug-with--in-sql)
     - [1.2.3. support for u16string values](#123-support-for-u16string-values)
-    - [1.2.4. better api for fetch scroll](#124-better-api-for-fetch-scroll)
-    - [1.2.5. API for error reporting in runtime utl class](#125-api-for-error-reporting-in-runtime-utl-class)
-    - [1.2.6. list of error codes that are not thrown - res](#126-list-of-error-codes-that-are-not-thrown---res)
   - [1.3. CMAKE](#13-cmake)
     - [1.3.1. restructure the cmake files](#131-restructure-the-cmake-files)
     - [1.3.2. build package](#132-build-package)
@@ -34,6 +31,9 @@
     - [2.11.2. --types](#2112---types)
     - [2.11.3. list of error codes that are not thrown - parameters](#2113-list-of-error-codes-that-are-not-thrown---parameters)
     - [2.11.4. buffer root references virtual method to fetch the list of attribute addresses](#2114-buffer-root-references-virtual-method-to-fetch-the-list-of-attribute-addresses)
+    - [2.11.5. better api for fetch scroll](#2115-better-api-for-fetch-scroll)
+    - [2.11.6. API for error reporting in runtime utl class](#2116-api-for-error-reporting-in-runtime-utl-class)
+    - [2.11.7. list of error codes that are not thrown - res](#2117-list-of-error-codes-that-are-not-thrown---res)
 # 1. Todo list
 
 ## 1.1. Tests
@@ -42,9 +42,6 @@
 ### 1.2.1. better error reporting upon grammar errors
 ### 1.2.2. Fix bug with "?" in sql
 ### 1.2.3. support for u16string values
-### 1.2.4. better api for fetch scroll
-### 1.2.5. API for error reporting in runtime utl class
-### 1.2.6. list of error codes that are not thrown - res
 ## 1.3. CMAKE
 ### 1.3.1. restructure the cmake files
 ### 1.3.2. build package
@@ -73,3 +70,6 @@
 ### 2.11.2. --types
 ### 2.11.3. list of error codes that are not thrown - parameters
 ### 2.11.4. buffer root references virtual method to fetch the list of attribute addresses
+### 2.11.5. better api for fetch scroll
+### 2.11.6. API for error reporting in runtime utl class
+### 2.11.7. list of error codes that are not thrown - res
