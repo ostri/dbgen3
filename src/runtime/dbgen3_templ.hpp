@@ -53,6 +53,7 @@ namespace db
     attr_root_root& operator=(attr_root_root&&) noexcept = default;
 
     using l_vec = std::array<int32_t, arr_size>;
+    using attr_vec = std::vector<db::attr_root_root<arr_size>*>;
     virtual str_t                 dump_all(cstr_t a_msg, std::size_t max_el, uint offs) const = 0;
     virtual int16_t               bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx)    = 0;
     virtual int16_t               bind_col(std::int32_t a_stmt_handle, std::int16_t a_ndx)    = 0;
@@ -62,6 +63,8 @@ namespace db
     // virtual constexpr int         width() const                                               =
     // 0; virtual constexpr int         dec() const = 0; virtual constexpr int         db_type()
     // const                                             = 0;
+    protected:
+    virtual attr_vec attributes() {return {};};
   };
   /**
    * @brief root class for all attributes within the buffers
@@ -173,7 +176,7 @@ namespace db
     }
     /**
      * @brief serialize contents of the instance into stirng
-     * 
+     *
      * @param a_msg string to prefix the serialized instance content
      * @param max_el how many values do we display (0== all)
      * @param offs offset from the left border
@@ -222,10 +225,10 @@ namespace db
     }
     /**
      * @brief bind attribute to statement
-     * 
+     *
      * @param a_stmt_handle statement to bind to
      * @param a_ndx attribute index within the parameter the parameter list 1..n
-     * @return int16_t 
+     * @return int16_t
      */
     int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
     {
@@ -386,6 +389,7 @@ namespace db
     virtual const void* s_vec() const     = 0;
     virtual size_t&     procesed()        = 0;
     virtual size_t      processed() const = 0;
+  protected:
   private:
   };
   /*....root class for all buffers  ........................................................*/
@@ -482,6 +486,9 @@ namespace db
         return rc;
       }
     }
+  protected:
+    virtual std::span<attr_root_root<arr_size>*> attributes() const = 0;
+  private:
     /*.......................................................................................*/
     constexpr static std::size_t arr_size_ = arr_size; //!< number of values in each attribute
     //  TODO(ostri): sometimes arr_vec_t can be sts::array

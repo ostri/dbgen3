@@ -9,7 +9,8 @@
     - [1.2.5. API for error reporting in runtime utl class](#125-api-for-error-reporting-in-runtime-utl-class)
     - [1.2.6. list of error codes that are not thrown - res](#126-list-of-error-codes-that-are-not-thrown---res)
     - [1.2.7. buffer root references virtual method to fetch the list of attribute addresses](#127-buffer-root-references-virtual-method-to-fetch-the-list-of-attribute-addresses)
-  - [1.3. CMAKE](#13-cmake)
+    - [1.2.8. statement that has parameters and results](#128-statement-that-has-parameters-and-results)
+  - [1.3. build system](#13-build-system)
     - [1.3.1. restructure the cmake files](#131-restructure-the-cmake-files)
     - [1.3.2. build package](#132-build-package)
     - [1.3.3. install package](#133-install-package)
@@ -31,9 +32,9 @@
   - [2.9. buf support for null values getters and setters](#29-buf-support-for-null-values-getters-and-setters)
   - [2.10. initialize buffers so that insert / select wont report error](#210-initialize-buffers-so-that-insert--select-wont-report-error)
   - [2.11. features - eleminate phases](#211-features---eleminate-phases)
-    - [2.11.1. shorter gsql definition - sql-set and sql](#2111-shorter-gsql-definition---sql-set-and-sql)
-    - [2.11.2. --types](#2112---types)
-    - [2.11.3. list of error codes that are not thrown - parameters](#2113-list-of-error-codes-that-are-not-thrown---parameters)
+  - [2.12. shorter gsql definition - sql-set and sql](#212-shorter-gsql-definition---sql-set-and-sql)
+  - [2.13. --types](#213---types)
+  - [2.14. list of error codes that are not thrown - parameters](#214-list-of-error-codes-that-are-not-thrown---parameters)
 # 1. Todo list
 
 ## 1.1. Tests
@@ -46,7 +47,8 @@
 ### 1.2.5. API for error reporting in runtime utl class
 ### 1.2.6. list of error codes that are not thrown - res
 ### 1.2.7. buffer root references virtual method to fetch the list of attribute addresses
-## 1.3. CMAKE
+### 1.2.8. statement that has parameters and results
+## 1.3. build system
 ### 1.3.1. restructure the cmake files
 ### 1.3.2. build package
 ### 1.3.3. install package
@@ -70,6 +72,6 @@
 ## 2.9. buf support for null values getters and setters
 ## 2.10. initialize buffers so that insert / select wont report error
 ## 2.11. features - eleminate phases
-### 2.11.1. shorter gsql definition - sql-set and sql
-### 2.11.2. --types
-### 2.11.3. list of error codes that are not thrown - parameters
+## 2.12. shorter gsql definition - sql-set and sql
+## 2.13. --types
+## 2.14. list of error codes that are not thrown - parameters
