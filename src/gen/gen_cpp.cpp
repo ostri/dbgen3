@@ -216,7 +216,6 @@ namespace dbgen3
       for (const auto& el : flds)
       {
         int db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-        //        auto group       = db::attr_type(db_type_int);
         type_name = db::ct_name(db_type_int);
         r +=
           out::sl(fmt::format("void set_{0:<{1}}({2:{3}} v, uint ndx) {{{0}_.set_value(v, ndx);}}",
@@ -242,6 +241,18 @@ namespace dbgen3
                  offs);
     return r;
   }
+  str_t gen_cpp::define_ID_const(const fld_vec& flds, uint /*max_name_len*/, uint offs)
+  {
+    str_t r;
+    for (auto cnt = 0UL; cnt < flds.size(); cnt++)
+    {
+      r += out::sl(fmt::format("constexpr static const uint Id{0:02} = {0:2}; // attribute id {1}",
+                               cnt,
+                               flds[cnt].name()),
+                   offs);
+    }
+    return r;
+  }
 
   str_t gen_cpp::define_attributes_const(const fld_vec& flds, uint /*max_name_len*/, uint offs)
   {
@@ -258,28 +269,29 @@ namespace dbgen3
       {
       case db::ATTR_TYPE::atomic:
       {
-        r +=
-          out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
-                              el.dec(),
-                              dec_name),
-                  offs);
+        r += out::sl(
+          fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
+                      el.dec(),
+                      dec_name),
+          offs);
         break;
       }
       case db::ATTR_TYPE::string:
       {
-        r +=
-          out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
-                              el.dec(),
-                              dec_name),
-                  offs);
+        r += out::sl(
+          fmt::format("constexpr static const uint {1} = {0:2}; // number of decimal places",
+                      el.dec(),
+                      dec_name),
+          offs);
         [[fallthrough]];
       }
       case db::ATTR_TYPE::bstring:
       {
-        r += out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // width of the attribute",
-                                 el.width(),
-                                 len_name),
-                     offs);
+        r +=
+          out::sl(fmt::format("constexpr static const uint {1} = {0:2}; // width of the attribute",
+                              el.width(),
+                              len_name),
+                  offs);
         break;
       }
       case db::ATTR_TYPE::unknown:
@@ -396,11 +408,10 @@ namespace dbgen3
     str_t r;
     if (! flds.empty())
     {
-      r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
-      r += out::sl(fmt::format("std::array<db::attr_root_root<N>*, max_attr> A_"), offs);
+      // r += out::sl(fmt::format("constexpr static const uint max_attr = {};", flds.size()), offs);
+      r += out::sl(fmt::format("attr_vec_t A_"), offs);
       r += out::sl(fmt::format("{{"), offs);
-      for (const auto& attr : flds)
-        r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
+      for (const auto& attr : flds) r += out::sl(fmt::format("&{}_,", attr.name()), offs + 2);
       r += out::sl(fmt::format("}};"), offs);
     }
     return r;
@@ -412,8 +423,8 @@ namespace dbgen3
    * @param offs   offset from the left border
    * @return str_t generated code
    */
-  str_t gen_cpp::define_default_ctor(const fld_vec&      flds,
-                                     uint                max_name_len,
+  str_t gen_cpp::define_default_ctor(const fld_vec& /*flds*/,
+                                     uint /*max_name_len*/,
                                      cstr_t              c_name,
                                      const db::BUF_TYPE& bt,
                                      std::size_t         offs)
@@ -422,15 +433,29 @@ namespace dbgen3
     auto  BT_name = str_t("db::BUF_TYPE::") + str_t(ME::enum_name<db::BUF_TYPE>(bt));
     r += out::sl(fmt::format("constexpr {0}() : db::buffer_root<{1}, N>()", c_name, BT_name), offs);
     r += out::sl(fmt::format("{{"), offs);
-    auto PP_str = fmt::format("db::buffer_root<{0}, N>", BT_name);
-    r += out::sl(fmt::format("  using PP = typename {};", PP_str), offs);
-    for (const auto& fld : flds)
-    {
-      auto name = fld.name() + "_";
-      r += out::sl(fmt::format("PP::attr_vec().emplace_back(&{0:<{1}});", name, max_name_len + 1),
-                   offs + 2);
-    }
+    // auto PP_str = fmt::format("db::buffer_root<{0}, N>", BT_name);
+    // r += out::sl(fmt::format("  using PP = typename {};", PP_str), offs);
+    // for (const auto& fld : flds)
+    // {
+    //   auto name = fld.name() + "_";
+    //   r += out::sl(fmt::format("PP::attr_vec().emplace_back(&{0:<{1}});", name, max_name_len +
+    //   1),
+    //                offs + 2);
+    // }
     r += out::sl(fmt::format("}}"), offs);
+    return r;
+  }
+  /**
+   * @brief define root access to the attributes of the buffer
+   *
+   * @param offs offset from left border
+   * @return str_t generated code
+   */
+  str_t gen_cpp::define_attribute_access(uint offs)
+  {
+    str_t r;
+    r += out::sl("      attr_vec_t& attributes()       override {return A_;}", offs);
+    r += out::sl("const attr_vec_t& attributes() const override {return A_;}", offs);
     return r;
   }
   /**
@@ -460,6 +485,7 @@ namespace dbgen3
     r += out::sl(fmt::format("class {0} : public db::buffer_root<{1}, N>", c_name, BT_name), offs);
     r += out::sl(fmt::format("{{"), offs);
     r += out::sl(fmt::format("public: /*...public methods...*/"), offs);
+    r += out::sl(fmt::format("  using attr_vec_t = std::vector<db::attr_root_root<N>*>;"), offs);
     r += define_default_ctor(flds, ml, c_name, bt, offs + 2);
     r += define_trivial_null_getters(flds, ml, offs + 2);
     r += define_null_getters(flds, ml, offs + 2);
@@ -469,7 +495,10 @@ namespace dbgen3
     r += define_getters(flds, ml, mctl, offs + 2);
     r += define_trivial_setters(flds, ml, mctl, offs + 2);
     r += define_setters(flds, ml, mctl, offs + 2);
-    r += out::sl(fmt::format("private:/*...private methods & attributes...*/"), offs);
+    r += out::sl(fmt::format("protected:/*...protected methods..............*/"), offs);
+    r += define_attribute_access(offs + 2);
+    r += out::sl(fmt::format("private:  /*...private methods & attributes...*/"), offs);
+    r += define_ID_const(flds, ml, offs + 2);
     r += define_attributes_const(flds, ml, offs + 2);
     r += define_attr_types(flds, ml, offs + 2);
     r += define_attributes(flds, ml, offs + 2);

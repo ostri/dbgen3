@@ -173,7 +173,7 @@ namespace db
     }
     /**
      * @brief serialize contents of the instance into stirng
-     * 
+     *
      * @param a_msg string to prefix the serialized instance content
      * @param max_el how many values do we display (0== all)
      * @param offs offset from the left border
@@ -222,10 +222,10 @@ namespace db
     }
     /**
      * @brief bind attribute to statement
-     * 
+     *
      * @param a_stmt_handle statement to bind to
      * @param a_ndx attribute index within the parameter the parameter list 1..n
-     * @return int16_t 
+     * @return int16_t
      */
     int16_t bind_par(std::int32_t a_stmt_handle, std::int16_t a_ndx) override
     {
@@ -417,7 +417,7 @@ namespace db
     {
       str_t r;
       r += str_t(a_msg) + "\n";
-      r += "# attr:   " + std::to_string(attr_vec_.size()) + "\n";
+      r += "# attr:   " + std::to_string(attributes().size()) + "\n";
       ;
       r += "# lines:  " + std::to_string(size()) + "\n";
       r += "#occupied:" + std::to_string(occupied_) + "\n";
@@ -430,8 +430,8 @@ namespace db
       }
       r += "\n";
       r += "buffer values:\n";
-      for (const auto& el : attr_vec_)
-        r += el->dump_all(std::to_string((&el - &attr_vec_[0])), occupied(), 0) + "\n";
+      for (const auto& el : attributes())
+        r += el->dump_all(std::to_string((&el - &attributes()[0])), occupied(), 0) + "\n";
       return r;
     }
     int16_t rebind(std::int32_t a_stmt_handle) override
@@ -444,13 +444,14 @@ namespace db
       if (bind_) return SQL_SUCCESS;
       return rebind(a_stmt_handle);
     }
-    //    bool   is_bind() const override { return bind_; }
-    //    size_t size() const override { return arr_size; }
-    virtual attr_vec_t& attr_vec() { return attr_vec_; }
+    // virtual attr_vec_t& attr_vec() { return attributes(); } // TODO(ostri): eliminate
     size_t              occupied() const override { return occupied_; }
     void                set_occupied(size_t v) override { occupied_ = v; }
     size_t*             occupied_addr() override { return &occupied_; }
     constexpr BUF_TYPE  bt() override { return buffer_root::bt_; }
+  protected:
+    virtual std::vector<db::attr_root_root<arr_size>*>& attributes() = 0;
+    virtual const std::vector<db::attr_root_root<arr_size>*>& attributes() const = 0;
   private:
     int16_t bind_par(std::int32_t a_stmt_handle)
     {
@@ -458,7 +459,7 @@ namespace db
       {
         int16_t rc  = SQL_SUCCESS;
         auto    ndx = 0;
-        for (const auto& el : attr_vec_)
+        for (const auto& el : attributes())
         {
           rc = el->bind_par(a_stmt_handle, ++ndx);
           if (rc != SQL_SUCCESS) return rc;
@@ -473,7 +474,7 @@ namespace db
       {
         int16_t rc  = SQL_SUCCESS;
         auto    ndx = 0;
-        for (const auto& el : attr_vec_)
+        for (const auto& el : attributes())
         {
           rc = el->bind_col(a_stmt_handle, ++ndx);
           if (rc != SQL_SUCCESS) return rc;
@@ -487,7 +488,7 @@ namespace db
     //  TODO(ostri): sometimes arr_vec_t can be sts::array
     constexpr static BUF_TYPE bt_ = BT;       //!< buffer type
     size_t                    occupied_{};    //!< how many records is occupied [0..size())
-    attr_vec_t                attr_vec_ = {}; //!< attributes of the buffer
+ //   attr_vec_t                attr_vec_ = {}; //!< attributes of the buffer
     bool                      bind_{};        //!< are the parameters bound to the statement?
     s_vec_t                   s_vec_{};       //!< vector of statuses
     size_t                    processed_{};   //!< number of parameters processed
