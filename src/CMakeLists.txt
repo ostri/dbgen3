@@ -5,15 +5,14 @@ set(HEADER_LIST "")
 set (RT_SUBDIRS runtime)
 set (SUBDIRS utility_classes cmd_param gsql_parser exceptions db_integration core gen ${RT_SUBDIRS} )
 
-foreach (SUBDIR ${SUBDIRS})
-    add_subdirectory(${SUBDIR})
-    message( STATUS "  subdir: ${SUBDIR}")
-endforeach()
-message (STATUS "proj_lib '${PROJ_LIB}'")
 
 add_library(${PROJ_LIB} OBJECT)
 
-target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS} ${DB2_INCLUDE_DIRS})
+target_include_directories(${PROJ_LIB}
+  PRIVATE
+    ${SUBDIRS}
+    ${DB2_INCLUDE_DIRS}
+)
 
 set (src_list
   utility_classes/common
@@ -47,8 +46,8 @@ set (cpp_list ${src_list})
 set (hpp_list ${src_list})
 list(TRANSFORM cpp_list APPEND ".cpp")
 list(TRANSFORM hpp_list APPEND ".hpp")
-message (STATUS "${cpp_list}")
-message (STATUS "${hpp_list}")
+message (STATUS "cpp_list: ${cpp_list}")
+message (STATUS "hpp_list: ${hpp_list}")
 
 target_sources(${PROJ_LIB}
   PRIVATE
@@ -56,29 +55,14 @@ target_sources(${PROJ_LIB}
     ${hpp_list}
     ${rt_hpp_list}
     ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
-  PUBLIC
-    ${hpp_list}
-    ${rt_hpp_list}
 )
-target_include_directories(${PROJ_LIB} 
-  PUBLIC 
+target_include_directories(${PROJ_LIB}
+  PRIVATE
     ${SUBDIRS}
     ${DB2_INCLUDE_DIRS}
     ${magic_enum_SOURCE_DIR}/include
     ${fmt_SOURCE_DIR}/include/
 )
-
-# ## This depends on (header only) boost
-# target_link_libraries(${PROJ_LIB} PRIVATE ${RT_LIB})
-
-# # All users of this library will need at least C++11
-# target_compile_features(${PROJ_LIB} PUBLIC cxx_std_20)
-# target_include_directories(${PROJ_LIB} PUBLIC ${SUBDIRS})
-# # IDEs should put the headers in a nice place
-# # source_group(
-# #   TREE "${PROJECT_SOURCE_DIR}/include"
-# #   PREFIX "Header Files"
-# #   FILES ${HEADER_LIST})
 
 add_library(${RT_LIB})
 
@@ -112,33 +96,33 @@ message(STATUS "magic_enum    ${magic_enum_SOURCE_DIR}")
 message(STATUS "db2 incl dirm ${DB2_INCLUDE_DIRS}")
 target_compile_features(${RT_LIB} PUBLIC cxx_std_20)
 #target_include_directories(${RT_LIB} PRIVATE ${RT_SUBDIRS} ${DB2_INCLUDE_DIRS} ${fmtlib_SOURCE_DIR}/include/fmt/)
-target_include_directories(${RT_LIB} 
-  PRIVATE 
-    ${RT_SUBDIRS} 
-    ${DB2_INCLUDE_DIRS} 
+target_include_directories(${RT_LIB}
+  PRIVATE
+    ${RT_SUBDIRS}
+    ${DB2_INCLUDE_DIRS}
     ${magic_enum_SOURCE_DIR}/include
     ${fmtlib_SOURCE_DIR}/include
 )
-target_link_libraries(${RT_LIB} 
-  PRIVATE 
-    fmt::fmt 
+target_link_libraries(${RT_LIB}
+  PRIVATE
+    fmt::fmt
     ${DB2_LIBRARIES}
 )
 
 #------------------------------------------------------------------------------
 configure_file(version.cpp.in version.cpp)
-add_executable(${PROG_NAME} main.cpp 
-  ${hpp_list} 
-  ${GLOG_INCLUDE_DIRS} 
+add_executable(${PROG_NAME} main.cpp
+  ${hpp_list}
+  ${GLOG_INCLUDE_DIRS}
   ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
   ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
 )
 target_compile_features(${PROG_NAME} PRIVATE cxx_std_20)
-target_include_directories(${PROG_NAME} 
-  PUBLIC 
+target_include_directories(${PROG_NAME}
+  PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${SUBDIRS} 
-    ${DB2_INCLUDE_DIRS} 
+    ${SUBDIRS}
+    ${DB2_INCLUDE_DIRS}
     ${fmtlib_SOURCE_DIR}/include
     ${magic_enum_SOURCE_DIR}/include
 )
@@ -152,3 +136,8 @@ target_link_libraries(${PROG_NAME}
     gflags
     xerces-c
 )
+foreach (SUBDIR ${SUBDIRS})
+    add_subdirectory(${SUBDIR})
+    message( STATUS "  subdir: ${SUBDIR}")
+endforeach()
+message (STATUS "proj_lib '${PROJ_LIB}'")

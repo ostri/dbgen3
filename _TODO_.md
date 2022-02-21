@@ -1,6 +1,6 @@
 - [1. Todo list](#1-todo-list)
   - [1.1. Tests](#11-tests)
-    - [1.1.1. integrate all tests under single umbrela](#111-integrate-all-tests-under-single-umbrela)
+    - [1.1.1. integrate all tests under single umbrella](#111-integrate-all-tests-under-single-umbrella)
   - [1.2. Features](#12-features)
     - [1.2.1. support for u16string values](#121-support-for-u16string-values)
     - [1.2.2. check status codes upon insert (e.g. duplicates)](#122-check-status-codes-upon-insert-eg-duplicates)
@@ -8,7 +8,6 @@
     - [1.3.1. restructure the cmake files](#131-restructure-the-cmake-files)
     - [1.3.2. build package](#132-build-package)
     - [1.3.3. install package](#133-install-package)
-    - [1.3.4. t1.hpp is generated everywhere](#134-t1hpp-is-generated-everywhere)
   - [1.4. documentation](#14-documentation)
     - [1.4.1. doxygen](#141-doxygen)
       - [1.4.1.1. generated files](#1411-generated-files)
@@ -36,18 +35,22 @@
     - [2.11.8. Fix bug with "?" in sql - reports error](#2118-fix-bug-with--in-sql---reports-error)
     - [2.11.9. better error reporting upon grammar errors](#2119-better-error-reporting-upon-grammar-errors)
     - [2.11.10. in sql node any atribute is allowed - fix it](#21110-in-sql-node-any-atribute-is-allowed---fix-it)
+    - [2.11.11. CMAKE](#21111-cmake)
+      - [2.11.11.1. t1.hpp is generated everywhere](#211111-t1hpp-is-generated-everywhere)
+      - [2.11.11.2. source libraries](#211112-source-libraries)
+      - [2.11.11.3. direct dependency t1.gsql and t1.hpp](#211113-direct-dependency-t1gsql-and-t1hpp)
 # 1. Todo list
 
 ## 1.1. Tests
-### 1.1.1. integrate all tests under single umbrela
+### 1.1.1. integrate all tests under single umbrella
 ## 1.2. Features
 ### 1.2.1. support for u16string values
 ### 1.2.2. check status codes upon insert (e.g. duplicates)
 ## 1.3. CMAKE
 ### 1.3.1. restructure the cmake files
+
 ### 1.3.2. build package
 ### 1.3.3. install package
-### 1.3.4. t1.hpp is generated everywhere
 
 ## 1.4. documentation
 ### 1.4.1. doxygen
@@ -77,3 +80,7 @@
 ### 2.11.8. Fix bug with "?" in sql - reports error
 ### 2.11.9. better error reporting upon grammar errors
 ### 2.11.10. in sql node any atribute is allowed - fix it
+### 2.11.11. CMAKE
+#### 2.11.11.1. t1.hpp is generated everywhere
+#### 2.11.11.2. source libraries
+#### 2.11.11.3. direct dependency t1.gsql and t1.hpp

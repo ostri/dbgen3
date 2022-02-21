@@ -2,15 +2,16 @@
  * \file
  * \brief program to test runtime library
  */
-#include "dbgen3_templ.hpp"
-#include <string_view>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+
 #include <array>
 #include <cstdlib>
 #include <doctest/doctest.h>
 #include <iostream>
 #include <span>
+#include <string_view>
 
+#include "dbgen3_templ.hpp"
 #include "connection.hpp"
 #include "error_exception.hpp"
 #include "program_status.hpp"
