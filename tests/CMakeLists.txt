@@ -6,8 +6,8 @@ message(STATUS "ME dir      ${magic_enum_SOURCE_DIR}")
 
 add_custom_command(
   OUTPUT ${CMAKE_BINARY_DIR}/t1.hpp
-  COMMAND ${CMAKE_BINARY_DIR}/src/dbgen3 --db_name test ${CMAKE_SOURCE_DIR}/gsql/t1.gsql --out_folder ${CMAKE_BINARY_DIR}
-  DEPENDS ${CMAKE_BINARY_DIR}/src/dbgen3 ${CMAKE_SOURCE_DIR}/gsql/t1.gsql
+  COMMAND ${CMAKE_BINARY_DIR}/src/generator/dbgen3 --db_name test ${CMAKE_SOURCE_DIR}/gsql/t1.gsql --out_folder ${CMAKE_BINARY_DIR}
+  DEPENDS ${CMAKE_BINARY_DIR}/src/generator/dbgen3 ${CMAKE_SOURCE_DIR}/gsql/t1.gsql
   )
 #-----------------------------------------------------------------------------
 add_executable(t0
@@ -21,6 +21,14 @@ target_include_directories(t0
     ${magic_enum_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src/utility_classes/
     ${fmt_SOURCE_DIR}/include
+    ../src/generator/utility_classes
+    gsql_parser
+    cmd_param
+    core
+    db_integration
+    gen
+    exceptions
+    ../runtime
     )
 target_link_libraries(t0
   PRIVATE
@@ -61,7 +69,6 @@ target_link_libraries(t1
 #
 add_executable(templ
   test_templ.cpp
-  # ${magic_enum_SOURCE_DIR}/include/magic_enum.hpp
 )
 
 target_compile_features(templ PUBLIC cxx_std_20)
@@ -69,9 +76,9 @@ target_include_directories(templ
   PRIVATE
     ${RT_SUBDIRS}
     ${DB2_INCLUDE_DIRS}
-    ${magic_enum_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/src/utility_classes/
-    ${fmt_SOURCE_DIR}/include
+#    ${magic_enum_SOURCE_DIR}/include
+#    ${CMAKE_SOURCE_DIR}/src/utility_classes/
+#    ${fmt_SOURCE_DIR}/include
     )
 target_link_libraries(templ
   PRIVATE

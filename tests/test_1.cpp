@@ -14,7 +14,7 @@
 #include "dbgen3_templ.hpp"
 #include "connection.hpp"
 #include "error_exception.hpp"
-#include "program_status.hpp"
+//#include "program_status.hpp"
 #include "statement.hpp"
 #include "t1.hpp"
 

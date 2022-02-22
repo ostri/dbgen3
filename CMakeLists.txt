@@ -17,24 +17,25 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(PREBUILT_MODULE_PATH ${CMAKE_BINARY_DIR}/modules)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+
   add_compile_options(
-    -Wall 
-    -Wextra 
-    -pedantic 
-    -Werror 
-    -Wnarrowing 
+    -Wall
+    -Wextra
+    -pedantic
+    -Werror
+    -Wnarrowing
     -pthread
     # -fsanitize=address
     # -fno-omit-frame-pointer
-    # -fsanitize=undefined 
-    # -fno-sanitize-recover=all 
-    # -fsanitize=float-divide-by-zero 
-    # -fsanitize=float-cast-overflow 
-    # -fno-sanitize=null 
+    # -fsanitize=undefined
+    # -fno-sanitize-recover=all
+    # -fsanitize=float-divide-by-zero
+    # -fsanitize=float-cast-overflow
+    # -fno-sanitize=null
     # -fno-sanitize=alignment
     )
     add_link_options(
-      # -fno-omit-frame-pointer 
+      # -fno-omit-frame-pointer
       # -fsanitize=address
     )
     # set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
@@ -77,7 +78,7 @@ FetchContent_Declare(DocTest GIT_REPOSITORY "https://github.com/doctest/doctest.
 FetchContent_MakeAvailable(DocTest)
 
 # Adds fmt::fmt
-FetchContent_Declare(fmt GIT_REPOSITORY "https://github.com/fmtlib/fmt.git" GIT_TAG master)
+FetchContent_Declare(fmt GIT_REPOSITORY "https://github.com/fmtlib/fmt.git" GIT_TAG "8.1.1")
 FetchContent_MakeAvailable(fmt)
 
 # static enums
@@ -88,13 +89,13 @@ FetchContent_MakeAvailable(magic_enum)
 add_subdirectory(src)
 
 # if((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
-#     set(OPTIONS 
-#     -Wall 
-#     -Wextra 
-#     -pedantic-errors 
-#     -Werror 
-#     -Wnarrowing 
-#     -pthread 
+#     set(OPTIONS
+#     -Wall
+#     -Wextra
+#     -pedantic-errors
+#     -Werror
+#     -Wnarrowing
+#     -pthread
 #     -fsanitize=address
 #     )
 # elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
@@ -110,3 +111,10 @@ if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING)
    AND BUILD_TESTING)
   add_subdirectory(tests)
 endif()
+
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+endif()
+
+message(STATUS "fmt:*** '${fmtlib_SOURCE_DIR}/include'")

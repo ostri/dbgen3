@@ -12,7 +12,7 @@
 #include <statement.hpp>
 
 #include "dbgen3_templ.hpp"
-#include "enums.hpp"
+//#include "enums.hpp"
 
 
 using cstr_t = std::string_view;
@@ -31,7 +31,7 @@ TEST_SUITE("templates")
     const auto                            v        = 10;
     constexpr auto                        dim      = 5;
     constexpr auto                        smallint = 5;
-    db::atomic<int16_t, smallint, 0, dim> f1;
+    db::atomic<int16_t, smallint, dim, 0> f1;
     REQUIRE_EQ(f1.size(), dim);
     f1.set_value(v);
     REQUIRE_EQ(f1.value(), v);
@@ -53,10 +53,10 @@ TEST_SUITE("templates")
   TEST_CASE("string") // NOLINT
   {
     constexpr std::size_t    dim     = 5UL;
-    constexpr auto           v       = "0123456789";
+    constexpr cstr_t         v       = "0123456789";
     constexpr auto           v0      = "";
     auto                     v1      = std::string(v) + "A";
-    constexpr auto           str_len = 10; // must be v.size()
+    constexpr auto           str_len = v.size(); // must be v.size()
     db::string<std::array<char, str_len>, SQL_CHAR,  dim, 0, char> f1;
     REQUIRE(f1.size() == dim);
     f1.set_value(v);
