@@ -24,9 +24,12 @@ DEFINE_bool  (types,          false,   "display supported database column types"
 // clang-format on
 
 using out = dbgen3::string_format;
+using str_t = std::string;
 
 int main(int argc, char** argv)
 {
+  auto sts = dbgen3::P_STS::success;
+  str_t msg;
   try
   {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -35,7 +38,7 @@ int main(int argc, char** argv)
     dbgen3::cmdline_parameters cmd_par(argc, argv);
     info << "version: " << get_version();
     info << cmd_par.dump("command line parameters:");
-    auto sts = cmd_par.check_parameters();
+    sts = cmd_par.check_parameters();
     if (sts == dbgen3::P_STS::success)
     { /* parameters are OK */
       info << out::sl("parameters are ok.", 0);
@@ -48,30 +51,29 @@ int main(int argc, char** argv)
       }
     }
     else { /* invalid or missing parameters */
-      auto tmp = dbgen3::PS::dscr(sts);
-      err << out::sl(tmp, 0);
+      msg = out::sl(dbgen3::PS::dscr(sts), 0);
     }
-    return dbgen3::ME::enum_integer<dbgen3::P_STS>(sts);
   }
   catch (const dbgen3::gsql_file_not_exsts& e)
   {
-    err << out::sl(dbgen3::PS::dscr(e.status()));
-    return dbgen3::ME::enum_integer<dbgen3::P_STS>(e.status());
+    msg = out::sl(dbgen3::PS::dscr(e.status()));
+    sts = e.status();
   }
   catch (const dbgen3::dbgen3_exc& e)
   {
-    err << out::sl(e.what()) << std::endl;
-    return dbgen3::ME::enum_integer<dbgen3::P_STS>(e.status());
+    msg = out::sl(e.what());
+    sts = e.status();
   }
   catch (const std::runtime_error& e)
   {
-    err << "internal error:'" << e.what() << "'.\n";
-    return dbgen3::ME::enum_integer<dbgen3::P_STS>(dbgen3::P_STS::unk_exception);
+    msg = str_t("internal error:'") + e.what() + "'\n";
+    sts = dbgen3::P_STS::unk_exception;
   }
   catch (...)
   {
-    std::cerr << "unknown exception" << '\n';
-    return dbgen3::ME::enum_integer<dbgen3::P_STS>(dbgen3::P_STS::unknown_error);
+    msg = "unknown exception\n";
+    sts = dbgen3::P_STS::unknown_error;
   }
-  return dbgen3::ME::enum_integer<dbgen3::P_STS>(dbgen3::P_STS::success);
+  err << msg;
+  return dbgen3::ME::enum_integer<dbgen3::P_STS>(sts);
 }

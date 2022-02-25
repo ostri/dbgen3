@@ -17,27 +17,34 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(PREBUILT_MODULE_PATH ${CMAKE_BINARY_DIR}/modules)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-
-  add_compile_options(
-    -Wall
-    -Wextra
-    -pedantic
-    -Werror
-    -Wnarrowing
-    -pthread
-    # -fsanitize=address
-    # -fno-omit-frame-pointer
-    # -fsanitize=undefined
-    # -fno-sanitize-recover=all
-    # -fsanitize=float-divide-by-zero
-    # -fsanitize=float-cast-overflow
-    # -fno-sanitize=null
-    # -fno-sanitize=alignment
-    )
-    add_link_options(
-      # -fno-omit-frame-pointer
+  if((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+      add_compile_options(
+      -Wall
+      -Wextra
+      -pedantic
+      -Werror
+      -Wnarrowing
+      -pthread
       # -fsanitize=address
-    )
+      # -fno-omit-frame-pointer
+      # -fsanitize=undefined
+      # -fno-sanitize-recover=all
+      # -fsanitize=float-divide-by-zero
+      # -fsanitize=float-cast-overflow
+      # -fno-sanitize=null
+      # -fno-sanitize=alignment
+      )
+      add_link_options(
+        # -fno-omit-frame-pointer
+        # -fsanitize=address
+        # -fsanitize=undefined
+      )
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+      set(OPTIONS /W4 /WX)
+      if(HAS_PERMISSIVE_FLAG)
+          set(OPTIONS ${OPTIONS} /permissive-)
+      endif()
+    endif()
     # set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
     # set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   # Let's nicely support folders in IDEs
@@ -71,7 +78,6 @@ find_package (gflags REQUIRED)    # sudo dnf install gflags-devel
 find_package (GLOG REQUIRED)      # sudo dnf install glog-devel
 find_package (XercesC REQUIRED)   # sudo dnf install xerces-c-devel.x86_64
 find_package (DB2 REQUIRED)
-#find_package (doctest REQUIRED)   # sudo dnf install  doctest-devel.x86_64
 
 # unit testing
 FetchContent_Declare(DocTest GIT_REPOSITORY "https://github.com/doctest/doctest.git" GIT_TAG "2.4.7")
@@ -88,26 +94,8 @@ FetchContent_MakeAvailable(magic_enum)
 # The compiled library code is here
 add_subdirectory(src)
 
-# if((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
-#     set(OPTIONS
-#     -Wall
-#     -Wextra
-#     -pedantic-errors
-#     -Werror
-#     -Wnarrowing
-#     -pthread
-#     -fsanitize=address
-#     )
-# elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-#     set(OPTIONS /W4 /WX)
-#     if(HAS_PERMISSIVE_FLAG)
-#         set(OPTIONS ${OPTIONS} /permissive-)
-#     endif()
-# endif()
-
 # Testing only available if this is the main app
-# Emergency override MODERN_CMAKE_BUILD_TESTING provided as well
-if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING)
+if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
    AND BUILD_TESTING)
   add_subdirectory(tests)
 endif()

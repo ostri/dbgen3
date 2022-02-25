@@ -116,7 +116,7 @@ namespace dbgen3
     if (sts == nullptr) { return ME::enum_integer<P_STS>(P_STS::inv_grammar_syntax); }
     core_parser p(gp.get());
     db2_reader  r;
-    r.connect(this->cmd_p_.db_name(), "", ""); // FIXME username and password also
+    r.connect(cmd_p_.db_name(), "", ""); // FIXME username and password also
     std::unique_ptr<gen> gen;
     if (cmd_p_.lang() == PROG_LANG::cpp) gen = std::make_unique<gen_cpp>();
     assert(gen.get() != nullptr); // NOLINT clang-tidy(hicpp-no-array-decay)

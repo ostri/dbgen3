@@ -11,6 +11,12 @@
 #include <sstream>
 #include <stack>
 #include <vector>
+
+#if defined(__clang__) || defined(__GNUC__)
+#  define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#else
+#  define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif
 namespace db
 {
 
@@ -70,7 +76,7 @@ namespace db
     static std::int32_t get_env();                         //!< get environment handle
     std::int32_t        get_db_handle() const;             //!< get connection handle
     err_log             get_log() const;                   //!< get log callback function
-    std::int32_t        alloc_stmt_handle() const;         //!< get statement handle
+    int alloc_stmt_handle() const;         //!< get statement handle
     const std::string&  get_db_name() const;               //!< fetch database name
     static bool         should_we_log();                   //!< is runtime logging switched on?
     std::string dump(const std::string& a_msg = "") const; //!< serialize connection attributes
@@ -97,26 +103,28 @@ namespace db
      * @param a_handle_type db handle type where we are checking status
      * @param a_msg a messsage to be dispatched upon error
      */
-    static h_pair throw_on_error(std::int16_t       rc,
-                                 std::int32_t       a_handle,
-                                 std::int16_t       a_handle_type,
-                                 const std::string& a_msg);
+    static int throw_on_error(std::int16_t       rc,
+                              std::int32_t       a_handle,
+                              std::int16_t       a_handle_type,
+                              const std::string& a_msg);
 
-    static h_pair allocate_env_handle(); //!< allocate database environment handle
-    std::int32_t  alloc_stmt_handle(std::int32_t db_handle) const; //!< get statement handle
+    static int allocate_env_handle(); //!< allocate database environment handle
+    static int alloc_stmt_handle(int db_handle, err_log log); //!< get statement handle
 
     static void print_ctx( //!< display error context
       const std::string& msg,
       int                err_code,
       int                line,
       const std::string& file);
-    int         open_connection( //!< open new db connection
-      const std::string& a_database,
-      const std::string& a_user,
-      const std::string& a_password);
-    void        close_connection(); //!< close connection (invers of open connection)
+    ATTRIBUTE_NO_SANITIZE_ADDRESS
+    static int open_connection(const std::string& a_database,
+                               const std::string& a_user,
+                               const std::string& a_password,
+                               err_log            log);
+    static int close_connection(int     db_handle,
+                                err_log log); //!< close connection (invers of open connection)
     /*... instance attributes ................................................*/
-    static std::int32_t henv_; //!< environment handle NOLINT
+    static int henv_; //!< environment handle NOLINT
     // number of connections referencing the same environment handle
     static std::atomic_uint henv_ref_cnt_; // NOLINT
     //    h_stack                 h_stack_;      //!< handle stack to be exception safe
