@@ -1,8 +1,6 @@
-#include <array>
-#include <sqlcli1.h>
+// #include <array>
+// #include <sqlcli1.h>
 
-#include "odbc_db.hpp"
+#include "runtime/odbc_db.hpp"
 namespace db
-{ 
-
-}
+{ } // namespace db

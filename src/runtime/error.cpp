@@ -4,8 +4,6 @@
  *
  * It holds a class which is used for error detection
  */
-#include "error.hpp"
-#include "error_dscr.hpp"
 //#include "trace.hpp"
 #include <array>
 #include <cassert>
@@ -16,6 +14,10 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+
+#include "runtime/error.hpp"
+#include "runtime/error_dscr.hpp"
+
 namespace db
 {
   /*!

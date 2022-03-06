@@ -104,5 +104,12 @@ find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
 endif()
-
-message(STATUS "fmt:*** '${fmtlib_SOURCE_DIR}/include'")
+#
+# installation
+#
+include(GNUInstallDirs)
+# install(TARGETS Add Subtract Maths MathsDemo
+#     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+#     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+# )

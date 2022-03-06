@@ -4,8 +4,8 @@
 #include <string>
 
 #include "common.hpp"
-#include "connection.hpp"
-#include "error_exception.hpp"
+#include "runtime/connection.hpp"
+#include "runtime/error_exception.hpp"
 
 namespace dbgen3
 {
@@ -13,12 +13,8 @@ namespace dbgen3
   {
   public:
     db2_reader()=default;
-    int connect(cstr_t a_db_name, cstr_t a_user, cstr_t a_pass)
-    {
-      con_ = std::make_unique<db::connection>(std::string(a_db_name), std::string(a_user), std::string(a_pass));
-      return 0;
-    }
-    const db::connection* connection() const { return con_.get(); }
+    int connect(cstr_t a_db_name, cstr_t a_user, cstr_t a_pass);
+    const db::connection* connection() const;
   protected:
   private:
     std::string           db_name_;

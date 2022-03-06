@@ -1,12 +1,12 @@
-#include "error_exception.hpp"
 /*!
  * \file
  * \brief Implementation of db::error_exception class
  */
-#include "error.hpp"
-#include "error_exception.hpp"
 #include <iostream>
 #include <stdexcept>
+
+#include "runtime/error.hpp"
+#include "runtime/error_exception.hpp"
 
 namespace db
 {
