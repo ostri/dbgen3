@@ -21,8 +21,7 @@ list(TRANSFORM cpp_list APPEND ".cpp")
 list(TRANSFORM hpp_list APPEND ".hpp")
 list(TRANSFORM cpp_list PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 list(TRANSFORM hpp_list PREPEND ${incl_folder})
-message (STATUS "'${RT_LIB}' files: [${src_list}]")
-message (STATUS "'db2_inclde_dirs' : [${DB2_INCLUDE_DIRS}]")
+message (STATUS "'${RT_LIB}'             [${src_list}]")
 
 target_sources(${RT_LIB}
   PRIVATE
@@ -33,8 +32,8 @@ target_sources(${RT_LIB}
 target_include_directories(${RT_LIB}
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-  PRIVATE
     ${DB2_INCLUDE_DIRS}
+  PRIVATE
 )
 target_link_libraries(${RT_LIB}
   PUBLIC

@@ -2,7 +2,7 @@
 # gsql_parser library
 #
 set(LIB gsql_parser)
-set(incl_folder "${CMAKE_CURRENT_SOURCE_DIR}/${gsql_parser}/")
+set(incl_folder "${CMAKE_CURRENT_SOURCE_DIR}/${LIB}/")
 add_library(${LIB} STATIC)
 
 set (src_list
@@ -22,14 +22,13 @@ list(TRANSFORM cpp_list APPEND ".cpp")
 list(TRANSFORM hpp_list APPEND ".hpp")
 list(TRANSFORM cpp_list PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 list(TRANSFORM hpp_list PREPEND ${incl_folder})
-message (STATUS "'${LIB}' files: [${src_list}]")
-message (STATUS "'${LIB}' library : [${LIB}]")
+message (STATUS "'${LIB}'     [${src_list}]")
 
 target_sources(${LIB}
   PRIVATE
     ${cpp_list}
-  PUBLIC
     ${hpp_list}
+  PUBLIC
 )
 target_include_directories(${LIB}
   PUBLIC
@@ -40,11 +39,13 @@ target_include_directories(${LIB}
 target_link_libraries(${LIB}
   PUBLIC
   PRIVATE
-    ${DB2_LIBRARIES}
+    ${RT_LIB}
+    magic_enum::magic_enum
+    fmt::fmt
     utility_classes
     db_integration
-    ${RT_LIB}
     exceptions
     cmd_param
     core
-  )
+    gen
+   )

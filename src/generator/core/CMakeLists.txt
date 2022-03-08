@@ -14,8 +14,7 @@ list(TRANSFORM cpp_list APPEND ".cpp")
 list(TRANSFORM hpp_list APPEND ".hpp")
 list(TRANSFORM cpp_list PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 list(TRANSFORM hpp_list PREPEND ${incl_folder})
-message (STATUS "'${LIB}' files: [${src_list}]")
-message (STATUS "'${LIB}' library : [${LIB}]")
+message (STATUS "'${LIB}'            [${src_list}]")
 
 target_sources(${LIB}
   PRIVATE
@@ -26,25 +25,19 @@ target_sources(${LIB}
 target_include_directories(${LIB}
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${fmt_SOURCE_DIR}/include
-    ${magic_enum_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/src/generator/db_integration
-    ${CMAKE_SOURCE_DIR}/src/generator/gen
-    ${CMAKE_SOURCE_DIR}/src/runtime
-    # ${incl_folder}
-    # ${CMAKE_SOURCE_DIR}/src/generator/exceptions
   PRIVATE
-    ${DB2_INCLUDE_DIRS}
 )
 target_link_libraries(${LIB}
   PUBLIC
   PRIVATE
     ${DB2_LIBRARIES}
     exceptions
+    magic_enum::magic_enum
     fmt::fmt
     utility_classes
     gsql_parser
     cmd_param
     db_integration
     gen
+    ${RT_LIB}
   )

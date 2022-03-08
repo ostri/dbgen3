@@ -1,6 +1,2 @@
 add_subdirectory(generator)
 add_subdirectory(runtime)
-set(RT_LIB db3)
-set(PROJ_LIB proj)
-set(PROG_NAME dbgen3)
-message(STATUS "fmt:** '${fmt_SOURCE_DIR}/include'")

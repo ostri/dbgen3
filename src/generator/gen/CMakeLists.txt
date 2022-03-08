@@ -15,33 +15,27 @@ list(TRANSFORM cpp_list APPEND ".cpp")
 list(TRANSFORM hpp_list APPEND ".hpp")
 list(TRANSFORM cpp_list PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 list(TRANSFORM hpp_list PREPEND ${incl_folder})
-message (STATUS "'${LIB}' files: [${src_list}]")
-message (STATUS "'${LIB}' library : [${LIB}]")
+message (STATUS "'${LIB}'             [${src_list}]")
 
 target_sources(${LIB}
   PRIVATE
     ${cpp_list}
-  PUBLIC
     ${hpp_list}
+  PUBLIC
 )
 target_include_directories(${LIB}
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${fmt_SOURCE_DIR}/include
-    ${magic_enum_SOURCE_DIR}/include
   PRIVATE
-    ${DB2_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/src/runtime
-
 )
 target_link_libraries(${LIB}
   PUBLIC
   PRIVATE
-    ${DB2_LIBRARIES}
+    ${RT_LIB}
     fmt::fmt
+    magic_enum::magic_enum
     utility_classes
     gsql_parser
     db_integration
-    ${RT_LIB}
     cmd_param
 )
