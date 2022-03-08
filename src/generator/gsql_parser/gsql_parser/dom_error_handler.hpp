@@ -6,12 +6,10 @@
 #include <xercesc/dom/DOMErrorHandler.hpp>
 #include <xercesc/dom/DOMLocator.hpp>
 
-#include "exceptions.hpp"
+#include "exceptions/exceptions.hpp"
 #include "fmt/core.h"
-#include "program_status.hpp"
-#include "program_status.hpp"
-#include "program_status.hpp"
-#include "xerces_strings.hpp"
+#include "gsql_parser/xerces_strings.hpp"
+#include "utility_classes/program_status.hpp"
 
 namespace dbgen3
 {

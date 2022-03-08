@@ -1,4 +1,3 @@
-#include "executor.hpp"
 #include <memory>
 #include <stdexcept>
 #include <xercesc/dom/DOMException.hpp>
@@ -9,14 +8,18 @@
 #include <xercesc/framework/XMLGrammarPool.hpp>
 #include <xercesc/framework/XMLGrammarPoolImpl.hpp>
 #include <xercesc/validators/common/Grammar.hpp>
+#include <filesystem>
 
-#include "dom_error_handler.hpp"
-#include "exceptions.hpp"
 #include "fmt/core.h"
 #include "magic_enum.hpp"
-#include "multi_line.hpp"
-#include "program_status.hpp"
-#include "xsd_grammar.hpp"
+#include "utility_classes/multi_line.hpp"
+#include "utility_classes/program_status.hpp"
+#include "gsql_parser/xsd_grammar.hpp"
+
+#include "gsql_parser/dom_error_handler.hpp"
+#include "exceptions/exceptions.hpp"
+#include "core/executor.hpp"
+
 namespace dbgen3
 {
   namespace fs = std::filesystem;

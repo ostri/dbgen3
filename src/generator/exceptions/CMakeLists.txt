@@ -1,3 +1,39 @@
 #
+# exceptions library
 #
-#
+set(LIB exceptions)
+set(incl_folder "${CMAKE_CURRENT_SOURCE_DIR}/${LIB}/")
+add_library(${LIB} STATIC)
+
+set (src_list
+  exceptions
+)
+set (cpp_list ${src_list})
+set (hpp_list ${src_list})
+list(TRANSFORM cpp_list APPEND ".cpp")
+list(TRANSFORM hpp_list APPEND ".hpp")
+list(TRANSFORM cpp_list PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+list(TRANSFORM hpp_list PREPEND ${incl_folder})
+message (STATUS "'${LIB}' files: [${src_list}]")
+message (STATUS "'${LIB}' library : [${LIB}]")
+message (STATUS "'fmt' source : [${fmt_SOURCE_DIR}]")
+
+target_sources(${LIB}
+  PRIVATE
+    ${cpp_list}
+  PUBLIC
+    ${hpp_list}
+)
+target_include_directories(${LIB}
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${fmt_SOURCE_DIR}/include
+  PRIVATE
+    ${magic_enum_SOURCE_DIR}/include
+)
+target_link_libraries(${LIB}
+  PUBLIC
+  PRIVATE
+    ${DB2_LIBRARIES}
+    utility_classes
+  )

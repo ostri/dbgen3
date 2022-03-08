@@ -1,5 +1,5 @@
-#include "gsql_sql_dscr.hpp"
-#include "multi_line.hpp"
+#include "gsql_parser/gsql_sql_dscr.hpp"
+#include "utility_classes/multi_line.hpp"
 
 namespace dbgen3
 {

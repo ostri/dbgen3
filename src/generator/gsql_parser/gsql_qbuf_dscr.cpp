@@ -1,6 +1,6 @@
-#include "gsql_qbuf_dscr.hpp"
+#include "gsql_parser/gsql_qbuf_dscr.hpp"
 #include "magic_enum.hpp"
-#include "odbc_db.hpp"
+#include "runtime/odbc_db.hpp"
 namespace dbgen3
 {
   gsql_qbuf_dscr::gsql_qbuf_dscr(const db::BUF_TYPE& a_type, bool should_skip)

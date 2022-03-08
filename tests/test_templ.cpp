@@ -3,15 +3,15 @@
  * \brief program to test template header
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <connection.hpp>
 #include <doctest/doctest.h>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <iostream>
+#include <runtime/connection.hpp>
+#include <runtime/statement.hpp>
 #include <sqlcli.h>
-#include <statement.hpp>
 
-#include "dbgen3_templ.hpp"
+#include "runtime/dbgen3_templ.hpp"
 //#include "enums.hpp"
 
 

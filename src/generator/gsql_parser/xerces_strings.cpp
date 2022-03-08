@@ -1,4 +1,4 @@
-#include "xerces_strings.hpp"
+#include "gsql_parser/xerces_strings.hpp"
 /*!
  * \file
  * \brief implementation of XercesSting utilities

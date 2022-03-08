@@ -3,15 +3,15 @@
 #include <iostream>
 #include <magic_enum.hpp>
 
-#include "cmdline_parameters.hpp"
-#include "common.hpp"
-#include "core_parser.hpp"
-#include "exceptions.hpp"
-#include "executor.hpp"
-#include "program_status.hpp"
-#include "string_format.hpp"
+#include "cmd_param/cmdline_parameters.hpp"
+#include "core/executor.hpp"
+#include "exceptions/exceptions.hpp"
+#include "gsql_parser/core_parser.hpp"
+#include "gsql_parser/xsd_grammar.hpp"
+#include "utility_classes/common.hpp"
+#include "utility_classes/program_status.hpp"
+#include "utility_classes/string_format.hpp"
 #include "version.hpp"
-#include "xsd_grammar.hpp"
 
 // clang-format off
 DEFINE_string(db_name,        "",      "database name");                           // NOLINT

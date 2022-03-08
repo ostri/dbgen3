@@ -1,9 +1,9 @@
 #include <cctype>
 #include <span>
 
-#include "common.hpp"
-#include "multi_line.hpp"
-#include "string_format.hpp"
+#include "utility_classes/common.hpp"
+#include "utility_classes/multi_line.hpp"
+#include "utility_classes/string_format.hpp"
 
 namespace dbgen3
 {

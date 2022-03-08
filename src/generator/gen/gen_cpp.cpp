@@ -2,11 +2,11 @@
 #include <chrono>
 #include <magic_enum.hpp>
 
-#include "fld_dscr.hpp"
-#include "enums.hpp"
+#include "db_integration/fld_dscr.hpp"
 #include "fmt/core.h"
-#include "gen_cpp.hpp"
-#include "odbc_db.hpp"
+#include "gen/gen_cpp.hpp"
+#include "runtime/odbc_db.hpp"
+#include "utility_classes/enums.hpp"
 
 namespace dbgen3
 {
@@ -654,7 +654,7 @@ namespace dbgen3
     r += out::sl("#include <string>", offs);
     r += out::sl("#include <string_view>", offs);
     r += out::sl("", offs);
-    r += out::sl(fmt::format("#include \"{}\"", "dbgen3_templ.hpp"), offs);
+    r += out::sl(fmt::format("#include \"{}\"", "runtime/dbgen3_templ.hpp"), offs);
     return r;
   }
   /**

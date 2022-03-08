@@ -1,6 +1,8 @@
-#include "common.hpp"
 #include <cassert>
 #include <iostream>
+
+#include "utility_classes/common.hpp"
+
 namespace dbgen3
 {
   /**

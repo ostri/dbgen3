@@ -1,11 +1,11 @@
 #ifndef GSQL_QBUF_DSCR_HPP
 #define GSQL_QBUF_DSCR_HPP
-#include "common.hpp"
-#include "enums.hpp"
-#include "fld_dscr.hpp"
+#include "utility_classes/common.hpp"
+#include "db_integration/fld_dscr.hpp"
 #include "magic_enum.hpp"
-#include "odbc_db.hpp"
-#include "string_format.hpp"
+#include "runtime/odbc_db.hpp"
+#include "utility_classes/enums.hpp"
+#include "utility_classes/string_format.hpp"
 #include <algorithm>
 
 namespace dbgen3

@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "enums.hpp"
-#include "string_format.hpp"
+#include "utility_classes/enums.hpp"
+#include "utility_classes/string_format.hpp"
 
 namespace dbgen3
 {

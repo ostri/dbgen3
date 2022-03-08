@@ -4,9 +4,9 @@
 #include <fmt/core.h>
 #include <vector>
 
-#include "string_format.hpp"
-#include "cmdline_parameters.hpp"
-#include "multi_line.hpp"
+#include "utility_classes/string_format.hpp"
+#include "cmd_param/cmdline_parameters.hpp"
+#include "utility_classes/multi_line.hpp"
 namespace dbgen3
 {
   class gsql_sql_dscr

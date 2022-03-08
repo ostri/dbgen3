@@ -14,15 +14,15 @@
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/validators/common/Grammar.hpp>
 
-#include "common.hpp"
-#include "db2_reader.hpp"
-#include "dom_error_handler.hpp"
-#include "gsql_q_set.hpp"
-#include "gsql_sql_set.hpp"
-#include "log.hpp"
-#include "statement.hpp"
-#include "string_format.hpp"
-#include "xerces_strings.hpp"
+#include "utility_classes/common.hpp"
+#include "db_integration/db2_reader.hpp"
+#include "gsql_parser/dom_error_handler.hpp"
+#include "gsql_parser/gsql_q_set.hpp"
+#include "gsql_parser/gsql_sql_set.hpp"
+#include "gsql_parser/xerces_strings.hpp"
+#include "runtime/statement.hpp"
+#include "utility_classes/log.hpp"
+#include "utility_classes/string_format.hpp"
 
 namespace dbgen3
 {

@@ -4,17 +4,17 @@
 #include <xercesc/dom/DOMText.hpp>
 #include <xercesc/framework/XMLGrammarPool.hpp>
 
-#include "core_parser.hpp"
-#include "db2_reader.hpp"
-#include "enums.hpp"
-#include "exceptions.hpp"
-#include "executor.hpp"
-#include "gsql_q.hpp"
-#include "gsql_q_set.hpp"
+#include "gsql_parser/core_parser.hpp"
+#include "core/executor.hpp"
+#include "db_integration/db2_reader.hpp"
+#include "exceptions/exceptions.hpp"
+#include "gsql_parser/gsql_q.hpp"
+#include "gsql_parser/gsql_q_set.hpp"
+#include "gsql_parser/xerces_strings.hpp"
 #include "magic_enum.hpp"
-#include "odbc_db.hpp"
-#include "program_status.hpp"
-#include "xerces_strings.hpp"
+#include "runtime/odbc_db.hpp"
+#include "utility_classes/enums.hpp"
+#include "utility_classes/program_status.hpp"
 
 namespace dbgen3
 {

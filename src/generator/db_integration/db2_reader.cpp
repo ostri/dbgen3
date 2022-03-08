@@ -1,4 +1,4 @@
-#include "db2_reader.hpp"
+#include "db_integration/db2_reader.hpp"
 
 namespace dbgen3
 {

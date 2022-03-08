@@ -1,6 +1,6 @@
-#include "gsql_q.hpp"
-#include "gen.hpp"
-#include "string_format.hpp"
+#include "gsql_parser/gsql_q.hpp"
+#include "gen/gen.hpp"
+#include "utility_classes/string_format.hpp"
 namespace dbgen3
 {
 

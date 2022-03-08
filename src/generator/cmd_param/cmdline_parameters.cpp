@@ -4,8 +4,8 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "cmdline_parameters.hpp"
-#include "string_format.hpp"
+#include "cmd_param/cmdline_parameters.hpp"
+#include "utility_classes/string_format.hpp"
 
 DECLARE_string(db_name);    // NOLINT
 DECLARE_string(out_folder); // NOLINT

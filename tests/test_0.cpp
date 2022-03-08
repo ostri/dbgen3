@@ -10,12 +10,11 @@
 #include <iostream>
 #include <stdexcept>
 #include <string_view>
-#include <string_view>
 
-#include "connection.hpp"
-#include "error_exception.hpp"
-#include "program_status.hpp"
-#include "statement.hpp"
+#include "runtime/connection.hpp"
+#include "runtime/error_exception.hpp"
+#include "runtime/statement.hpp"
+#include "utility_classes/program_status.hpp"
 
 using argv_t = std::vector<const char*>;
 using cstr_t = std::string_view;

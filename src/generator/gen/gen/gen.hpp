@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "enums.hpp"
-#include "gsql_q_set.hpp"
+#include "utility_classes/enums.hpp"
+#include "gsql_parser/gsql_q_set.hpp"
 
 namespace dbgen3
 {

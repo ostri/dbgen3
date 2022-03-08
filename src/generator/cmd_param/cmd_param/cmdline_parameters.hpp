@@ -3,9 +3,9 @@
 
 //#include "magic_enum.hpp"
 
-#include "../utility_classes/common.hpp"
-#include "../utility_classes/enums.hpp"
-#include "../utility_classes/program_status.hpp"
+#include "utility_classes/common.hpp"
+#include "utility_classes/enums.hpp"
+#include "utility_classes/program_status.hpp"
 
 namespace dbgen3
 {

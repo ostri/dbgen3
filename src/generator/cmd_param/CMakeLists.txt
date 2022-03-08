@@ -1,29 +1,39 @@
-# target_sources(proj_lib
-# PRIVATE
-#   cmdline_parameters.cpp
-#   cmdline_parameters.hpp
-# PUBLIC
-#   cmdline_parameters.hpp
-# )
+#
+# utility_classes library
+#
+set(LIB cmd_param)
+set(incl_folder "${CMAKE_CURRENT_SOURCE_DIR}/${LIB}/")
+add_library(${LIB} STATIC)
 
-# #find_library(BARRY_LIB barry)
-# # This call requires CMake 3.13 or later
-# target_link_libraries(proj_lib PUBLIC glog::glog gflags)
+set (src_list
+  cmdline_parameters
+)
+set (cpp_list ${src_list})
+set (hpp_list ${src_list})
+list(TRANSFORM cpp_list APPEND ".cpp")
+list(TRANSFORM hpp_list APPEND ".hpp")
+list(TRANSFORM cpp_list PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+list(TRANSFORM hpp_list PREPEND ${incl_folder})
+message (STATUS "'${LIB}' files: [${src_list}]")
+message (STATUS "'${LIB}' library : [${LIB}]")
 
-# # target_compile_definitions(proj_lib PUBLIC USE_BARRY)
-# target_include_directories(proj_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-
-# set (LIB_NAME "cmd_param")
-# add_library(${LIB_NAME} "")
-
-# target_sources(${LIB_NAME}
-#   PRIVATE
-#     ${CMAKE_CURRENT_LIST_DIR}/cmdline_parameters.cpp
-#   PUBLIC
-#     ${CMAKE_CURRENT_LIST_DIR}/cmdline_parameters.hpp
-#   )
-# target_include_directories(${LIB_NAME}
-#   PUBLIC
-#     ${CMAKE_CURRENT_LIST_DIR}
-#     ../utility_classes
-#   )
+target_sources(${LIB}
+  PRIVATE
+    ${cpp_list}
+  PUBLIC
+    ${hpp_list}
+)
+target_include_directories(${LIB}
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${fmt_SOURCE_DIR}/include
+    ${magic_enum_SOURCE_DIR}/include
+  PRIVATE
+)
+target_link_libraries(${LIB}
+  PUBLIC
+  PRIVATE
+    ${DB2_LIBRARIES}
+    fmt::fmt
+    utility_classes
+)

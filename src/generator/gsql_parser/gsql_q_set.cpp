@@ -1,5 +1,5 @@
-#include "string_format.hpp"
-#include "gsql_q_set.hpp"
+#include "utility_classes/string_format.hpp"
+#include "gsql_parser/gsql_q_set.hpp"
 
 namespace dbgen3
 {

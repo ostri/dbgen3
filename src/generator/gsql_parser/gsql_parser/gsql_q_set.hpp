@@ -3,8 +3,8 @@
 
 #include <map>
 
-#include "gsql_q.hpp"
-#include "multi_line.hpp"
+#include "gsql_parser/gsql_q.hpp"
+#include "utility_classes/multi_line.hpp"
 
 namespace dbgen3
 {

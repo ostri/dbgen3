@@ -1,6 +1,6 @@
-#include "dom_error_handler.hpp"
-#include "exceptions.hpp"
-#include "program_status.hpp"
+#include "gsql_parser/dom_error_handler.hpp"
+#include "exceptions/exceptions.hpp"
+#include "utility_classes/program_status.hpp"
 namespace dbgen3
 {
   bool  dom_error_handler::failed() const { return failed_; }

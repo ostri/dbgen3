@@ -1,5 +1,5 @@
-#include "gsql_sql_set.hpp"
-#include "multi_line.hpp"
+#include "gsql_parser/gsql_sql_set.hpp"
+#include "utility_classes/multi_line.hpp"
 #include <stdexcept>
 
 namespace dbgen3

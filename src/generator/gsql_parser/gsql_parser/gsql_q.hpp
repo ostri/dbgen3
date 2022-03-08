@@ -4,12 +4,12 @@
 #include <array>
 #include <utility>
 
-#include "common.hpp"
-#include "enums.hpp"
-#include "gsql_qbuf_dscr.hpp"
-#include "gsql_sql_set.hpp"
+#include "utility_classes/common.hpp"
+#include "utility_classes/enums.hpp"
+#include "gsql_parser/gsql_qbuf_dscr.hpp"
+#include "gsql_parser/gsql_sql_set.hpp"
 #include "magic_enum.hpp"
-#include "odbc_db.hpp"
+#include "runtime/odbc_db.hpp"
 
 
 namespace dbgen3

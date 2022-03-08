@@ -87,6 +87,9 @@ FetchContent_MakeAvailable(DocTest)
 FetchContent_Declare(fmt GIT_REPOSITORY "https://github.com/fmtlib/fmt.git" GIT_TAG "8.1.1")
 FetchContent_MakeAvailable(fmt)
 
+message (STATUS "fmt: [${fmt_SOURCE_DIR}]")
+
+
 # static enums
 FetchContent_Declare(magic_enum GIT_REPOSITORY "https://github.com/Neargye/magic_enum.git" GIT_TAG v0.7.3)
 FetchContent_MakeAvailable(magic_enum)

@@ -1,9 +1,9 @@
 #include <array>
 #include <sqlcli1.h>
 
-#include "gen.hpp"
-#include "enums.hpp"
-#include "string_format.hpp"
+#include "gen/gen.hpp"
+#include "utility_classes/enums.hpp"
+#include "utility_classes/string_format.hpp"
 
 namespace dbgen3
 {

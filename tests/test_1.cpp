@@ -11,11 +11,10 @@
 #include <span>
 #include <string_view>
 
-#include "dbgen3_templ.hpp"
-#include "connection.hpp"
-#include "error_exception.hpp"
-//#include "program_status.hpp"
-#include "statement.hpp"
+#include "runtime/dbgen3_templ.hpp"
+#include "runtime/connection.hpp"
+#include "runtime/error_exception.hpp"
+#include "runtime/statement.hpp"
 #include "t1.hpp"
 
 using cstr_t = std::string_view;

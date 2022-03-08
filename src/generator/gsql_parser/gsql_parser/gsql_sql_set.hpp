@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "gsql_sql_dscr.hpp"
-#include "cmdline_parameters.hpp"
-#include "string_format.hpp"
+#include "gsql_parser/gsql_sql_dscr.hpp"
+#include "cmd_param/cmdline_parameters.hpp"
+#include "utility_classes/string_format.hpp"
 
 namespace dbgen3
 {

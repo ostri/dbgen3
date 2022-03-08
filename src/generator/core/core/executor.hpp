@@ -5,14 +5,14 @@
 #include <fstream>
 #include <memory>
 
-#include "cmdline_parameters.hpp"
-#include "core_parser.hpp"
-#include "db2_reader.hpp"
-#include "gen.hpp"
-#include "gen_cpp.hpp"
-#include "gsql_q_set.hpp"
-#include "odbc_db.hpp"
-#include "xsd_grammar.hpp"
+#include "cmd_param/cmdline_parameters.hpp"
+#include "db_integration/db2_reader.hpp"
+#include "gen/gen.hpp"
+#include "gen/gen_cpp.hpp"
+#include "gsql_parser/core_parser.hpp"
+#include "gsql_parser/gsql_q_set.hpp"
+#include "gsql_parser/xsd_grammar.hpp"
+#include "runtime/odbc_db.hpp"
 
 namespace dbgen3
 {
