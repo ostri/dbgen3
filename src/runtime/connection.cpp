@@ -176,10 +176,10 @@ namespace db
     int16_t rc = SQL_SUCCESS;
     if (db_handle != 0)
     {
-      rc = SQLDisconnect(db_handle); // disconnect from the database
+      SQLDisconnect(db_handle); // disconnect from the database
 //      throw_on_error(rc, db_handle, SQL_HANDLE_DBC, "ERROR disconnecting.");
       henv_ref_cnt_--;
-      rc = SQLFreeHandle(SQL_HANDLE_DBC, db_handle);
+      SQLFreeHandle(SQL_HANDLE_DBC, db_handle);
 //      throw_on_error(rc, db_handle, SQL_HANDLE_DBC, "ERROR handle dbc.");
       log("handle released: h type:" + std::to_string(SQL_HANDLE_DBC) +
           " handle: " + std::to_string(db_handle));

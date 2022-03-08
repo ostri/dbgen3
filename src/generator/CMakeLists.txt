@@ -1,5 +1,5 @@
 set(RT_LIB db3)
-set(PROJ_LIB proj)
+# set(PROJ_LIB proj)
 set(PROG_NAME dbgen3)
 
 add_subdirectory(utility_classes)
@@ -11,20 +11,20 @@ add_subdirectory(cmd_param)
 add_subdirectory(gen)
 
 
-add_library(${PROJ_LIB} STATIC)
+# add_library(${PROJ_LIB} STATIC)
 
-target_compile_features(${PROJ_LIB} PUBLIC
-  cxx_std_20
-  cxx_raw_string_literals
-  cxx_strong_enums
-  cxx_unicode_literals
-  cxx_auto_type
-  cxx_constexpr
-)
-target_link_libraries(${PROJ_LIB}
-  PRIVATE
-    ${RT_LIB}
-)
+# target_compile_features(${PROJ_LIB} PUBLIC
+#   cxx_std_20
+#   cxx_raw_string_literals
+#   cxx_strong_enums
+#   cxx_unicode_literals
+#   cxx_auto_type
+#   cxx_constexpr
+# )
+# target_link_libraries(${PROJ_LIB}
+#   PRIVATE
+#     ${RT_LIB}
+# )
 #------------------------------------------------------------------------------
 configure_file(version.cpp.in version.cpp)
 add_executable(${PROG_NAME}
@@ -39,7 +39,7 @@ target_include_directories(${PROG_NAME}
 
 target_link_libraries(${PROG_NAME}
   PRIVATE
-    ${PROJ_LIB}
+    # ${PROJ_LIB}
     ${RT_LIB}
     ${GLOG_LIBRARY}
     fmt::fmt
