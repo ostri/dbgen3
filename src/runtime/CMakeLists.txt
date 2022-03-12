@@ -26,12 +26,17 @@ message (STATUS "'${RT_LIB}'             [${src_list}]")
 target_sources(${RT_LIB}
   PRIVATE
     ${cpp_list}
-  PUBLIC
     ${hpp_list}
+  PUBLIC
+)
+set_target_properties(${RT_LIB}
+    PROPERTIES
+        DEBUG_POSTFIX _d
 )
 target_include_directories(${RT_LIB}
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     ${DB2_INCLUDE_DIRS}
   PRIVATE
 )
@@ -40,3 +45,8 @@ target_link_libraries(${RT_LIB}
   PRIVATE
     ${DB2_LIBRARIES}
   )
+
+  install(TARGETS ${RT_LIB} EXPORT db3gen_inst)
+  install(DIRECTORY runtime
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

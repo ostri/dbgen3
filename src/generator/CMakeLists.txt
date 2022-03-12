@@ -9,22 +9,6 @@ add_subdirectory(core)
 add_subdirectory(db_integration)
 add_subdirectory(cmd_param)
 add_subdirectory(gen)
-
-
-# add_library(${PROJ_LIB} STATIC)
-
-# target_compile_features(${PROJ_LIB} PUBLIC
-#   cxx_std_20
-#   cxx_raw_string_literals
-#   cxx_strong_enums
-#   cxx_unicode_literals
-#   cxx_auto_type
-#   cxx_constexpr
-# )
-# target_link_libraries(${PROJ_LIB}
-#   PRIVATE
-#     ${RT_LIB}
-# )
 #------------------------------------------------------------------------------
 configure_file(version.cpp.in version.cpp)
 add_executable(${PROG_NAME}
@@ -53,4 +37,9 @@ target_link_libraries(${PROG_NAME}
     cmd_param
     db_integration
     gen
+)
+install(TARGETS dbgen3 EXPORT db3gen_inst)
+install(EXPORT db3gen_inst
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/db3gen_inst
+    NAMESPACE db3gen::
 )

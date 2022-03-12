@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14...3.22)
 
 project(
   dbgen3
-  VERSION 0.1
+  VERSION 0.1.0
   DESCRIPTION "database access code genrator"
   LANGUAGES CXX
 )
@@ -79,6 +79,7 @@ find_package (GLOG REQUIRED)      # sudo dnf install glog-devel
 find_package (XercesC REQUIRED)   # sudo dnf install xerces-c-devel.x86_64
 find_package (DB2 REQUIRED)
 
+option(DOCTEST_NO_INSTALL  "Skip the installation process" ON)
 # unit testing
 FetchContent_Declare(DocTest GIT_REPOSITORY "https://github.com/doctest/doctest.git" GIT_TAG "2.4.7")
 FetchContent_MakeAvailable(DocTest)
@@ -111,8 +112,28 @@ endif()
 # installation
 #
 include(GNUInstallDirs)
-# install(TARGETS Add Subtract Maths MathsDemo
-#     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-#     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-# )
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/dbgen3ConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY ExactVersion
+)
+
+configure_package_config_file(
+    cmake/dbgen3Config.cmake.in                      # the template file
+    ${CMAKE_CURRENT_BINARY_DIR}/dbgen3Config.cmake   # destination
+    PATH_VARS CMAKE_INSTALL_INCLUDEDIR
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dbgen3
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/dbgen3Config.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dbgen3
+    # ${CMAKE_CURRENT_BINARY_DIR}/dbgen3ConfigVersion.cmake
+    # DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dbgen3
+)
+#
+# packaging
+#
+add_subdirectory(packaging)
