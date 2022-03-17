@@ -1,11 +1,13 @@
 # dbgen3
 
-Database access source code generator
+database access class generator for c++
 
 ## purpose
 
-progam dbgen3 generates c++ classes to access the database. The input to the program is the list of sql statements and the output is generated c++ code that enables the execution of the provided sql statements within the c++ code.
-The program generates the necessary oo layer between the applicaiton program logic and the database.
+dbgen3 generates c++ classes to access sql compliant database.
+sql -> dbgen3 -> generated source code (c++ classes) to access the database
+
+## Hello world
 
 ## top level architecture
 
