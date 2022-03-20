@@ -1,26 +1,12 @@
 #ifndef DBGEN3_TEMPL_HPP
 #define DBGEN3_TEMPL_HPP
 
-#include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <map>
 #include <span>
-#include <sqlcli1.h>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <type_traits>
-#include <vector>
 
-#include "error.hpp"
-#include "connection.hpp"
-#include "error_exception.hpp"
 #include "odbc_db.hpp"
 #include "serialize_templ.hpp"
 #include "statement.hpp"

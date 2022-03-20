@@ -5,14 +5,10 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <fmt/core.h>
-#include <fmt/ranges.h>
-#include <iostream>
-#include <runtime/connection.hpp>
-#include <runtime/statement.hpp>
-#include <sqlcli.h>
+//#include <iostream>
+//#include <runtime/statement.hpp>
 
 #include "runtime/dbgen3_templ.hpp"
-//#include "enums.hpp"
 
 
 using cstr_t = std::string_view;

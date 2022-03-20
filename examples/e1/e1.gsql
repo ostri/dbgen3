@@ -1,0 +1,7 @@
+<q-set>
+  <q>
+    <sql>
+      select * from tbl where c1_smallint=?
+    </sql>
+  </q>
+</q-set>

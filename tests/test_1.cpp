@@ -4,17 +4,10 @@
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
-#include <array>
-#include <cstdlib>
+//#include <cstdlib>
 #include <doctest/doctest.h>
 #include <iostream>
-#include <span>
-#include <string_view>
 
-#include "runtime/dbgen3_templ.hpp"
-#include "runtime/connection.hpp"
-#include "runtime/error_exception.hpp"
-#include "runtime/statement.hpp"
 #include "t1.hpp"
 
 using cstr_t = std::string_view;
@@ -40,16 +33,7 @@ static int diag(int rc, int handle, cstr_t a_msg = "")
   }
   return rc;
 }
-/*...........................................................................*/
-// static int diag_with_W(int rc, int handle, cstr_t a_msg = "")
-// {
-//   if ((rc != SQL_SUCCESS) && (rc != SQL_SUCCESS_WITH_INFO))
-//   {
-//     std::cerr << db::error(handle, SQL_HANDLE_STMT).dump(a_msg) << std::endl;
-//     std::cerr << "rc code:" << rc << std::endl;
-//   }
-//   return rc;
-// }
+
 int16_t cleanup(db::connection* c)
 {
   UT::del_tbl_rec::utl q(c);

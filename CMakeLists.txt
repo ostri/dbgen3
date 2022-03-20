@@ -97,6 +97,7 @@ FetchContent_MakeAvailable(magic_enum)
 
 # The compiled library code is here
 add_subdirectory(src)
+add_subdirectory(examples)
 
 # Testing only available if this is the main app
 if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
