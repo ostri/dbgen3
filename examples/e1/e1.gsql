@@ -1,7 +1,12 @@
 <q-set>
   <q>
     <sql>
-      select * from tbl where c1_smallint=?
+      insert into tbl (c1_smallint) values (?)
+    </sql>
+  </q>
+  <q>
+    <sql>
+      select c1_smallint from tbl
     </sql>
   </q>
 </q-set>

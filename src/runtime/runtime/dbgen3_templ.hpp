@@ -6,24 +6,26 @@
 #include <cstring>
 #include <iostream>
 #include <span>
+#include <vector>
 
 #include "odbc_db.hpp"
 #include "serialize_templ.hpp"
 #include "statement.hpp"
 namespace db
 {
-  using cstr_t  = std::string_view;
-  using str_t   = std::string;
-  using bstr_t  = std::span<uint8_t>;
-  using cbstr_t = std::span<const uint8_t>;
+  using cstr_t     = std::string_view;
+  using str_t      = std::string;
+  using bstr_t     = std::span<uint8_t>;
+  using cbstr_t    = std::span<const uint8_t>;
+  using cstr_vec_t = std::vector<cstr_t>;
 
-  struct attr_data
-  {
-    cstr_t      name{};           //!< name of the attribute
-    std::size_t width{};          //!< width of the attribute in bytes (string => +1)
-    uint8_t     dec{};            //!< number of decimal places or fraction in timestamp
-    uint        db_type{};        //!< attribute type id e.g. SQL_BIGINT -> -5
-  } __attribute__((aligned(32))); // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+  // struct attr_data
+  // {
+  //   cstr_t      name{};           //!< name of the attribute
+  //   std::size_t width{};          //!< width of the attribute in bytes (string => +1)
+  //   uint8_t     dec{};            //!< number of decimal places or fraction in timestamp
+  //   uint        db_type{};        //!< attribute type id e.g. SQL_BIGINT -> -5
+  // } __attribute__((aligned(32))); // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
 
 
   /*....root class for all attributes ........................................................*/
@@ -45,9 +47,8 @@ namespace db
     constexpr virtual std::size_t size() const                                                = 0;
     virtual l_vec&                len()                                                       = 0;
     virtual const l_vec&          len() const                                                 = 0;
-    // virtual constexpr int         width() const                                               =
-    // 0; virtual constexpr int         dec() const = 0; virtual constexpr int         db_type()
-    // const                                             = 0;
+    // name of the parameter or result column
+    //    virtual cstr_t                name() const = 0;
   };
   /**
    * @brief root class for all attributes within the buffers
@@ -60,9 +61,7 @@ namespace db
     using t_vec  = std::array<T, arr_size>;
     using l_vec  = std::array<int32_t, arr_size>;
     using cstr_t = std::string_view;
-    attr_root() { std::fill(len_.begin(), len_.end(), SQL_NULL_DATA); }
-    // constexpr explicit attr_root(cstr_t name="")
-    // : name_(name){};
+    constexpr attr_root() { std::fill(len_.begin(), len_.end(), SQL_NULL_DATA); }
     virtual ~attr_root()            = default;
     attr_root(const attr_root&)     = default;
     attr_root(attr_root&&) noexcept = default;
@@ -86,7 +85,6 @@ namespace db
     bstr_t v_bstr(std::size_t ndx)
     { // be careful this can be altered from the outside
       if constexpr (is_bstring(db_type_)) { return bstr_t{data_.at(ndx).data(), el_size(ndx)}; }
-      // return {};
     };
     cbstr_t v_bstr(std::size_t ndx) const
     {
@@ -96,27 +94,22 @@ namespace db
         cbstr_t r(reinterpret_cast<const uint8_t*>(&data_.at(ndx).at(0)), el_size(ndx));
         return r;
       }
-      // return {};
     };
     cstr_t v_cstr(std::size_t ndx)
     {
       if constexpr (is_string(db_type_)) { return cstr_t{data_.at(ndx).data(), el_size(ndx)}; }
-      // return {};
     };
     cstr_t v_cstr(std::size_t ndx) const
     {
       if constexpr (is_string(db_type_)) { return cstr_t{data_.at(ndx).data(), el_size(ndx)}; }
-      // else return {};
     };
     T v_T(std::size_t ndx)
     {
       if constexpr (is_atomic(db_type_)) { return data_.at(ndx); }
-      // else return {};
     };
     T v_T(std::size_t ndx) const
     {
       if constexpr (is_atomic(db_type_)) { return data_.at(ndx); }
-      // else return {};
     };
     void s_T(const T& v, std::size_t ndx)
     {
@@ -204,7 +197,7 @@ namespace db
         }
         s += ", ";
       }
-      s.resize(s.size()-2);
+      s.resize(s.size() - 2);
       s += "]";
       return s;
     }
@@ -241,6 +234,7 @@ namespace db
                            static_cast<int*>(len_.data()));
       return rc;
     }
+    cstr_t name() const { return this->name_; }
   protected:
   private:
     l_vec                          len_;                 //!< value length
@@ -248,7 +242,7 @@ namespace db
     constinit static const int32_t width_   = sizeof(T); //!< parameter width
     constinit static const int16_t db_type_ = DB_TYPE;   //!< parameter type
     constinit static const int16_t dec_     = DEC;       //!< decimal places
-    //    const cstr_t                   name_{};              //!< name of the attribute
+    //    constexpr static const char*   name_;                //!< name of the attribute
   };
   /*....atomic...............................................................................*/
   template <typename T, int16_t DB_TYPE, std::size_t arr_size, int DEC>
@@ -369,6 +363,7 @@ namespace db
     virtual void    set_occupied(size_t v)             = 0;
     virtual size_t* occupied_addr() = 0; // so that cli can write how many records are read
     virtual constexpr BUF_TYPE bt() = 0;
+    virtual std::span<const cstr_t>  attr_names() const = 0;
     // // parameter only
     virtual void*       s_vec()           = 0;
     virtual const void* s_vec() const     = 0;
@@ -417,8 +412,17 @@ namespace db
       }
       r += "\n";
       r += "buffer values:\n";
+      auto cnt = 0;
+      auto names = attr_names();
+      auto max_len = 0UL;
+      // calc max column name length
+      for (const auto& el:names) if (max_len < el.size()) max_len = el.size(); 
       for (const auto& el : attributes())
-        r += el->dump_all(std::to_string((&el - &attributes()[0])), occupied(), 0) + "\n";
+      {
+        const auto name = std::string(names[cnt]) + std::string(max_len-names[cnt].size(), ' ');
+        r += el->dump_all(name, occupied(), 0) + "\n";
+        cnt++;
+      }
       return r;
     }
     int16_t rebind(std::int32_t a_stmt_handle) override
@@ -431,7 +435,6 @@ namespace db
       if (bind_) return SQL_SUCCESS;
       return rebind(a_stmt_handle);
     }
-    // virtual attr_vec_t& attr_vec() { return attributes(); } // TODO(ostri): eliminate
     size_t             occupied() const override { return occupied_; }
     void               set_occupied(size_t v) override { occupied_ = v; }
     size_t*            occupied_addr() override { return &occupied_; }
@@ -473,12 +476,11 @@ namespace db
     /*.......................................................................................*/
     constexpr static std::size_t arr_size_ = arr_size; //!< number of values in each attribute
     //  TODO(ostri): sometimes arr_vec_t can be sts::array
-    constexpr static BUF_TYPE bt_ = BT;    //!< buffer type
-    size_t                    occupied_{}; //!< how many records is occupied [0..size())
-    //   attr_vec_t                attr_vec_ = {}; //!< attributes of the buffer
-    bool    bind_{};      //!< are the parameters bound to the statement?
-    s_vec_t s_vec_{};     //!< vector of statuses
-    size_t  processed_{}; //!< number of parameters processed
+    constexpr static BUF_TYPE bt_ = BT;     //!< buffer type
+    size_t                    occupied_{};  //!< how many records is occupied [0..size())
+    bool                      bind_{};      //!< are the parameters bound to the statement?
+    s_vec_t                   s_vec_{};     //!< vector of statuses
+    size_t                    processed_{}; //!< number of parameters processed
   };
   ///////////////////////////////////////////////////////////////////////////////////////////
   class utl
@@ -582,12 +584,11 @@ namespace db
       if (res_buf_ != nullptr)
       {
         rc_ = s_.fetch_scroll(SQL_FETCH_NEXT, res_buf_->size(), false);
+        if (rc_ == SQL_NO_DATA) return rc_; // end of the result set
         return s_.handle_return_code(rc_, allowed_codes());
       }
       throw std::runtime_error("error - fetch and no result buffer defined.");
     }
-    //    int16_t fetch_scroll(int16_t a_dir, uint a_len) { return s_.fetch_scroll(a_dir, a_len,
-    //    false); }
     size_t  rows_read() const { return res_buf_ != nullptr ? res_buf_->occupied() : 0; }
     int16_t rc() const { return this->rc_; }
   protected:
@@ -639,18 +640,18 @@ namespace db
     int16_t       rc_      = SQL_SUCCESS; //!< return codes
   };
 
-  constexpr static const std::array<attr_data, 5> arr;
+  // constexpr static const std::array<attr_data, 5> arr;
 
-  constexpr cstr_t a_name(uint ndx, const std::span<attr_data> a)
-  {
-    if (ndx < a.size()) { return (a.begin() + ndx)->name; }
-    throw std::runtime_error("a_name index out of scope");
-  }
-  constexpr std::size_t a_width(size_t ndx, std::span<const db::attr_data> a)
-  {
-    if (ndx < a.size()) { return (a.begin() + ndx)->width; } // NOLINT
-    throw std::runtime_error("a_name index out of scope");
-  }
+  // constexpr cstr_t a_name(uint ndx, const std::span<attr_data> a)
+  // {
+  //   if (ndx < a.size()) { return (a.begin() + ndx)->name; }
+  //   throw std::runtime_error("a_name index out of scope");
+  // }
+  // constexpr std::size_t a_width(size_t ndx, std::span<const db::attr_data> a)
+  // {
+  //   if (ndx < a.size()) { return (a.begin() + ndx)->width; } // NOLINT
+  //   throw std::runtime_error("a_width index out of scope");
+  // }
 
 
   /*....inline methods .......................................................................*/

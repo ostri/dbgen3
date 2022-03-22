@@ -21,8 +21,6 @@ namespace dbgen3
       for (const auto& el : flds)
       {
         str_t attr_name = fmt::format("a_{0:02}", ndx);
-        //        int         db_type_int = ME::enum_integer<ODBC_TYPE>(el.type());
-        //        const auto* type_name   = db::ct_name(db_type_int);
         r += out::sl(fmt::format("bool is_null_{0:<{1}}() const {{return {2}.is_null(0);}}", //
                                  el.name(),
                                  max_name_len,
@@ -240,20 +238,6 @@ namespace dbgen3
                  offs);
     return r;
   }
-  // str_t gen_cpp::define_ID_const(const fld_vec& flds, uint /*max_name_len*/, uint offs)
-  // {
-  //   str_t r;
-  //   for (auto cnt = 0UL; cnt < flds.size(); cnt++)
-  //   {
-  //     r += out::sl(fmt::format("constexpr static const uint Id{0:02} = {0:2}; // attribute id
-  //     {1}",
-  //                              cnt,
-  //                              flds[cnt].name()),
-  //                  offs);
-  //   }
-  //   return r;
-  // }
-
   str_t gen_cpp::define_attributes_const(const fld_vec& flds, uint /*max_name_len*/, uint offs)
   {
     str_t r;
@@ -398,7 +382,7 @@ namespace dbgen3
     return r;
   }
   /**
-   * @brief
+   * @brief define array of attributes
    *
    * @param flds
    * @param offs
@@ -422,8 +406,40 @@ namespace dbgen3
           s.clear();
         };
       }
+      if (!s.empty()) s.resize(s.size()-2); // remove comma and space
       if (! s.empty()) r += out::sl(s, offs + 2);
       r += out::sl(fmt::format("}};"), offs);
+    }
+    return r;
+  }
+  /**
+   * @brief define array of attributes
+   *
+   * @param flds
+   * @param offs
+   * @return str_t
+   */
+  str_t gen_cpp::define_attr_name_array(const fld_vec& flds, uint max_width, uint offs)
+  {
+    str_t r;
+    if (! flds.empty())
+    {
+      r += out::sl(fmt::format("constexpr static const std::array<const cstr_t, {0}> N_", flds.size()), offs);
+      r += out::sl(fmt::format("{{{{"), offs);
+      str_t s;
+      for (const auto& el : flds)
+      {
+        s += fmt::format("\"{}\", ", el.name());
+        if (s.size() > max_width)
+        {
+          s.resize(s.size() - 1); // remove last space
+          r += out::sl(s, offs + 2);
+          s.clear();
+        };
+      }
+      if (!s.empty()) s.resize(s.size()-2); // remove comma and space
+      if (! s.empty()) r += out::sl(s, offs + 2);
+      r += out::sl(fmt::format("}}}};"), offs);
     }
     return r;
   }
@@ -444,20 +460,11 @@ namespace dbgen3
     auto  BT_name = str_t("db::BUF_TYPE::") + str_t(ME::enum_name<db::BUF_TYPE>(bt));
     r += out::sl(fmt::format("constexpr {0}() : db::buffer_root<{1}, N>()", c_name, BT_name), offs);
     r += out::sl(fmt::format("{{"), offs);
-    // auto PP_str = fmt::format("db::buffer_root<{0}, N>", BT_name);
-    // r += out::sl(fmt::format("  using PP = typename {};", PP_str), offs);
-    // for (const auto& fld : flds)
-    // {
-    //   auto name = fld.name() + "_";
-    //   r += out::sl(fmt::format("PP::attr_vec().emplace_back(&{0:<{1}});", name, max_name_len +
-    //   1),
-    //                offs + 2);
-    // }
     r += out::sl(fmt::format("}}"), offs);
     return r;
   }
   /**
-   * @brief define root access to the attributes of the buffer
+   * @brief define root access to the attributes of the buffer and attr names
    *
    * @param offs offset from left border
    * @return str_t generated code
@@ -465,8 +472,9 @@ namespace dbgen3
   str_t gen_cpp::define_attribute_access(uint offs)
   {
     str_t r;
-    r += out::sl("      attr_vec_t& attributes()       override {return A_;}", offs);
-    r += out::sl("const attr_vec_t& attributes() const override {return A_;}", offs);
+    r += out::sl("      attr_vec_t&       attributes()       override {return A_;}", offs);
+    r += out::sl("const attr_vec_t&       attributes() const override {return A_;}", offs);
+    r += out::sl("std::span<const cstr_t> attr_names() const override {return N_;}", offs);
     return r;
   }
   /**
@@ -514,6 +522,7 @@ namespace dbgen3
     r += define_attr_types(flds, ml, offs + 2);
     r += define_attributes(flds, ml, offs + 2);
     r += define_attr_array(bd.flds(), generated_width - 8, offs + 2); // NOLINT
+    r += define_attr_name_array(bd.flds(), generated_width - 8, offs + 2); // NOLINT
     r += out::sl(fmt::format("}}; // class {}", c_name), offs);
     return r;
   }
@@ -733,11 +742,12 @@ namespace dbgen3
     r += gen_custom_header(set(), offs);
     r += out::sl(fmt::format("namespace {}", ns), offs);
     r += out::sl("{", offs);
-    r += out::sl("  using uint    = std::size_t;", offs);
-    r += out::sl("  using str_t   = std::string;", offs);
-    r += out::sl("  using cstr_t  = std::string_view;", offs);
-    r += out::sl("  using bstr_t  = std::span<uint8_t>;", offs);
-    r += out::sl("  using cbstr_t = std::span<const uint8_t>;", offs);
+    r += out::sl("  using uint       = std::size_t;", offs);
+    r += out::sl("  using str_t      = std::string;", offs);
+    r += out::sl("  using cstr_t     = std::string_view;", offs);
+    r += out::sl("  using bstr_t     = std::span<uint8_t>;", offs);
+    r += out::sl("  using cbstr_t    = std::span<const uint8_t>;", offs);
+    //r += out::sl("  using cstr_vec_t = std::vector<cstr_t>;", offs);
     r += gen_queries(set(), offs);
     r += out::sl(fmt::format("}}; //namespace {}", ns), offs);
     r += out::sl(fmt::format("#endif // gen_{}_hpp", ns));

@@ -175,7 +175,7 @@
         insert into tbl_1
           (name)
         values
-          (?), (?), (?), (?), (?)
+          (?)
       );
     </sql>
   </q>

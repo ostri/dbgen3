@@ -58,6 +58,7 @@ namespace dbgen3
     static str_t define_attributes(const fld_vec& flds, uint max_name_len, uint offs);
     static str_t define_attribute_access(uint offs);
     static str_t define_attr_array(const fld_vec& flds, uint max_width, uint offs);
+    static str_t define_attr_name_array(const fld_vec& flds, uint max_width, uint offs);
 
     static str_t gen_includes(uint offs);
     static str_t gen_queries(const gsql_q_set& set, uint offs);
@@ -69,9 +70,6 @@ namespace dbgen3
                                      cstr_t              c_name,
                                      const db::BUF_TYPE& bt,
                                      std::size_t         offs);
-
-
-
   };
 }; // namespace dbgen3
 
