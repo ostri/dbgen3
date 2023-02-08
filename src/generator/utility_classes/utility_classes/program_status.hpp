@@ -48,11 +48,11 @@ namespace dbgen3
     {{
 			{P_STS::success,                "Program successfuly finished"}, //
 			{P_STS::no_db_name,             "Database name was not provided"}, //
-			{P_STS::unknown_db_type,        "Datatbase type was not provided or unknown. '{}'"}, 
-			{P_STS::unknown_lang,           "Target programming language was not provided or unknown. '{}'" }, 
-			{P_STS::out_folder_not_exist,   "Output folder was not provided or does not exist. '{}'"}, 
+			{P_STS::unknown_db_type,        "Datatbase type was not provided or unknown. '{}'"},
+			{P_STS::unknown_lang,           "Target programming language was not provided or unknown. '{}'" },
+			{P_STS::out_folder_not_exist,   "Output folder was not provided or does not exist. '{}'"},
 			{P_STS::no_gsql_files,          "No gsql filenames provided."},
-      {P_STS::unk_db_name,            "Unknown db name provided. '{}'"}, 
+      {P_STS::unk_db_name,            "Unknown db name provided. '{}'"},
       {P_STS::unk_exception,          "Unknown exception"},
       {P_STS::gsql_file_not_exists,   "Provided GSQL file '{}' does not exist or is not accesible."},
       {P_STS::duplicate_sql_buf_def,  "Duplicate SQL buffer definition. query id: {} sql#: {} rdbms: {}"},
@@ -77,7 +77,7 @@ namespace dbgen3
     {
       for (const auto& el : dic_)
         if (el.sts_ == code) return el.dscr_;
-      throw std::runtime_error ("Impossible: enum type and index out of enum type");
+      throw std::runtime_error("Impossible: enum type and index out of enum type");
     };
   private:
   };

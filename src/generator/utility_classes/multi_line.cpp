@@ -9,14 +9,20 @@ namespace dbgen3
 {
 
   str_vec multi_line::to_vec(cstr_t a_str) { return minimize(split(rtrim(a_str), '\n')); }
+  str_t   multi_line::to_str(const str_vec& v, char delim)
+  {
+    str_t r;
+    for (const auto& l : v) r += l + delim;
+    return r;
+  }
   /**
    * @brief is the provided string made of whitespace characters?
-   * 
-   * @param l 
-   * @return true 
-   * @return false 
+   *
+   * @param l
+   * @return true
+   * @return false
    */
-  bool    multi_line::is_whitespace_line(cstr_t l)
+  bool multi_line::is_whitespace_line(cstr_t l)
   { // NOLINTNEXTLINE clang-tidy(readability-use-anyofallof)
     for (const auto& ch : l)
       if (std::isspace(ch) == 0) return false;

@@ -62,13 +62,13 @@ namespace dbgen3
     for (auto* n(an_el->getFirstChild()); n != nullptr; n = n->getNextSibling())
     {
       auto n_type = static_cast<NT>(n->getNodeType()); // tag type
-      switch (n_type)
+      switch (n_type)                                  // NOLINT hicpp-multiway-paths-covered
       {
       case NT::TEXT_NODE:
       case NT::CDATA_SECTION_NODE:
       {
-        const auto* txt = dynamic_cast<const x::DOMText*>(n);
-        uint64_t    len = txt->getLength();
+        const auto*    txt = dynamic_cast<const x::DOMText*>(n);
+        const uint64_t len = txt->getLength();
         if (len >= r.max_size())
         {
           auto max_len = r.max_size();
@@ -87,29 +87,28 @@ namespace dbgen3
       case NT::COMMENT_NODE: continue;
       default:
       {
-        throw std::runtime_error(fmt::format(
-          "Should be DOMText, it was {} ctx: {}", ME::enum_name<NT>(n_type), ctx_to_str(a_ctx)));
+        throw std::runtime_error(
+          fmt::format("Should be DOMText, it was {} ctx: {}", ME::enum_name<NT>(n_type), ctx_to_str(a_ctx)));
       }
       }
     }
     return r;
   }
 
-  std::pair<str_t, str_t> core_parser::get_text_node_with_prepare(const x::DOMElement* an_el,
-                                                                  str_vec              a_ctx)
+  std::pair<str_t, str_t> core_parser::get_text_node_with_prepare(const x::DOMElement* an_el, str_vec a_ctx)
   {
     str_t r;
     str_t prepare_sql;
     for (auto* n(an_el->getFirstChild()); n != nullptr; n = n->getNextSibling())
     {
       auto n_type = static_cast<NT>(n->getNodeType()); // tag type
-      switch (n_type)
+      switch (n_type)                                  // NOLINT hicpp-multiway-paths-covered
       {
       case NT::TEXT_NODE:
       case NT::CDATA_SECTION_NODE:
       {
-        const auto* txt = dynamic_cast<const x::DOMText*>(n);
-        uint64_t    len = txt->getLength();
+        const auto*    txt = dynamic_cast<const x::DOMText*>(n);
+        const uint64_t len = txt->getLength();
         if (len >= r.max_size())
         {
           auto max_len = r.max_size();
@@ -138,8 +137,8 @@ namespace dbgen3
       case NT::COMMENT_NODE: continue;
       default:
       {
-        throw std::runtime_error(fmt::format(
-          "Should be DOMText, it was {} ctx: {}", ME::enum_name<NT>(n_type), ctx_to_str(a_ctx)));
+        throw std::runtime_error(
+          fmt::format("Should be DOMText, it was {} ctx: {}", ME::enum_name<NT>(n_type), ctx_to_str(a_ctx)));
       }
       }
     }
@@ -158,7 +157,7 @@ namespace dbgen3
       //      auto phase = ME::enum_cast<PHASE>(attr_value(el, "phase",
       //      ME::enum_name(PHASE::main)));
       auto [sql, sql_prep] = get_text_node_with_prepare(el, a_ctx);
-      gsql_sql_dscr sql_dscr(rdbms.value(), sql, sql_prep);
+      gsql_sql_dscr sql_dscr(rdbms.value(), sql, sql_prep); // NOLINT bugprone-unchecked-optional-access
       auto          res = r.put(sql_dscr);
       if (res == INS_OP::ambiguous)
       { // the same specific database twice
@@ -167,7 +166,7 @@ namespace dbgen3
                                dbgen3::program_status::dscr(P_STS::duplicate_sql_buf_def),
                                a_ctx[1],
                                ndx,
-                               ME::enum_name<RDBMS>(rdbms.value()));
+                               ME::enum_name<RDBMS>(rdbms.value())); // NOLINT bugprone-unchecked-optional-access
         throw dbgen3_exc(P_STS::duplicate_sql_buf_def, msg);
       }
     }
@@ -181,9 +180,7 @@ namespace dbgen3
    * @param a_db_type     type of the database
    * @return gsql_sql_set sql-set stored in internal stucture
    */
-  gsql_sql_set core_parser::load_sql_set(const x::DOMElement* an_el,
-                                         const str_vec&       a_ctx,
-                                         const RDBMS&         a_db_type)
+  gsql_sql_set core_parser::load_sql_set(const x::DOMElement* an_el, const str_vec& a_ctx, const RDBMS& a_db_type)
   {
     gsql_sql_set r(a_db_type); //!< result of the method
     /// loop over all subordinated SQL elements
@@ -194,7 +191,7 @@ namespace dbgen3
       const auto* ln     = n->getLocalName();
       auto        l_name = (ln != nullptr) ? toNative(ln) : ""; // tag name in utf8
       // err << fmt::format("local name '{}' node type '{}'", l_name, ME::enum_name(n_type));
-      switch (n_type)
+      switch (n_type) // NOLINT hicpp-multiway-paths-covered
       {
       case NT::ELEMENT_NODE:
       {
@@ -211,10 +208,9 @@ namespace dbgen3
       case NT::COMMENT_NODE: continue; /// text nodes are ignorable whitespace
       default:
       {
-        throw std::runtime_error(
-          fmt::format("Should be ELEMENT_NODE, TEXT_NOD or COMMENT_NODE, it was {} ctx: {}",
-                      ME::enum_name<NT>(n_type),
-                      ctx_to_str(a_ctx)));
+        throw std::runtime_error(fmt::format("Should be ELEMENT_NODE, TEXT_NOD or COMMENT_NODE, it was {} ctx: {}",
+                                             ME::enum_name<NT>(n_type),
+                                             ctx_to_str(a_ctx)));
       }
       }
     }
@@ -223,7 +219,7 @@ namespace dbgen3
   str_t core_parser::attr_value(const x::DOMElement* an_el, cstr_t an_attr_name, cstr_t a_default)
   {
     XS attr_id = an_el->getAttribute(fromNative(str_t(an_attr_name)).data());
-    if (! attr_id.empty()) return str_t(toNative(attr_id));
+    if (! attr_id.empty()) return static_cast<str_t>(toNative(attr_id));
     return str_t(a_default);
   }
   bool core_parser::attr_value_b(const x::DOMElement* an_el, cstr_t an_attr_name, bool a_default)
@@ -233,49 +229,46 @@ namespace dbgen3
     if (! attr_id.empty()) { return toNative(attr_id) == "true"; }
     return a_default;
   }
-  fld_dscr core_parser::load_fld_dscr(cstr_t              def_name,
-                                      const db::BUF_TYPE& a_bt,
-                                      SQLHANDLE           h,
-                                      uint                ndx)
+  fld_dscr core_parser::load_fld_dscr(cstr_t def_name, const db::BUF_TYPE& a_bt, SQLHANDLE h, uint ndx)
   {
-    int16_t    type;
-    uint32_t   width;
-    int16_t    dec;
-    int16_t    nullable;
-    int16_t    col_name_len           = 0;
     const auto max_coloum_name_length = 50;
-    int16_t    rc;
-    str_t      name(def_name);
+
+    int16_t  type;
+    uint32_t width;
+    int16_t  dec;
+    int16_t  nullable;
+    int16_t  col_name_len = 0; // NOLINT misc-const-correctness
+    int16_t  rc;
+    str_t    name(def_name);
 
     std::array<char, max_coloum_name_length + 1> buf{}; /// buffer that
                                                         /// returns the name of the column
 
-    rc =
-      (a_bt == db::BUF_TYPE::par)
-        ? SQLDescribeParam(h, ndx + 1, &type, &width, &dec, &nullable)
-        : SQLDescribeCol(h,
-                         ndx + 1,
-                         // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-pro-type-reinterpret-cast)
-                         reinterpret_cast<unsigned char*>(buf.data()),
-                         buf.size(),
-                         &col_name_len,
-                         &type,
-                         &width,
-                         &dec,
-                         &nullable);
+    rc = (a_bt == db::BUF_TYPE::par)
+           ? SQLDescribeParam(h, ndx + 1, &type, &width, &dec, &nullable)
+           : SQLDescribeCol(h,
+                            ndx + 1,
+                            // NOLINTNEXTLINE clang-tidy(cppcoreguidelines-pro-type-reinterpret-cast)
+                            reinterpret_cast<unsigned char*>(buf.data()),
+                            buf.size(),
+                            &col_name_len,
+                            &type,
+                            &width,
+                            &dec,
+                            &nullable);
     if (SQL_SUCCESS == rc)
     { /// FIXME convert to to_char
       if (name.empty())
       {
-        name = (a_bt == db::BUF_TYPE::par) ? "par_" + std::to_string(ndx + 1)
-                                           : std::string(buf.data(), col_name_len);
-        for (auto& ch : name)
-          ch = static_cast<char>(std::tolower(ch)); // FIXME doesn't work with utf-8
+        name = (a_bt == db::BUF_TYPE::par) ? "par_" + std::to_string(ndx + 1) : std::string(buf.data(), col_name_len);
+        for (auto& ch : name) ch = static_cast<char>(std::tolower(ch)); // FIXME doesn't work with utf-8
       }
       auto n  = ME::enum_cast<DBN>(nullable);
       auto ot = ME::enum_cast<ODBC_TYPE>(type);
-      if (! ot.has_value())
-        throw std::runtime_error("Unsupported column type " + std::to_string(type));
+      if (! ot.has_value()) throw std::runtime_error("Unsupported column type " + std::to_string(type));
+
+      // NOLINTNEXTLINE bugprone-unchecked-optional-access
+      auto n_value = n.value();
       info << fmt::format("[{:3}]: name: {:24} type:{:4} {:14} width:{:5} dec:{:3} null:{:16}",
                           ndx + 1,
                           name,
@@ -283,8 +276,9 @@ namespace dbgen3
                           ME::enum_name(ot.value()),
                           width,
                           dec,
-                          ME::enum_name<DBN>(n.value()));
-      fld_dscr fld(ndx + 1, name, ot.value(), width, dec, n.value());
+                          ME::enum_name<DBN>(n_value));
+
+      fld_dscr fld(ndx + 1, name, ot.value(), width, dec, n_value);
       return fld;
     };
     throw db::error_exception(db::error(h, SQL_HANDLE_STMT));
@@ -297,15 +291,13 @@ namespace dbgen3
    * @param a_stmt statement structure we are executing statements upon
    * @return fld_vec
    */
-  fld_vec core_parser::fetch_param_dscr(const str_vec&      names,
-                                        const db::BUF_TYPE& a_bt,
-                                        db::statement&      a_stmt)
+  fld_vec core_parser::fetch_param_dscr(const str_vec& names, const db::BUF_TYPE& a_bt, db::statement& a_stmt)
   {
     fld_vec r;
     auto    h       = a_stmt.handle();
     auto    rc      = SQL_SUCCESS;
-    int16_t par_cnt = 0;
-    rc = (a_bt == db::BUF_TYPE::par) ? SQLNumParams(h, &par_cnt) : SQLNumResultCols(h, &par_cnt);
+    int16_t par_cnt = 0; // NOLINT misc-const-correctness
+    rc              = (a_bt == db::BUF_TYPE::par) ? SQLNumParams(h, &par_cnt) : SQLNumResultCols(h, &par_cnt);
     if (SQL_SUCCESS == rc)
     {
       info << "# of par:" << par_cnt << "\n";
@@ -329,36 +321,35 @@ namespace dbgen3
       db::statement stmt_p((a_dbr.connection()));
       if ((rc == SQL_SUCCESS) && ! sql_p.empty()) rc = stmt_p.exec_direct(sql_p, true);
       rc = stmt_m.prepare(sql_m);
-      for (auto& buf : r.buf_dscr())
-      {
-        buf.set_flds(fetch_param_dscr(buf.names(), buf.type(), stmt_m));
-      }
+      for (auto& buf : r.buf_dscr()) { buf.set_flds(fetch_param_dscr(buf.names(), buf.type(), stmt_m)); }
       stmt_p.rollback();
       stmt_m.rollback();
     }
-    else {
+    else
+    {
       // FIXME what we should do? abort or detect the missing sql later?
     }
     return r;
   };
   gsql_q core_parser::load_q_children(const x::DOMElement* an_el,
-                                      uint                 a_ndx,
-                                      const str_vec&       a_ctx,
-                                      const db2_reader&    a_dbr,
-                                      const RDBMS&         a_db_type,
-                                      gsql_q&              r)
+                                      uint /*a_ndx*/,
+                                      const str_vec&    a_ctx,
+                                      const db2_reader& a_dbr,
+                                      const RDBMS&      a_db_type,
+                                      gsql_q&           r)
   {
     gsql_sql_set r1(a_db_type); //!< result of the method
     auto         sql_cnt = 0;
     for (x::DOMNode* n(an_el->getFirstChild()); n != nullptr; n = n->getNextSibling())
     {
       auto n_type = static_cast<NT>(n->getNodeType()); // tag type
-      switch (n_type)
+      switch (n_type)                                  // NOLINT hicpp-multiway-paths-covered
       {
       case NT::ELEMENT_NODE:
       {
         auto* el       = dynamic_cast<x::DOMElement*>(n);
         auto  loc_name = toNative(n->getLocalName());
+        // NOLINTNEXTLINE bugprone-branch-clone
         if (loc_name == "qp") r.set_buf_dscr(load_buf(db::BUF_TYPE::par, el));
         else if (loc_name == "qr") r.set_buf_dscr(load_buf(db::BUF_TYPE::res, el));
         else if (loc_name == "sql") //
@@ -368,19 +359,17 @@ namespace dbgen3
           r1             = load_sql_set_sql(el, a_ctx, a_db_type, sql_cnt, r1);
         }
         else
-          throw std::runtime_error(std::string("internal error only qp, qr and sql-set allowed.") +
-                                   loc_name + " " + std::string(__FILE__) + " " +
-                                   std::to_string(__LINE__));
-        a_ndx++;
+          throw std::runtime_error(std::string("internal error only qp, qr and sql-set allowed.") + loc_name + " " +
+                                   std::string(__FILE__) + " " + std::to_string(__LINE__));
+        // a_ndx++;
       }
       case NT::TEXT_NODE:
       case NT::COMMENT_NODE: continue; // we skip ignorable WS and comments
       default:
       {
-        throw std::runtime_error(
-          fmt::format("Should be ELEMENT_NODE, TEXT_NOD or COMMENT_NODE, but it is '{}' ctx: {}",
-                      ME::enum_name<NT>(n_type),
-                      ctx_to_str(a_ctx)));
+        throw std::runtime_error(fmt::format("Should be ELEMENT_NODE, TEXT_NOD or COMMENT_NODE, but it is '{}' ctx: {}",
+                                             ME::enum_name<NT>(n_type),
+                                             ctx_to_str(a_ctx)));
       }
       }
     }
@@ -420,13 +409,11 @@ namespace dbgen3
    * @param a_db_type type of the database
    * @return gsql_q_set data structure extracted from the gsql /xml file
    */
-  gsql_q_set core_parser::parse_file(cstr_t            a_filename,
-                                     const db2_reader& a_dbr,
-                                     const RDBMS&      a_db_type)
+  gsql_q_set core_parser::parse_file(cstr_t a_filename, const db2_reader& a_dbr, const RDBMS& a_db_type)
   {
     try
     {
-      std::error_code ec;
+      std::error_code ec; // NOLINT misc-const-correctness
       fs::path        path(a_filename);
       auto            fn = fs::weakly_canonical(path, ec).string();
       if (file_exists(fn))

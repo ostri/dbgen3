@@ -1,6 +1,7 @@
 #
 # runtime library
 #
+set(CMAKE_CXX_STANDARD 23)
 set(RT_LIB db3)
 set(incl_folder "${CMAKE_CURRENT_SOURCE_DIR}/runtime/")
 add_library(${RT_LIB} STATIC)

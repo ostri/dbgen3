@@ -30,11 +30,11 @@ namespace dbgen3
      */
   public:
     explicit gsql_q(const RDBMS& a_db_type);
-    ~gsql_q()             = default;
-    gsql_q(const gsql_q&) = default;
-    gsql_q(gsql_q&&)      = default;
+    ~gsql_q()                        = default;
+    gsql_q(const gsql_q&)            = default;
+    gsql_q(gsql_q&&)                 = default;
     gsql_q& operator=(const gsql_q&) = default;
-    gsql_q& operator=(gsql_q&&) = default;
+    gsql_q& operator=(gsql_q&&)      = default;
     ///@}
     /// @name getters
     ///@{
@@ -43,14 +43,14 @@ namespace dbgen3
     const gsql_qbuf_dscr& buf_dscr(const db::BUF_TYPE& a_type) const;
     q_buf_arr&            buf();
     const q_buf_arr&      buf() const;
-    std::string sql() const;
-    std::string sql_prep() const;
-    RDBMS       db_type() const;
-    str_t       namespace_str() const;
-    std::string dump() const;
-    std::string dump(uint offs) const;
-    std::string dump(const std::string& a_msg, uint offs) const;
-    bool must_have_buf(const db::BUF_TYPE& a_type) const;
+    std::string           sql() const;
+    std::string           sql_prep() const;
+    RDBMS                 db_type() const;
+    str_t                 namespace_str() const;
+    std::string           dump() const;
+    std::string           dump(uint offs) const;
+    std::string           dump(const std::string& a_msg, uint offs) const;
+    bool                  must_have_buf(const db::BUF_TYPE& a_type) const;
 
     //@}
     /// @name setters

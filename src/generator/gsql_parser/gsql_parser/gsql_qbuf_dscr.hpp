@@ -17,15 +17,12 @@ namespace dbgen3
     gsql_qbuf_dscr()  = default;
     ~gsql_qbuf_dscr() = default;
     explicit gsql_qbuf_dscr(const db::BUF_TYPE& a_type);
-    gsql_qbuf_dscr(const db::BUF_TYPE& a_type,
-                   cstr_t              an_id,
-                   bool                should_skip
-                   );
+    gsql_qbuf_dscr(const db::BUF_TYPE& a_type, cstr_t an_id, bool should_skip);
     gsql_qbuf_dscr(const db::BUF_TYPE& a_type, bool should_skip);
-    gsql_qbuf_dscr(const gsql_qbuf_dscr&) = default;
-    gsql_qbuf_dscr(gsql_qbuf_dscr&&)      = default;
+    gsql_qbuf_dscr(const gsql_qbuf_dscr&)              = default;
+    gsql_qbuf_dscr(gsql_qbuf_dscr&&)                   = default;
     gsql_qbuf_dscr& operator=(const gsql_qbuf_dscr& o) = default;
-    gsql_qbuf_dscr& operator=(gsql_qbuf_dscr&& o) = default;
+    gsql_qbuf_dscr& operator=(gsql_qbuf_dscr&& o)      = default;
     db::BUF_TYPE    type() const;
     std::string     id() const;
     std::string     class_name() const;
@@ -42,33 +39,29 @@ namespace dbgen3
     std::string dump(uint offs) const;
     std::string dump(const std::string& a_msg, uint offs) const;
 
-    void           set_type(const db::BUF_TYPE& type);
-    void           set_id(cstr_t id);
-    void           set_skip(bool skip);
-    void           set_names(cstr_t names);
-    void           set_flds(const fld_vec& flds);
+    void set_type(const db::BUF_TYPE& type);
+    void set_id(cstr_t id);
+    void set_skip(bool skip);
+    void set_names(cstr_t names);
+    void set_flds(const fld_vec& flds);
   private:
     static uint calc_max_name_length(const fld_vec& vec);
     static uint calc_max_ctype_length(const fld_vec& vec);
     /*........................................................................................*/
     db::BUF_TYPE type_ = db::BUF_TYPE::res; //!< type fo the buffer definition
     std::string  id_{};                     //!< buffer unique name
-    bool         skip_{};          //!< should we skip this buffer from the generation phase
-    fld_vec      flds_{};          //!< set of field descriptions
-    str_vec      names_{};         //!< alternative names to parameter/result columns
-    uint         max_name_len_{};  //!< maximum filed name length
-    uint         max_ctype_len_{}; //!< maximum filed name length
+    bool         skip_{};                   //!< should we skip this buffer from the generation phase
+    fld_vec      flds_{};                   //!< set of field descriptions
+    str_vec      names_{};                  //!< alternative names to parameter/result columns
+    uint         max_name_len_{};           //!< maximum filed name length
+    uint         max_ctype_len_{};          //!< maximum filed name length
   };
 
-  inline gsql_qbuf_dscr::gsql_qbuf_dscr(const db::BUF_TYPE& a_type,
-                                        cstr_t              an_id,
-                                        bool                should_skip
-                                        )
+  inline gsql_qbuf_dscr::gsql_qbuf_dscr(const db::BUF_TYPE& a_type, cstr_t an_id, bool should_skip)
   : type_(a_type)
   , id_(an_id)
   , skip_(should_skip)
-  {
-  }
+  { }
 
   inline db::BUF_TYPE gsql_qbuf_dscr::type() const { return type_; }
 

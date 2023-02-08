@@ -4,6 +4,7 @@ Checks: '*,
 -llvmlibc-implementation-in-namespace,
 -llvmlibc-callee-namespace,
 -llvm-header-guard,
+-llvm-include-order
 -modernize-use-trailing-return-type,
 -modernize-use-nodiscard,
 -fuchsia-default-arguments-calls,
@@ -15,7 +16,9 @@ Checks: '*,
 -google-readability-braces-around-statements,
 -altera-id-dependent-backward-branch,
 -altera-unroll-loops,
--cppcoreguidelines-init-variables
+-cppcoreguidelines-init-variables,
+-readability-identifier-length,
+-readability-convert-member-functions-to-static
 '
 WarningsAsErrors: '*'
 HeaderFilterRegex: '*.hpp'

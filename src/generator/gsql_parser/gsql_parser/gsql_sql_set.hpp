@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "gsql_parser/gsql_sql_dscr.hpp"
+#include "gsql_sql_dscr.hpp"
 #include "cmd_param/cmdline_parameters.hpp"
 #include "utility_classes/string_format.hpp"
 
@@ -24,11 +24,11 @@ namespace dbgen3
   public:
     explicit gsql_sql_set(const RDBMS& db_type)
     : db_type_(db_type){};
-    ~gsql_sql_set()                   = default;
-    gsql_sql_set(const gsql_sql_set&) = default;
-    gsql_sql_set(gsql_sql_set&&)      = default;
+    ~gsql_sql_set()                              = default;
+    gsql_sql_set(const gsql_sql_set&)            = default;
+    gsql_sql_set(gsql_sql_set&&)                 = default;
     gsql_sql_set& operator=(const gsql_sql_set&) = default;
-    gsql_sql_set& operator=(gsql_sql_set&&) = default;
+    gsql_sql_set& operator=(gsql_sql_set&&)      = default;
 
     std::string dump() const;
     std::string dump(uint offs) const;
@@ -41,11 +41,11 @@ namespace dbgen3
     std::string          prep_sql() const;
     const multi_line&    sql_ml() const;
     const multi_line&    prep_sql_ml() const;
-    bool is_empty() const { return this->empty_; }
+    bool                 is_empty() const { return this->empty_; }
   private:
-    gsql_sql_dscr sql_dscr_{};   //!< sql descriptor (not owner)
-    RDBMS         db_type_;      //!< rdbms type that we are generating code for
-    bool          empty_ = true; //!< is the sql_dscr_ structure already loaded
+    gsql_sql_dscr sql_dscr_{};           //!< sql descriptor (not owner)
+    RDBMS         db_type_ = RDBMS::sql; //!< rdbms type that we are generating code for
+    bool          empty_   = true;       //!< is the sql_dscr_ structure already loaded
   };
 
 }; // namespace dbgen3

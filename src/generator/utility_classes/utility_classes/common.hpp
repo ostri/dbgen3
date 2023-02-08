@@ -1,5 +1,6 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
+#include <algorithm>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -13,10 +14,10 @@
 
 #include "log.hpp"
 
-#if defined(__clang__) || defined (__GNUC__)
-# define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#if defined(__clang__) || defined(__GNUC__)
+#  define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
 #else
-# define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#  define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #endif
 namespace dbgen3
 {
@@ -42,9 +43,8 @@ namespace dbgen3
     // str_t s(o.begin(), std::find_if(o.rbegin(), o.rend(), [](unsigned char ch) { return
     // std::isspace(ch) == 0; })
     //           .base()-1);
-    return {o.begin(), std::find_if(o.rbegin(), o.rend(), [](unsigned char ch) {
-                         return std::isspace(ch) == 0;
-                       }).base()};
+    return {o.begin(),
+            std::find_if(o.rbegin(), o.rend(), [](unsigned char ch1) { return std::isspace(ch1) == 0; }).base()};
   }
   // ltrim
   inline cstr_t ltrim(cstr_t o)
@@ -52,7 +52,7 @@ namespace dbgen3
     // std::string s(o);
     // auto        pos = std::find_if_not(o.begin(), o.end(), [](char ch) { return isspace(ch); });
     // s.erase(s.begin(), pos);
-    return {std::find_if_not(o.begin(), o.end(), [](char ch) { return isspace(ch); }), o.end()};
+    return {std::find_if_not(o.begin(), o.end(), [](char ch1) { return isspace(ch1); }), o.end()};
   }
   inline cstr_t trim(cstr_t o) { return ltrim(rtrim(o)); }
   /**

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <span>
 #include <vector>
+#include <string_view>
 
 #include "odbc_db.hpp"
 #include "serialize_templ.hpp"
@@ -33,11 +34,11 @@ namespace db
   class attr_root_root
   {
   public:
-    attr_root_root()                          = default;
-    virtual ~attr_root_root()                 = default;
-    attr_root_root(const attr_root_root&)     = default;
-    attr_root_root(attr_root_root&&) noexcept = default;
-    attr_root_root& operator=(const attr_root_root&) = default;
+    attr_root_root()                                     = default;
+    virtual ~attr_root_root()                            = default;
+    attr_root_root(const attr_root_root&)                = default;
+    attr_root_root(attr_root_root&&) noexcept            = default;
+    attr_root_root& operator=(const attr_root_root&)     = default;
     attr_root_root& operator=(attr_root_root&&) noexcept = default;
 
     using l_vec = std::array<int32_t, arr_size>;
@@ -62,10 +63,10 @@ namespace db
     using l_vec  = std::array<int32_t, arr_size>;
     using cstr_t = std::string_view;
     constexpr attr_root() { std::fill(len_.begin(), len_.end(), SQL_NULL_DATA); }
-    virtual ~attr_root()            = default;
-    attr_root(const attr_root&)     = default;
-    attr_root(attr_root&&) noexcept = default;
-    attr_root&            operator=(const attr_root&) = default;
+    virtual ~attr_root()                                  = default;
+    attr_root(const attr_root&)                           = default;
+    attr_root(attr_root&&) noexcept                       = default;
+    attr_root&            operator=(const attr_root&)     = default;
     attr_root&            operator=(attr_root&&) noexcept = default;
     constexpr std::size_t size() const final { return static_cast<std::size_t>(arr_size); }
     l_vec&                len() final { return len_; }
@@ -192,8 +193,7 @@ namespace db
             break;
           }
         case db::ATTR_TYPE::unknown:
-          throw std::runtime_error("switch error: " + std::string(__FILE__) + " " +
-                                   std::to_string(__LINE__));
+          throw std::runtime_error("switch error: " + std::string(__FILE__) + " " + std::to_string(__LINE__));
         }
         s += ", ";
       }
@@ -351,19 +351,21 @@ namespace db
    * @brief buffer root class as seen from programmer (no dimennsion only pure methods)
    *
    */
-  class buffer_root_root
+  class buffer_root_root // NOLINT cppcoreguidelines-virtual-class-destructor
   {
   public:
-    using s_vec_a                                      = std::span<SQLUSMALLINT>;
-    virtual str_t   dump(cstr_t a_msg) const           = 0;
-    virtual int16_t bind(std::int32_t a_stmt_handle)   = 0;
-    virtual int16_t rebind(std::int32_t a_stmt_handle) = 0;
-    virtual size_t  size() const                       = 0;
-    virtual size_t  occupied() const                   = 0;
-    virtual void    set_occupied(size_t v)             = 0;
-    virtual size_t* occupied_addr() = 0; // so that cli can write how many records are read
-    virtual constexpr BUF_TYPE bt() = 0;
-    virtual std::span<const cstr_t>  attr_names() const = 0;
+    using s_vec_a  = std::span<SQLUSMALLINT>;
+    using span_str = std::span<const cstr_t>;
+
+    virtual str_t              dump(cstr_t a_msg) const           = 0;
+    virtual int16_t            bind(std::int32_t a_stmt_handle)   = 0;
+    virtual int16_t            rebind(std::int32_t a_stmt_handle) = 0;
+    virtual size_t             size() const                       = 0;
+    virtual size_t             occupied() const                   = 0;
+    virtual void               set_occupied(size_t v)             = 0;
+    virtual size_t*            occupied_addr()    = 0; // so that cli can write how many records are read
+    virtual constexpr BUF_TYPE bt()               = 0;
+    virtual span_str           attr_names() const = 0;
     // // parameter only
     virtual void*       s_vec()           = 0;
     virtual const void* s_vec() const     = 0;
@@ -381,14 +383,14 @@ namespace db
   class buffer_root : public buffer_root_root
   {
   public:
-    using attr_vec_t                    = std::vector<attr_root_root<arr_size>*>;
-    using s_vec_t                       = std::array<SQLUSMALLINT, arr_size>;
-    using s_vec_a                       = std::span<SQLUSMALLINT>;
-    constexpr buffer_root()             = default;
-    virtual ~buffer_root()              = default;
-    buffer_root(const buffer_root&)     = default;
-    buffer_root(buffer_root&&) noexcept = default;
-    buffer_root& operator=(const buffer_root&) = default;
+    using attr_vec_t                               = std::vector<attr_root_root<arr_size>*>;
+    using s_vec_t                                  = std::array<SQLUSMALLINT, arr_size>;
+    using s_vec_a                                  = std::span<SQLUSMALLINT>;
+    constexpr buffer_root()                        = default;
+    ~buffer_root()                                 = default;
+    buffer_root(const buffer_root&)                = default;
+    buffer_root(buffer_root&&) noexcept            = default;
+    buffer_root& operator=(const buffer_root&)     = default;
     buffer_root& operator=(buffer_root&&) noexcept = default;
     std::size_t  size() const override { return arr_size; }
     void*        s_vec() override { return s_vec_.data(); }
@@ -412,14 +414,15 @@ namespace db
       }
       r += "\n";
       r += "buffer values:\n";
-      auto cnt = 0;
-      auto names = attr_names();
+      auto cnt     = 0;
+      auto names   = attr_names();
       auto max_len = 0UL;
       // calc max column name length
-      for (const auto& el:names) if (max_len < el.size()) max_len = el.size(); 
+      for (const auto& el : names)
+        if (max_len < el.size()) max_len = el.size();
       for (const auto& el : attributes())
       {
-        const auto name = std::string(names[cnt]) + std::string(max_len-names[cnt].size(), ' ');
+        const auto name = std::string(names[cnt]) + std::string(max_len - names[cnt].size(), ' ');
         r += el->dump_all(name, occupied(), 0) + "\n";
         cnt++;
       }
@@ -483,7 +486,7 @@ namespace db
     size_t                    processed_{}; //!< number of parameters processed
   };
   ///////////////////////////////////////////////////////////////////////////////////////////
-  class utl
+  class utl // NOLINT cppcoreguidelines-virtual-class-destructor
   {
   public:
     using brr_t    = buffer_root_root;
@@ -493,10 +496,7 @@ namespace db
     : utl(c, sql, nullptr, nullptr) // no parameters or results
     { }
     utl(db::connection* c, cstr_t sql, brr_t* ptr) // parameter or result
-    : utl(c,
-          sql,
-          chk2(ptr, BUF_TYPE::par),
-          chk(ptr, "You must provide proper buffer object generated by dbgen3."))
+    : utl(c, sql, chk2(ptr, BUF_TYPE::par), chk(ptr, "You must provide proper buffer object generated by dbgen3."))
     { }
     utl(db::connection* c, cstr_t sql, brr_t* p_buf, brr_t* r_buf) // all provided
     : s_(c, sql)
@@ -508,7 +508,7 @@ namespace db
       if (ptr != nullptr)
       {
         if (ptr->bt() == BUF_TYPE::par) return ptr;
-        throw std::runtime_error(str_t(a_msg));
+        throw std::runtime_error(static_cast<str_t>(a_msg));
       }
       return nullptr;
     }
@@ -604,8 +604,7 @@ namespace db
       {
         auto dim = par_buf_->occupied();
         if (dim > 1) rc_ = s_.set_attr(SQL_ATTR_PARAMSET_SIZE, static_cast<int>(dim));
-        if (rc_ == SQL_SUCCESS)
-          rc_ = s_.SSA_ptr(SQL_ATTR_PARAMS_PROCESSED_PTR, &par_buf_->procesed());
+        if (rc_ == SQL_SUCCESS) rc_ = s_.SSA_ptr(SQL_ATTR_PARAMS_PROCESSED_PTR, &par_buf_->procesed());
         if (rc_ == SQL_SUCCESS) rc_ = s_.SSA_ptr(SQL_ATTR_PARAM_STATUS_PTR, par_buf_->s_vec());
       }
       return rc_;
@@ -622,8 +621,7 @@ namespace db
       {
         auto dim = res_buf_->size();
         if (dim > 1) { rc_ = s_.set_attr_l(SQL_ATTR_ROW_ARRAY_SIZE, dim); }
-        if (rc_ == SQL_SUCCESS)
-          rc_ = s_.SSA_ptr(SQL_ATTR_ROWS_FETCHED_PTR, res_buf_->occupied_addr());
+        if (rc_ == SQL_SUCCESS) rc_ = s_.SSA_ptr(SQL_ATTR_ROWS_FETCHED_PTR, res_buf_->occupied_addr());
       }
       return rc_;
     }

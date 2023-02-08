@@ -18,8 +18,8 @@
   - [2.2. more specific requirements for elemetns within the grammar e.g. regex for id](#22-more-specific-requirements-for-elemetns-within-the-grammar-eg-regex-for-id)
   - [2.3. option to change the parameter / result column names](#23-option-to-change-the-parameter--result-column-names)
   - [2.4. classes in hpp must be in the same order as in gsql](#24-classes-in-hpp-must-be-in-the-same-order-as-in-gsql)
-  - [2.5. trim_left -> canonical (left, strip empty leading/trailing lines)](#25-trim_left---canonical-left-strip-empty-leadingtrailing-lines)
-  - [2.6. dbgen3 --grammar -> left trim](#26-dbgen3---grammar---left-trim)
+  - [2.5. trim\_left -\> canonical (left, strip empty leading/trailing lines)](#25-trim_left---canonical-left-strip-empty-leadingtrailing-lines)
+  - [2.6. dbgen3 --grammar -\> left trim](#26-dbgen3---grammar---left-trim)
   - [2.7. naming of buffer classes query::{par|res|custom}](#27-naming-of-buffer-classes-queryparrescustom)
   - [2.8. get both buffers from the utl instance](#28-get-both-buffers-from-the-utl-instance)
   - [2.9. buf support for null values getters and setters](#29-buf-support-for-null-values-getters-and-setters)
@@ -39,6 +39,7 @@
       - [2.11.11.1. t1.hpp is generated everywhere](#211111-t1hpp-is-generated-everywhere)
       - [2.11.11.2. source libraries](#211112-source-libraries)
       - [2.11.11.3. direct dependency t1.gsql and t1.hpp](#211113-direct-dependency-t1gsql-and-t1hpp)
+
 # 1. Todo list
 
 ## 1.1. Tests
@@ -59,6 +60,7 @@
 ### 1.4.2. README
 
 # 2. Done
+
 ## 2.1. restructure the grammar
 ## 2.2. more specific requirements for elemetns within the grammar e.g. regex for id
 ## 2.3. option to change the parameter / result column names

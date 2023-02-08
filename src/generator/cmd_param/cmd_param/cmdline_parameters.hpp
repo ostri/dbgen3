@@ -1,7 +1,7 @@
 #ifndef CMDLINE_PARAMETERS_HPP
 #define CMDLINE_PARAMETERS_HPP
 
-//#include "magic_enum.hpp"
+// #include "magic_enum.hpp"
 
 #include "utility_classes/common.hpp"
 #include "utility_classes/enums.hpp"
@@ -19,10 +19,10 @@ namespace dbgen3
     cmdline_parameters(int    an_argc, //!< number of files to be processed
                        char** an_argv  //!< names of the files to be processed
     );
-    ~cmdline_parameters()                               = default;
-    cmdline_parameters(const cmdline_parameters& other) = default;
-    cmdline_parameters(cmdline_parameters&& other)      = default;
-    cmdline_parameters& operator=(const cmdline_parameters& o) = delete;
+    ~cmdline_parameters()                                       = default;
+    cmdline_parameters(const cmdline_parameters& other)         = default;
+    cmdline_parameters(cmdline_parameters&& other)              = default;
+    cmdline_parameters& operator=(const cmdline_parameters& o)  = delete;
     cmdline_parameters& operator=(const cmdline_parameters&& o) = delete;
     /// check whether the parameters are ok
     P_STS check_parameters() const;
@@ -58,6 +58,7 @@ namespace dbgen3
 
   inline VERBOSE cmdline_parameters::verbose(const std::string& val)
   {
+    // NOLINTNEXTLINE bugprone-unchecked-optional-access
     if (ME::enum_contains<VERBOSE>(val)) return ME::enum_cast<VERBOSE>(val).value();
     return VERBOSE::FALSE;
   }
@@ -67,6 +68,7 @@ namespace dbgen3
   ///@{
   inline PROG_LANG cmdline_parameters::lang_code(const std::string& token)
   {
+    // NOLINTNEXTLINE bugprone-unchecked-optional-access
     if (ME::enum_contains<PROG_LANG>(token)) return ME::enum_cast<PROG_LANG>(token).value();
     return PROG_LANG::invalid;
   }

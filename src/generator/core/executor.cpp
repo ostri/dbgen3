@@ -23,11 +23,20 @@
 namespace dbgen3
 {
   namespace fs = std::filesystem;
+  /**
+   * @brief Construct a new executor::executor object
+   *
+   * @param cmd_p
+   */
   executor::executor(cmdline_parameters cmd_p)
   : cmd_p_(std::move(cmd_p))
   {
     xercesc::XMLPlatformUtils::Initialize();
   }
+  /**
+   * @brief Destroy the executor::executor object
+   *
+   */
   executor::~executor()
   {
     if (hpp_file_.is_open()) hpp_file_.close();
@@ -85,7 +94,7 @@ namespace dbgen3
   x::Grammar* executor::load_grammar(x::XMLGrammarPool* gp)
   {
     x::Grammar*       gram = nullptr;
-    auto *  parser(create_parser(gp));
+    auto*             parser(create_parser(gp));
     dom_error_handler eh;
     parser->getDomConfig()->setParameter(x::XMLUni::fgDOMErrorHandler, &eh); // NOLINT
 
@@ -99,10 +108,10 @@ namespace dbgen3
     {
       auto fmt = PS::dscr(P_STS::inv_grammar_syntax);
       auto msg = fmt::format(fg(fmt::color::crimson), fmt.data(), eh.line(), eh.col(), eh.e_msg());
-      //std::cerr << msg << std::endl;
+      // std::cerr << msg << std::endl;
       throw dbgen3_exc(P_STS::inv_grammar_syntax, msg);
     }
-    parser->release();  //FIXME it leaks upon grammar error 
+    parser->release(); // FIXME it leaks upon grammar error
     gp->lockPool();
     return gram;
   }
