@@ -14,7 +14,7 @@ namespace dbgen3
    */
   str_vec split(cstr_t s, char delim)
   {
-    str_vec           r;
+    str_vec           r; // NOLINT cppcoreguidelines-init-variables
     std::stringstream ss(s.data());
     std::string       item;
     while (std::getline(ss, item, delim)) { r.push_back(item); }

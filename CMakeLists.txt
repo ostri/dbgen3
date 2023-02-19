@@ -59,6 +59,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # )
   # set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
 
+
   # Testing only available if this is the main app
   include(CTest)
 

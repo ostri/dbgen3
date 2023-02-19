@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stack>
 #include <vector>
+#include <string_view>
 
 #if defined(__clang__) || defined(__GNUC__)
 #  define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
@@ -60,26 +61,23 @@ namespace db
      * @param a_log      logging calback method (see errlog; if none provided it logs to the
      * std::cerr)
      */
-    explicit connection(cstr_t  a_database,
-                        cstr_t  a_user     = "",
-                        cstr_t  a_password = "",
-                        err_log a_log      = nullptr);
+    explicit connection(cstr_t a_database, cstr_t a_user = "", cstr_t a_password = "", err_log a_log = nullptr);
     virtual ~connection();                                //!< destructor
-    connection(const connection& o) = default;            //!< copy constructor
-    connection(connection&& o)      = default;            //!< move constructor
+    connection(const connection& o)            = default; //!< copy constructor
+    connection(connection&& o)                 = default; //!< move constructor
     connection& operator=(const connection& o) = default; //!< assigment operator
-    connection& operator=(connection&& o) = default;      //!< move assigment operator
+    connection& operator=(connection&& o)      = default; //!< move assigment operator
     //@}
     //-----------------------------------------------------------------------
     //! @name Getters
     //{@
-    static std::int32_t get_env();                         //!< get environment handle
-    std::int32_t        get_db_handle() const;             //!< get connection handle
-    err_log             get_log() const;                   //!< get log callback function
-    int alloc_stmt_handle() const;         //!< get statement handle
-    const std::string&  get_db_name() const;               //!< fetch database name
-    static bool         should_we_log();                   //!< is runtime logging switched on?
-    std::string dump(const std::string& a_msg = "") const; //!< serialize connection attributes
+    static std::int32_t get_env();                                 //!< get environment handle
+    std::int32_t        get_db_handle() const;                     //!< get connection handle
+    err_log             get_log() const;                           //!< get log callback function
+    int                 alloc_stmt_handle() const;                 //!< get statement handle
+    const std::string&  get_db_name() const;                       //!< fetch database name
+    static bool         should_we_log();                           //!< is runtime logging switched on?
+    std::string         dump(const std::string& a_msg = "") const; //!< serialize connection attributes
     //@}
     /// @name Setters
     //{@
@@ -108,7 +106,7 @@ namespace db
                               std::int16_t       a_handle_type,
                               const std::string& a_msg);
 
-    static int allocate_env_handle(); //!< allocate database environment handle
+    static int allocate_env_handle();                         //!< allocate database environment handle
     static int alloc_stmt_handle(int db_handle, err_log log); //!< get statement handle
 
     static void print_ctx( //!< display error context

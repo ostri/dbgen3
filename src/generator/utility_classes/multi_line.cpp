@@ -159,4 +159,5 @@ namespace dbgen3
     for (const auto& l : lines_) s += out::sl(l, offs);
     return s;
   }
+  const str_vec& multi_line::lines() const { return this->lines_; }
 }; // namespace dbgen3

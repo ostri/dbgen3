@@ -8,14 +8,18 @@ dbgen3 generates c++ classes to access sql compliant database.
 sql -> dbgen3 -> generated source code (c++ classes) to access the database
 
 ## Hello world
+
 Example describes how to:
+
 - define gsql file with target sql statements
 - connect to the database
 - insert a record to the table
 - read records from table
 
 ### SQL statements
+
 file: e1.gsql
+
 ```xml
 <q-set>
   <q>
@@ -32,6 +36,7 @@ file: e1.gsql
 ```
 
 ### c++ source code to work with the database
+
 ```c++
 #include <iostream>
 
@@ -60,7 +65,6 @@ int main()
 }
 ```
 
-
 ## top level architecture
 
 - aaaaa
@@ -69,7 +73,7 @@ int main()
 select * from
 ```
 
-```
+```C++
 int main()
 {
     return 0;

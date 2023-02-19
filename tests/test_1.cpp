@@ -4,7 +4,7 @@
  */
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
-//#include <cstdlib>
+// #include <cstdlib>
 #include <doctest/doctest.h>
 #include <iostream>
 
@@ -72,8 +72,8 @@ TEST_CASE("T1 - basic generator test") // NOLINT clang-tidy(cert-err58-cpp)
   qr.set_c8_varchar(str2, 1);
   auto date = DATE_STRUCT{2022, 1, 22}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   auto time = TIME_STRUCT{23, 59, 59};  // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-  auto ts   = TIMESTAMP_STRUCT{
-    2022, 1, 22, 23, 59, 59, 99999}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+  auto ts =
+    TIMESTAMP_STRUCT{2022, 1, 22, 23, 59, 59, 99999}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
   qr.set_c9_date(date);
   qr.set_c10_time(time);
   qr.set_c11_timestamp(ts);
@@ -122,15 +122,13 @@ TEST_CASE("full_cycle") // NOLINT
     UT::insert::utl<max_buf>    q(&c);
     auto*                       par       = q.par_buf();
     cstr_t                      dec_const = "-234567890123456789012345.67890";
-    auto                        bin_char =
-      std::array<uint8_t, 15>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}; // NOLINT
-    auto bin_varchar = std::array<uint8_t, 5>{0, 1, 2, 3, 4};                    // NOLINT
+    auto bin_char    = std::array<uint8_t, 15>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}; // NOLINT
+    auto bin_varchar = std::array<uint8_t, 5>{0, 1, 2, 3, 4};                                     // NOLINT
 
-    auto date =
-      DATE_STRUCT{2022, 1, 22};          // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-    auto time = TIME_STRUCT{23, 59, 59}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
-    auto ts   = TIMESTAMP_STRUCT{
-      2022, 1, 22, 23, 59, 59, 99999}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+    auto date = DATE_STRUCT{2022, 1, 22}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+    auto time = TIME_STRUCT{23, 59, 59};  // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
+    auto ts =
+      TIMESTAMP_STRUCT{2022, 1, 22, 23, 59, 59, 99999}; // NOLINT clang-tidy(cppcoreguidelines-avoid-magic-numbers)
     for (auto cnt = 0UL; cnt < par->size(); cnt++)
     {
       par->set_par_1(static_cast<int16_t>(cnt + 1), cnt); // NOLINT
@@ -277,7 +275,7 @@ TEST_CASE("insert and select") // NOLINT
     for (auto cnt = 0UL; cnt < par->size(); cnt++) { par->set_par_1("xx_" + std::to_string(cnt), cnt); }
     par->set_occupied(par->size());
     std::cerr << par->dump("insert buffer") << std::endl;
-    /*auto rc =*/ q.exec();
+    /*auto rc =*/q.exec();
     res->set_occupied(res->size());
     while (SQL_SUCCESS == q.fetch())
     {

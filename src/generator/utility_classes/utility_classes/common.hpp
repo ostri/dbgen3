@@ -80,8 +80,8 @@ namespace dbgen3
   inline std::string ctx_to_str(const str_vec& a_ctx) { return ctx_to_str(a_ctx, ""); }
   inline std::string ctx_to_str(const str_vec& a_ctx, cstr_t last)
   {
-    const str_vec prompts = {"q-set", "q"};
-    std::string   r;
+    const str_vec prompts = {"q-set", "q"}; // NOLINT cppcoreguidelines-init-variables
+    std::string   r{};
     for (auto cnt = 0UL; cnt < a_ctx.size(); ++cnt)
     {
       if (cnt < prompts.size()) r += fmt::format("/{}:{}", prompts[cnt], a_ctx[cnt]);

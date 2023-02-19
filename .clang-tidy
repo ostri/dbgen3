@@ -4,9 +4,8 @@ Checks: '*,
 -llvmlibc-implementation-in-namespace,
 -llvmlibc-callee-namespace,
 -llvm-header-guard,
--llvm-include-order
+-llvm-include-order,
 -modernize-use-trailing-return-type,
--modernize-use-nodiscard,
 -fuchsia-default-arguments-calls,
 -fuchsia-default-arguments-declarations,
 -fuchsia-overloaded-operator,
@@ -16,12 +15,19 @@ Checks: '*,
 -google-readability-braces-around-statements,
 -altera-id-dependent-backward-branch,
 -altera-unroll-loops,
--cppcoreguidelines-init-variables,
 -readability-identifier-length,
--readability-convert-member-functions-to-static
+-readability-convert-member-functions-to-static,
+-cppcoreguidelines-init-variables
 '
 WarningsAsErrors: '*'
 HeaderFilterRegex: '*.hpp'
 AnalyzeTemporaryDtors: false
 FormatStyle:     none
+ExtraArgsBefore: [
+  -I/home/db2inst1/sqllib/include,
+  -I/home/ostri/dbgen3/build/_deps/fmt-src/include,
+  -I/home/ostri/dbgen3/build/_deps/fmt-src/include/fmt,
+  -I/home/ostri/dbgen3/build,
+  -std=c++23"
+]
 ...
